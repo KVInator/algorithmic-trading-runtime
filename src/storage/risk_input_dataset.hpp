@@ -30,6 +30,8 @@ struct RiskInputInventory {
     std::vector<std::string> blockers;
     std::string issuer_reference_sha256;
     bool cash_distributions_reconciled{false};
+    // Excludes the immutable inventory's acquisition-time registration note.
+    bool required_evidence_complete{false};
 };
 
 // One writer. Separate from all frozen development inputs. Existing evidence

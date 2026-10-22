@@ -7,6 +7,7 @@
 #include "minute_bar_csv.hpp"
 #include "session_storage.hpp"
 #include "risk_input_dataset.hpp"
+#include "daily_risk_rules.hpp"
 #include "utc_timestamp.hpp"
 
 #include <algorithm>
@@ -93,6 +94,10 @@ RiskPreflight::RiskPreflight(std::filesystem::path root) : project_root_{std::mo
 RiskPreflightResult RiskPreflight::run(const DevelopmentStudyDataset::Progress& progress) const {
     auto dataset = DevelopmentStudyDataset{project_root_}.load(progress);
     RiskPreflightResult result;
+    const auto protocol_md = project_root_ / "research/daily_risk_protocol.md";
+    const auto protocol_json = project_root_ / "research/daily_risk_protocol.json";
+    result.protocol_registered = std::filesystem::exists(protocol_md) && std::filesystem::exists(protocol_json) &&
+        sha256_file(protocol_md) + ":" + sha256_file(protocol_json) == risk_rules::protocol_identity;
     result.input_manifest_sha256 = dataset.manifest_sha256;
     if (progress) { progress("Auditing all exchange sessions and required raw-price endpoints"); }
     std::vector<CalendarSession> calendar;
@@ -147,18 +152,26 @@ RiskPreflightResult RiskPreflight::run(const DevelopmentStudyDataset::Progress& 
         return !x.rv5_endpoints_complete;
     });
     if (missing_references != 0) { result.blockers.push_back(std::to_string(missing_references) + " sessions lack required account price references."); }
-    if (missing_risk != 0) { result.blockers.push_back(std::to_string(missing_risk) + " sessions lack required five-minute risk endpoints; a missing-data policy is unresolved."); }
+    if (missing_risk != 0) {
+        result.blockers.push_back(std::to_string(missing_risk) + (result.protocol_registered ?
+            " sessions lack five-minute risk endpoints; the registered study must apply its daily-only fallback." :
+            " sessions lack required five-minute risk endpoints; a missing-data policy is unresolved."));
+    }
     if (!calibration_complete) {
         result.blockers.push_back("Full 2021 daily calibration and leading 20-session intraday history are not part of the verified input contract.");
     }
     if (!dividends_reconciled) {
         result.blockers.push_back("Raw-price dividend/split/distribution ledger, ex/pay dates and independent distribution totals are not reconciled.");
-    } else {
+    } else if (!result.protocol_registered) {
         result.blockers.push_back("Cash dividends reconcile to the issuer reference; the historical action-event ledger and same-date ordering remain unregistered.");
     }
-    result.blockers.push_back("The candidate protocol, missing-risk policy and same-date action ordering must be registered before scoring.");
+    result.blockers.push_back(result.protocol_registered ?
+        "This input audit does not score accounts; risk_development verifies registered identities and applies the protocol." :
+        "The candidate protocol, missing-risk policy and same-date action ordering must be registered before scoring.");
     if (progress) { progress("Checking synthetic account, dividend, payment and split identities"); }
     result.accounting = demonstrate_long_cash_account();
+    result.calendar = std::move(calendar);
+    result.sessions = std::move(dataset.sessions);
     return result;
 }
 

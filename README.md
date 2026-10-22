@@ -1,6 +1,6 @@
 # Algorithmic Trading Runtime
 
-C++20 historical market-data ingestion and intraday strategy research on SPY.
+C++20 historical market-data ingestion, intraday strategy research and daily-risk allocation on SPY.
 The implemented workflow acquires Alpaca SIP minute bars, preserves the original
 responses, verifies saved inputs and evaluates fixed intraday trading rules
 with delayed price references, explicit costs and block-bootstrap uncertainty.
@@ -53,7 +53,7 @@ are treated as errors.
 1. Open the project folder with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for fourteen routine groups.
+4. Select **Test > Run Test Preset > windows-debug** for sixteen routine groups.
 5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
 6. Open the printed `trace.html` path for the price/volume plots and paired
    decision table. `decisions.csv` retains unrounded features and UTC clocks.
@@ -69,9 +69,9 @@ checks the new long/cash account against constructed dividend, payment and split
 identities. On Windows it also makes three bounded read-only corporate-action
 access requests using the existing credential store. It writes an HTML coverage
 chart, accounting tables, CSV evidence and a hashed JSON manifest. Open the
-printed `report.html` path. `blocked_before_registration` is an expected outcome:
-additional history, distribution reconciliation and missing-risk rules remain
-prerequisites. This target does not score a new strategy or alter frozen inputs.
+printed `report.html` path. The current protocol is registered separately;
+`input_audit_only` identifies this target's coverage/accounting scope. Missing
+references remain explicit. This target does not score a strategy or alter inputs.
 
 For the [bounded risk-input acquisition](research/daily_risk_preflight.md#bounded-input-acquisition),
 select **risk_acquire.exe** and **Ctrl+F5**. It acquires the additional calibration
@@ -80,6 +80,42 @@ actions through the early-2024 processing boundary and compares cash dividends
 with the retained issuer reference. Completed evidence is verified and reused on
 restart. Open the printed `report.html`; input gaps and unresolved conventions
 remain explicit. This target does not request 2024–2025 prices or strategy returns.
+
+For the [registered daily-risk experiment](research/daily_risk_protocol.md),
+select **risk_development.exe** and **Ctrl+F5** after the routine tests pass.
+The completed `risk_acquire` dataset and existing frozen development snapshot
+are required; acquisition does not need repeating. This offline target verifies
+the registered protocol, acquisition and issuer identities before calculating
+forecasts. The retained 2023-01-03 diagnostic bars must also match the completed
+coverage audit. It evaluates all 501 exchange sessions, preserving the known
+June 2023 gap through the registered daily-only fallback. Local 2024–2025 prices
+and results remain unopened.
+
+The four accounts are intraday risk, daily-only risk, a fixed 2021-calibrated risk
+budget and passive equity. Each has five cost cases and two execution delays.
+The shared account core handles ex-date claims, actual payment dates,
+post-cost liquid targets and terminal liquidation. The runner reports its
+registered screens, rather than treating successful execution as advancement.
+The immutable acquisition inventory retains its original registration-time note;
+the registered study separately verifies that required evidence is complete.
+
+Each `scratch/runs/SPY_RISK_01_development_2022-2023_*` directory contains:
+
+| File | Evidence |
+| --- | --- |
+| `report.html` | Equity, drawdown, exposure, annual comparisons, forty cost/delay cases, forecast losses, uncertainty and gates |
+| `measurements.csv` | 2021 calibration and development daily2, RV1, RV5 and RV15, with missing partitions blank |
+| `features.csv` | Prior twenty-session histories, availability, fallback, targets and execution-aligned future labels |
+| `daily_accounts.csv` | Forty complete paths, overnight/intraday attribution, fees, turnover, cash and receivables |
+| `account_ledger.csv` | Chronological marks, corporate-action events, morning rebalances and terminal sales |
+| `summary.json` | All-date/year statistics, paired block intervals, omissions, gates, source/build and input/artifact identities |
+
+An independent standard-library arithmetic reference can check a generated run:
+`python research/verify_daily_risk_report.py <report-directory>`. It checks the
+exports' identities, lagged estimates, masks, CER, drawdown, tails, exposure and
+costs. The synthetic contracts exercise a full calendar but do not establish a
+historical investment result. Historical candidate scoring must run against the
+retained acquisition evidence; no historical score is committed with the engine.
 
 For the historical continuation study, select **continuation_development.exe**
 and **Ctrl+F5** after the routine tests pass. This offline target verifies the
@@ -116,10 +152,10 @@ later-period evaluation. `summary.json` schema version 2 retains the diagnostic
 statistics and the hashes of all eight report artifacts.
 
 The [strategy candidate comparison](research/strategy_candidates.md) evaluates
-opening-range continuation and daily exposure informed by intraday risk. These
-are uncomputed proposals. The daily-risk data and account-feasibility preflight
-is implemented. Resolving its input blockers and registering the protocol remain
-prerequisites for performance evaluation.
+opening-range continuation and daily exposure informed by intraday risk. The
+daily-risk candidate is now registered in revision 1 and implemented by
+`risk_development`; its historical outcome remains uncomputed at engine
+publication. The opening-range alternative remains a proposal.
 
 The existing baseline is run through **development_finalize.exe** followed by
 **development_replay.exe**, each with **Ctrl+F5**, when offline evidence
@@ -132,7 +168,7 @@ The regular preset excludes this test. These two test presets explicitly select 
 For optimized offline runs, select build preset **windows-release**, rebuild,
 then run the targets from `scratch/build/Release/` through the Visual Studio
 startup-item selector. The matching **windows-release** test preset runs the
-fourteen routine groups in Release. Domain and artifact validation remain enabled.
+sixteen routine groups in Release. Domain and artifact validation remain enabled.
 
 Finalization and replay are offline. Their paths are anchored to the source
 folder, independently of the IDE working directory. Repeated finalization

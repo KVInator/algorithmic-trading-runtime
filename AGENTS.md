@@ -43,7 +43,7 @@ Windows uses the existing Visual Studio `windows-x64` configure preset and
 full-period integration test. `continuation_diagnostic` runs offline and writes
 HTML/CSV under `scratch/runs/`. `continuation_development` verifies the frozen
 snapshot and generates the paired historical study with HTML/SVG, CSV and JSON.
-The routine presets run fourteen contract groups; full-period disk integration stays
+The routine presets run sixteen contract groups; full-period disk integration stays
 optional.
 
 `risk_preflight` audits the full 2022-2023 exchange calendar and synthetic
@@ -56,6 +56,12 @@ authorize scoring or later-period access; the registered protocol governs the st
 twenty full warm-up sessions and three shortened-session supplements. Corporate-
 action process dates extend through March 2024 solely for earlier entitlements.
 Its issuer reference and acquisition inventory do not authorize strategy scoring.
+
+`risk_development` is the offline SPY-RISK-01 experiment. It verifies registered
+identities before measurement and retains every development account date. Its
+routine contracts use explicitly synthetic full-calendar fixtures; successful
+contracts do not establish historical scores. Run the historical entry point on
+the machine retaining the completed isolated acquisition dataset.
 
 On Linux, use `cmake --preset linux-debug`, `cmake --build --preset linux-debug`
 and `ctest --preset linux-debug`. Keep warnings as errors. For a targeted change,

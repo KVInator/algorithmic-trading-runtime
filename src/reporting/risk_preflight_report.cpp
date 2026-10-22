@@ -47,7 +47,7 @@ std::filesystem::path save_risk_preflight_report(const RiskPreflightResult& resu
     }
     const auto directory = create_unique_directory(output_root, "SPY_RISK_01_preflight");
     Json summary{{"schema_version", 1}, {"kind", "data_and_synthetic_accounting_preflight"},
-                 {"strategy_scored", false}, {"status", "blocked_before_registration"},
+                 {"strategy_scored", false}, {"status", result.protocol_registered ? "input_audit_only" : "blocked_before_registration"},
                  {"input_manifest_sha256", result.input_manifest_sha256},
                  {"supplemental_manifest_sha256", result.supplemental_manifest_sha256},
                  {"blockers", result.blockers}, {"corporate_action_access", access_status},
@@ -100,7 +100,7 @@ std::filesystem::path save_risk_preflight_report(const RiskPreflightResult& resu
 <title>SPY-RISK-01 | Data and accounting preflight</title><style>
 :root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#edf1f5;color:#17283c;font:16px/1.55 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:44px 28px}h1{font-size:34px;line-height:1.2;margin:10px 0}h2{margin:36px 0 12px;font-size:23px}p{max-width:90ch}.eyebrow{color:#376282;font-size:13px;letter-spacing:.1em;text-transform:uppercase}.status{display:inline-block;padding:5px 12px;background:#fff0d1;color:#77460d;border-radius:5px;font-weight:650}.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}.tile,section{background:white;border:1px solid #d5dee7;border-radius:8px;padding:20px}.tile strong{font-size:30px;display:block}.tile span,.note{color:#50657a;font-size:14px}section{margin:18px 0}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:#37546d;background:#f2f6f9}th,td{padding:10px 12px;border-bottom:1px solid #e0e7ee}td.num{text-align:right;font-variant-numeric:tabular-nums}.mono{font-family:ui-monospace,monospace;overflow-wrap:anywhere}svg{width:100%;min-width:650px;height:auto}ul{padding-left:22px}a{color:#205c91}@media(max-width:700px){.tiles{grid-template-columns:repeat(2,1fr)}main{padding:24px 16px}h1{font-size:28px}}</style></head><body><main>
 <div class="eyebrow">SPY-RISK-01 / feasibility checkpoint</div><h1>Data coverage and overnight accounting</h1>
-<p class="status">Blocked before registration</p><p>Observed input coverage and constructed account identities. No strategy, risk forecast or historical account performance is calculated.</p><div class="tiles">
+<p class="status">Input and synthetic-accounting audit</p><p>Observed input coverage and constructed account identities. No strategy, risk forecast or historical account performance is calculated.</p><div class="tiles">
 )";
     const auto total = std::to_string(result.coverage.size());
     for (const auto& [value, label] : std::vector<std::pair<std::string, std::string>>{

@@ -186,3 +186,12 @@ The generated report includes `price_inputs.csv`, `cash_distributions.csv`,
 `blocked_before_registration`. The original June gap, the missing-risk policy,
 action-event ordering and strategy protocol remain separate prerequisites. No
 candidate forecast, target allocation or performance score is calculated here.
+
+## Registered experiment
+
+Revision 1 is defined in [daily_risk_protocol.md](daily_risk_protocol.md) and its
+JSON settings. The offline `risk_development` entry point now implements the
+registered lagged estimates and four comparison accounts. Acquisition inventories
+remain immutable evidence of their original pre-registration checkpoint. Current
+study eligibility and fallback follow the registered runner, rather than the
+inventory's earlier unresolved-convention note.

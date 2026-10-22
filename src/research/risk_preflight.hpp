@@ -44,6 +44,10 @@ struct RiskPreflightResult {
     AccountingDemonstration accounting;
     std::vector<std::string> blockers;
     std::string supplemental_manifest_sha256;
+    bool protocol_registered{false};
+    // Verified inputs are retained for the registered study adapter.
+    std::vector<CalendarSession> calendar;
+    std::vector<SessionDownload> sessions;
 };
 
 class RiskPreflight {

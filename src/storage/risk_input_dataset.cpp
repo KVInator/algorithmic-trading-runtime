@@ -191,6 +191,7 @@ RiskInputInventory RiskInputDataset::inspect(bool acquire, const SessionBatch::C
         result.cash_distributions_reconciled = differences.empty();
         result.issuer_reference_sha256 = sha256_file(issuer_reference_);
     }
+    result.required_evidence_complete = result.blockers.empty();
     result.blockers.push_back("The 2023-06-05 RV5 gap and the missing-risk policy remain unresolved; no strategy is registered or scored.");
     Json evidence = Json::array();
     for (const auto& [file, digest] : result.evidence_hashes) { evidence.push_back({{"file", file}, {"sha256", digest}}); }

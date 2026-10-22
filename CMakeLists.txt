@@ -97,6 +97,11 @@ target_include_directories(risk_preflight_core PUBLIC "${CMAKE_CURRENT_SOURCE_DI
 target_link_libraries(risk_preflight_core PUBLIC accounting session_data risk_inputs PRIVATE nlohmann_json::nlohmann_json)
 configure_trading_target(risk_preflight_core)
 
+add_library(daily_risk_research
+    src/research/daily_risk_dataset.cpp src/research/daily_risk_study.cpp src/research/risk_measurement.cpp)
+target_link_libraries(daily_risk_research PUBLIC risk_preflight_core momentum_research)
+configure_trading_target(daily_risk_research)
+
 # Actual source-file bytes and build identity accompany every generated study.
 file(GLOB_RECURSE study_sources CONFIGURE_DEPENDS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "src/*.cpp" "src/*.hpp" "apps/*.cpp" "apps/*.hpp" "research/*")
@@ -128,6 +133,15 @@ target_compile_definitions(risk_preflight_reporting PRIVATE
     TRADING_BUILD_CONFIGURATION="$<CONFIG>")
 configure_trading_target(risk_preflight_reporting)
 
+add_library(daily_risk_reporting src/reporting/daily_risk_report.cpp)
+target_include_directories(daily_risk_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
+target_link_libraries(daily_risk_reporting PUBLIC daily_risk_research PRIVATE nlohmann_json::nlohmann_json)
+target_compile_definitions(daily_risk_reporting PRIVATE
+    TRADING_SOURCE_SHA256="${source_sha256}"
+    TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
+    TRADING_BUILD_CONFIGURATION="$<CONFIG>")
+configure_trading_target(daily_risk_reporting)
+
 function(add_trading_app target library)
     add_executable(${target} apps/${target}.cpp)
     target_link_libraries(${target} PRIVATE ${library})
@@ -140,6 +154,7 @@ add_trading_app(continuation_diagnostic momentum_research)
 add_trading_app(continuation_development continuation_reporting)
 add_trading_app(risk_preflight risk_preflight_reporting)
 add_trading_app(risk_acquire risk_preflight_reporting)
+add_trading_app(risk_development daily_risk_reporting)
 target_sources(continuation_diagnostic PRIVATE src/reporting/continuation_diagnostic_report.cpp)
 target_include_directories(continuation_diagnostic PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 
@@ -197,6 +212,8 @@ if(BUILD_TESTING)
     add_trading_contract(long_cash_account_tests long_cash_account_contracts "accounting;momentum_research")
     add_trading_contract(risk_preflight_tests risk_preflight_contracts "risk_preflight_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(risk_input_tests risk_input_contracts "risk_preflight_reporting;nlohmann_json::nlohmann_json" OUTPUT)
+    add_trading_contract(risk_measurement_tests risk_measurement_contracts daily_risk_research)
+    add_trading_contract(daily_risk_study_tests daily_risk_study_contracts "daily_risk_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_test(NAME development_full_period_integration COMMAND development_dataset_tests
         "${CMAKE_CURRENT_BINARY_DIR}/development-full-test-output" --full)
     set_tests_properties(development_full_period_integration PROPERTIES LABELS integration)

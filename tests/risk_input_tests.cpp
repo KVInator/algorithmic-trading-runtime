@@ -120,7 +120,7 @@ void test_collection(const std::filesystem::path& root) {
     require(requests == 320 && result.prices.size() == 256, "interrupted acquisition resumes without repeating completed price windows");
     require(result.actions.distributions().size() == 12 && result.cash_distributions_reconciled, "all action pages and the process-date tail are retained");
     const auto gap = std::find_if(result.prices.begin(), result.prices.end(), [](const auto& row) { return row.input.date == "2021-12-03"; });
-    require(gap->observed_minutes == 389 && std::any_of(result.blockers.begin(), result.blockers.end(), [](const auto& text) {
+    require(!result.required_evidence_complete && gap->observed_minutes == 389 && std::any_of(result.blockers.begin(), result.blockers.end(), [](const auto& text) {
         return text.find("Incomplete warmup_full on 2021-12-03") != std::string::npos;
     }), "a calibration gap remains explicit and cannot be treated as a zero return");
     const auto again = dataset.collect([](const auto&) -> trading::MarketDataResponse { throw std::runtime_error("unexpected calendar request"); },

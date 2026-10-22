@@ -37,7 +37,7 @@ int main() {
         const auto directory = trading::save_risk_preflight_report(result, probes, access, root / "scratch/runs");
         std::cout << "Calendar sessions: " << result.coverage.size() << '\n'
                   << "Constructed accounting identities passed: " << result.accounting.checks.size() << '\n'
-                  << "Study status: blocked_before_registration\n"
+                  << "Study status: " << (result.protocol_registered ? "input_audit_only" : "blocked_before_registration") << '\n'
                   << "Visual report: " << (directory / "report.html").string() << '\n'
                   << "Manifest: " << (directory / "summary.json").string() << '\n'
                   << "Audit completed; no strategy was scored and frozen inputs were not modified.\n";
