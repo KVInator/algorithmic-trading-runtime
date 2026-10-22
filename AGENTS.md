@@ -58,3 +58,14 @@ under the ignored `scratch/` directory. `.vs/` and `CMakeUserPresets.json` remai
 local. Preserve expensive data and results during cleanup. Stage explicit source
 paths; never include credentials, data archives or generated build trees in a
 source commit. Respect the established remote and task-branch workflow.
+
+## Authorized publication workflow
+
+Standing project authorization covers focused source/documentation commits,
+normal non-force pushes to `KVInator/algorithmic-trading-runtime`, and updates to
+the corresponding pull request. Continue on `research/continuation-study` for
+the current milestone. Complete verification and publish eligible work without
+requesting renewed approval for those operations. This authorization does not
+extend to merges, releases, live orders, repository visibility changes, force
+pushes or publication of credentials and local datasets. Platform approval
+controls remain applicable.

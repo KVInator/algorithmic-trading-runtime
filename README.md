@@ -109,9 +109,9 @@ statistics and the hashes of all eight report artifacts.
 
 The [strategy candidate comparison](research/strategy_candidates.md) evaluates
 opening-range continuation and daily exposure informed by intraday risk. These
-are uncomputed proposals. The recommended next milestone is a full-calendar
-data and account-feasibility preflight for the daily risk proposal, followed by
-protocol registration before performance evaluation.
+are uncomputed proposals. The daily-risk data and account-feasibility preflight
+is implemented. Resolving its input blockers and registering the protocol remain
+prerequisites for performance evaluation.
 
 The existing baseline is run through **development_finalize.exe** followed by
 **development_replay.exe**, each with **Ctrl+F5**, when offline evidence
@@ -124,7 +124,7 @@ The regular preset excludes this test. These two test presets explicitly select 
 For optimized offline runs, select build preset **windows-release**, rebuild,
 then run the targets from `scratch/build/Release/` through the Visual Studio
 startup-item selector. The matching **windows-release** test preset runs the
-eleven routine groups in Release. Domain and artifact validation remain enabled.
+thirteen routine groups in Release. Domain and artifact validation remain enabled.
 
 Finalization and replay are offline. Their paths are anchored to the source
 folder, independently of the IDE working directory. Repeated finalization
