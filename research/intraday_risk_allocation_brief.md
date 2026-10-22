@@ -1,9 +1,9 @@
 # Daily exposure informed by intraday risk
 
-Candidate: `SPY-RISK-01`. Status: proposed research design, subject to data and
-accounting feasibility. No candidate returns or forecast scores have been
-computed. The [candidate comparison](strategy_candidates.md) records the
-research decision and inspected sources.
+Candidate: `SPY-RISK-01`. The [registered protocol](daily_risk_protocol.md)
+and its JSON settings govern revision 1. This brief retains the earlier proposed
+design and literature motivation; the registration resolves its missing-data,
+measurement and accounting choices before candidate scoring.
 
 ## Economic question
 

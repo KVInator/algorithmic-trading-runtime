@@ -27,6 +27,11 @@ published commit history; improve wording in subsequent work.
   twenty warm-up sessions and 476 scored paired records.
 - Synthetic diagnostic traces are not historical strategy results. No new
   historical score or profitable-strategy claim follows from passing contracts.
+- `research/daily_risk_protocol.md` and its JSON register SPY-RISK-01 revision 1.
+  Verify the three registered input identities before any historical score.
+  Preserve all dates, log daily-only fallback for incomplete RV5 histories, and
+  use the full date sequence for paired uncertainty. Revisions must precede
+  scoring of changed rules.
 - The frozen 2022-2023 development sample and unopened local 2024-2025 candidate
   results have different roles. Record external-literature exposure as specified
   in the protocol. Do not access later performance casually during a code fix.
@@ -44,8 +49,8 @@ optional.
 `risk_preflight` audits the full 2022-2023 exchange calendar and synthetic
 long/cash accounting. Its Windows corporate-action requests are access probes,
 not a reconciled ledger. Preserve the distinction between observed coverage,
-constructed account traces and strategy results. SPY-RISK-01 remains a proposal;
-its preflight does not authorize scoring or later-period access.
+constructed account traces and strategy results. Its preflight does not itself
+authorize scoring or later-period access; the registered protocol governs the study.
 
 `risk_acquire` collects the isolated 2020 closing boundary, 2021 calibration,
 twenty full warm-up sessions and three shortened-session supplements. Corporate-
