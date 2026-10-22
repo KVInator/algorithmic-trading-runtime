@@ -2,7 +2,7 @@
 
 C++20 historical market-data ingestion and intraday strategy research on SPY.
 The implemented workflow acquires Alpaca SIP minute bars, preserves the original
-responses, verifies saved inputs and evaluates one fixed intraday momentum rule
+responses, verifies saved inputs and evaluates fixed intraday trading rules
 with delayed price references, explicit costs and block-bootstrap uncertainty.
 
 The baseline research design and continuation gates are defined in the
@@ -11,11 +11,14 @@ The baseline research design and continuation gates are defined in the
 revision-2 data exclusion. No validation or final-period strategy evaluation is
 implemented in the current workflow.
 
-The next candidate is [SPY-TOD-01](research/intraday_continuation_protocol.md):
+The continuation candidate is [SPY-TOD-01](research/intraday_continuation_protocol.md):
 time-of-day continuation with an explicit price-only versus volume-conditioned
 comparison. Its 20-session causal feature history, half-hour state machine and
-delayed replay are implemented and covered by synthetic contracts. Historical
-aggregate scoring and its paired statistical report are the next milestone.
+delayed replay feed a paired historical study with twenty fixed cost/delay cases,
+annual returns, exposure and turnover, winner concentration, daily-close drawdown
+and shared-session moving-block uncertainty. Results are generated as HTML/SVG,
+CSV and JSON; the primary volume-conditioned variant retains a separate
+incremental-information comparison with price-only.
 
 ## Project layout
 
@@ -27,7 +30,7 @@ aggregate scoring and its paired statistical report are the next milestone.
 | `src/alpaca/` | Request, response, JSON and rate-limit contracts |
 | `src/storage/` | Raw evidence, checkpoints, integrity and dataset finalization |
 | `src/research/` | Signal/replay, return statistics and moving-block bootstrap |
-| `src/reporting/` | HTML/SVG and CSV presentation of the synthetic continuation trace |
+| `src/reporting/` | HTML/SVG study reports, daily/trade/feature tables and synthetic traces |
 | `src/platform/` | Windows HTTP/credential access and platform SHA-256 backends |
 | `tests/` | Synthetic contract fixtures and optional full-period integration |
 | `research/` | Economic protocol and declared data policy |
@@ -49,7 +52,7 @@ are treated as errors.
 1. Open the project folder with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for nine routine groups.
+4. Select **Test > Run Test Preset > windows-debug** for ten routine groups.
 5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
 6. Open the printed `trace.html` path for the price/volume plots and paired
    decision table. `decisions.csv` retains unrounded features and UTC clocks.
@@ -57,6 +60,29 @@ are treated as errors.
 The diagnostic uses constructed observations, requires no API credentials and
 does not score historical strategy performance. Its chart compares the signal
 with the same-clock historical scale and shows the volume entry condition.
+
+For the historical continuation study, select **continuation_development.exe**
+and **Ctrl+F5** after the routine tests pass. This offline target verifies the
+existing frozen snapshot and replays 476 scored sessions after twenty warm-up
+sessions. No data acquisition or finalization rerun is required when that
+snapshot is already present. Progress covers verification, replay and both
+10,000-resample bootstraps. Open the printed `report.html` path in a browser.
+
+Each new `scratch/runs/SPY_TOD_01_development_2022-2023_*` directory contains:
+
+| File | Evidence |
+| --- | --- |
+| `report.html` | Equity, daily-close drawdown, cost/delay curves, annual tables, clock groups, uncertainty and gates |
+| `daily_returns.csv` | All scored dates and twenty cases, including cash days, exposure and turnover |
+| `features.csv` | Prior-history identities, completed features, paired actions and both delayed forward windows |
+| `trades.csv` | Completed strategy round trips with decisions, reference clocks/prices and costs |
+| `summary.json` | Full statistics, bootstrap configuration, screens, input/feature/source hashes and build identity |
+
+The first twenty eligible sessions are never counted as zero-return days. Both
+variants and the always-long control use the same scored dates. Bootstrap indices
+resample their complete paired session records; missing diagnostic groups remain
+explicitly undefined. Source artifacts, raw pages and the frozen study manifest
+are read-only. This target does not access 2024-2025 data or submit orders.
 
 The existing baseline is run through **development_finalize.exe** followed by
 **development_replay.exe**, each with **Ctrl+F5**, when offline evidence
@@ -69,7 +95,7 @@ The regular preset excludes this test. These two test presets explicitly select 
 For optimized offline runs, select build preset **windows-release**, rebuild,
 then run the targets from `scratch/build/Release/` through the Visual Studio
 startup-item selector. The matching **windows-release** test preset runs the
-nine routine groups in Release. Domain and artifact validation remain enabled.
+ten routine groups in Release. Domain and artifact validation remain enabled.
 
 Finalization and replay are offline. Their paths are anchored to the source
 folder, independently of the IDE working directory. Repeated finalization
@@ -164,8 +190,9 @@ research specifications. Raw responses, local reports, credentials and generated
 build state remain outside source control. The existing baseline and new
 candidate have separate protocols and reviewable milestones.
 
-Visual Studio's **Git > Create Git Repository** can initialize the current folder
-and publish it to a selected GitHub repository. Preserve the repository-owned
-ignore file. Use a private repository during research and retain the existing
-local data directory. Subsequent work can use branches, reviewed commits and
-normal pulls instead of replacing the project folder.
+Development changes use task branches in the established GitHub repository.
+Visual Studio's **Git > Fetch** retrieves branch updates; checking out the
+corresponding remote branch creates a local tracking branch. Subsequent updates
+use **Git > Pull** on that branch. The existing local data directory remains in
+place. Native MSVC builds and the routine test preset verify each milestone
+before integration into the default branch.

@@ -13,7 +13,8 @@ signal or financial calculations in presentation code.
   Preserve their bytes and all retained acquisition evidence.
 - `research/intraday_continuation_protocol.md` specifies SPY-TOD-01. Changes to
   its signal, data eligibility, costs or gates require a declared revision before
-  scoring. Its current milestone is deterministic engine verification.
+  scoring. Historical development uses the verified 496-session snapshot,
+  twenty warm-up sessions and 476 scored paired records.
 - Synthetic diagnostic traces are not historical strategy results. No new
   historical score or profitable-strategy claim follows from passing contracts.
 - The frozen 2022-2023 development sample and unopened local 2024-2025 candidate
@@ -25,7 +26,10 @@ signal or financial calculations in presentation code.
 Windows uses the existing Visual Studio `windows-x64` configure preset and
 `windows-debug` build/test presets. The routine test preset excludes the labelled
 full-period integration test. `continuation_diagnostic` runs offline and writes
-HTML/CSV under `scratch/runs/`.
+HTML/CSV under `scratch/runs/`. `continuation_development` verifies the frozen
+snapshot and generates the paired historical study with HTML/SVG, CSV and JSON.
+The routine presets run ten contract groups; full-period disk integration stays
+optional.
 
 On Linux, use `cmake --preset linux-debug`, `cmake --build --preset linux-debug`
 and `ctest --preset linux-debug`. Keep warnings as errors. For a targeted change,
