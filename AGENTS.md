@@ -38,7 +38,7 @@ Windows uses the existing Visual Studio `windows-x64` configure preset and
 full-period integration test. `continuation_diagnostic` runs offline and writes
 HTML/CSV under `scratch/runs/`. `continuation_development` verifies the frozen
 snapshot and generates the paired historical study with HTML/SVG, CSV and JSON.
-The routine presets run ten contract groups; full-period disk integration stays
+The routine presets run eleven contract groups; full-period disk integration stays
 optional.
 
 On Linux, use `cmake --preset linux-debug`, `cmake --build --preset linux-debug`

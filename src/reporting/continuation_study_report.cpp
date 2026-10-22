@@ -176,6 +176,157 @@ std::string gate_table(const ContinuationAssessment& assessment) {
     return result + "</tbody></table>";
 }
 
+Json diagnostic_periods_json(std::span<const PairedDiagnosticPeriod> periods) {
+    Json rows = Json::array();
+    for (const auto& p : periods) {
+        rows.push_back({{"label", p.label}, {"sessions", p.sessions}, {"active_days", p.active_days},
+            {"price_gross", series_json(p.gross[0])}, {"volume_gross", series_json(p.gross[1])},
+            {"price_net", series_json(p.net[0])}, {"volume_net", series_json(p.net[1])},
+            {"paired_net_mean", p.paired_net_mean}, {"paired_gross_mean", p.paired_gross_mean}, {"cash_dates", p.cash_dates}});
+    }
+    return rows;
+}
+
+Json diagnostics_json(const ContinuationDiagnosticsResult& d) {
+    Json matches = Json::array(), clocks = Json::array();
+    for (const auto& row : d.attribution) {
+        matches.push_back({{"match", exposure_match_name(row.match)}, {"price_trades", row.price_trades},
+            {"removed_positive_segments", row.removed_positive_segments}, {"removed_negative_segments", row.removed_negative_segments},
+            {"gross_log_increment", row.gross_log_increment}, {"saved_cost_log_drag", row.saved_cost_log_drag}, {"net_log_increment", row.net_log_increment}});
+    }
+    for (std::size_t clock = 0; clock < d.covariates.size(); ++clock) {
+        for (std::size_t volume = 0; volume < 2; ++volume) {
+            const auto& g = d.covariates[clock][volume];
+            clocks.push_back({{"elapsed_minute", 30 * (clock + 1)}, {"high_volume", volume == 0}, {"count", g.count},
+                {"normalized_count", g.normalized_count}, {"move_sum", g.move_sum}, {"normalized_move_sum", g.normalized_move_sum},
+                {"realized_volatility_sum", g.realized_volatility_sum}, {"forward_gross_sum", g.forward_gross_sum}});
+        }
+    }
+    Json entries = Json::array();
+    for (std::size_t v = 0; v < 2; ++v) {
+        const auto& e = d.entry_summaries[v];
+        entries.push_back({{"variant", v == 0 ? "price_only" : "volume_conditioned"}, {"count", e.count},
+            {"mean_signed_gap", e.count ? Json(e.mean_signed_gap) : Json(nullptr)},
+            {"mean_absolute_gap", e.count ? Json(e.mean_absolute_gap) : Json(nullptr)},
+            {"mean_entry_minute_range", e.count ? Json(e.mean_entry_minute_range) : Json(nullptr)},
+            {"mean_entry_minute_volume", e.count ? Json(e.mean_entry_minute_volume) : Json(nullptr)}});
+    }
+    return {{"purpose", "post-result descriptive development diagnostics; no revised gates"},
+        {"gross_log_increment", d.gross_log_increment}, {"saved_cost_log_drag", d.saved_cost_log_drag},
+        {"net_log_increment", d.net_log_increment}, {"mean_daily_saved_cost_drag", d.mean_daily_saved_cost_drag},
+        {"exposure_matches", matches}, {"release_groups", diagnostic_periods_json(d.release_groups)},
+        {"common_winner_removal", diagnostic_periods_json(d.common_winner_removal)},
+        {"leave_one_month_out", diagnostic_periods_json(d.leave_one_month_out)}, {"clock_covariates", clocks}, {"entry_timing", entries},
+        {"release_calendar_sha256", continuation_release_calendar_sha256()}, {"release_calendar_records", 64}};
+}
+
+std::string diagnostic_period_table(std::span<const PairedDiagnosticPeriod> periods) {
+    auto out = stream();
+    out << "<div class=\"scroll\"><table><thead><tr><th>Group / stress</th><th>Sessions</th><th>Active price / volume</th>"
+        "<th>Gross mean price / volume, bp</th><th>Net mean price / volume, bp</th>"
+        "<th>Net compounded price / volume, %</th><th>Paired net, bp/day</th></tr></thead><tbody>";
+    for (const auto& p : periods) {
+        out << "<tr><td>" << escape(p.label) << "</td><td>" << p.sessions << "</td><td>" << p.active_days[0] << " / " << p.active_days[1]
+            << "</td><td>" << number(p.gross[0].mean * 10000) << " / " << number(p.gross[1].mean * 10000)
+            << "</td><td>" << number(p.net[0].mean * 10000) << " / " << number(p.net[1].mean * 10000)
+            << "</td><td>" << number(p.net[0].compounded * 100) << " / " << number(p.net[1].compounded * 100)
+            << "</td><td>" << number(p.paired_net_mean * 10000) << "</td></tr>";
+    }
+    return out.str() + "</tbody></table></div>";
+}
+
+std::string diagnostic_html(const ContinuationStudyResult& study, const ContinuationDiagnosticsResult& d) {
+    auto out = stream();
+    out << "<section class=\"card\" id=\"diagnostics\"><h2>What does volume remove?</h2>"
+        "<p class=\"note\">Post-result development diagnostics. These explain the existing sample; they do not change registered screens or constitute new confirmation.</p>"
+        "<p>Arithmetic paired net increment = " << number(study.paired_gross_increment * 10000) << " bp/day gross + "
+        << number(d.mean_daily_saved_cost_drag * 10000) << " bp/day lower cost drag = "
+        << number(study.paired_net_increment * 10000) << " bp/day net.</p>"
+        "<p>Each volume trade shares the exit of one price trade. Delayed entries remove an early segment; skipped trades remove a whole segment. "
+        "The table uses additive natural-log contributions, multiplied by 100. These are log percentage points, not simple returns.</p>"
+        "<table><thead><tr><th>Price-trade match</th><th>Count</th><th>Removed winners / losers</th>"
+        "<th>Gross increment, log pp</th><th>Saved costs, log pp</th><th>Net increment, log pp</th></tr></thead><tbody>";
+    for (const auto& row : d.attribution) {
+        out << "<tr><td>" << exposure_match_name(row.match) << "</td><td>" << row.price_trades
+            << "</td><td>" << row.removed_positive_segments << " / " << row.removed_negative_segments
+            << "</td><td>" << number(100 * row.gross_log_increment)
+            << "</td><td>" << number(100 * row.saved_cost_log_drag)
+            << "</td><td>" << number(100 * row.net_log_increment) << "</td></tr>";
+    }
+    out << "</tbody></table><p>Total log wealth-ratio increment: " << number(100 * d.net_log_increment)
+        << " log pp = " << number(100 * d.gross_log_increment) << " gross + " << number(100 * d.saved_cost_log_drag)
+        << " saved cost drag. All contributions reconcile to the original daily returns.</p></section>";
+    out << "<section class=\"card\"><h2>Dependence on exceptional dates</h2>"
+        "<p>Replace the volume variant's largest winning dates with cash in both variants. Dates and the denominator remain fixed. "
+        "This uses future outcomes and is not an implementable filter. The original own-five-winner screen above is unchanged.</p>"
+        << diagnostic_period_table(d.common_winner_removal);
+    if (!d.common_winner_removal.empty()) {
+        const auto& last = d.common_winner_removal.back();
+        out << "<p class=\"small\">Largest common-date set: ";
+        for (std::size_t i = 0; i < last.cash_dates.size(); ++i) { out << (i ? ", " : "") << last.cash_dates[i]; }
+        out << ". Every set is retained in summary.json.</p>";
+    }
+    if (!d.leave_one_month_out.empty()) {
+        std::vector<double> x;
+        std::vector<std::pair<double, std::string>> labels;
+        std::vector<PlotSeries> curves{{"Price-only", "#2563eb", {}}, {"With volume", "#0f766e", {}}};
+        for (std::size_t i = 0; i < d.leave_one_month_out.size(); ++i) {
+            x.push_back(static_cast<double>(i));
+            for (std::size_t v = 0; v < 2; ++v) { curves[v].values.push_back(d.leave_one_month_out[i].net[v].mean * 10000); }
+            if (i % 4 == 0 || i + 1 == d.leave_one_month_out.size()) { labels.emplace_back(x.back(), d.leave_one_month_out[i].label); }
+        }
+        out << "<h3>Leave one calendar month out</h3><p>The x-axis identifies the omitted month. Means use the remaining dates; "
+            "connected points are overlapping samples, not a time series of independent tests.</p>";
+        if (x.size() >= 2) { out << plot("month-removal", "Mean returns after omitting each month", "Remaining-sample mean net return (bp/day)", x, labels, curves); }
+        out << "<details><summary>Monthly omission table</summary>" << diagnostic_period_table(d.leave_one_month_out) << "</details>";
+    }
+    out << "</section><section class=\"card\"><h2>Scheduled-release days</h2>"
+        "<p>All scored sessions receive a disjoint label from the complete 2022-2023 CPI, Employment Situation and FOMC statement calendar. "
+        "CPI and employment releases occur at 08:30 New York; FOMC statements at 14:00. Counts are small. "
+        "No selected release does not mean no news. Calendar associations do not identify an announcement's causal effect.</p>"
+        << diagnostic_period_table(d.release_groups)
+        << "<p class=\"small\">The 64-record calendar includes warm-up and closed-market dates; only scored sessions enter the table. "
+        "<a href=\"scheduled_releases.csv\">Calendar with official source links</a>. No release values or surprises are used.</p></section>";
+    out << "<section class=\"card\"><h2>Volume, price magnitude and realized risk</h2>"
+        "<p>Both groups below require the price condition. Prefix volatility is the square root of summed one-minute squared log changes, "
+        "from the current open to the decision. It excludes overnight returns. Covariate differences are descriptive; repeated clocks are dependent.</p>"
+        "<div class=\"scroll\"><table><thead><tr><th>Elapsed minute / volume</th><th>Count</th><th>Mean move, bp</th>"
+        "<th>Mean move / historical scale</th><th>Mean prefix volatility, bp</th><th>Mean next-window gross, bp</th></tr></thead><tbody>";
+    for (std::size_t clock = 0; clock < d.covariates.size(); ++clock) {
+        for (std::size_t volume = 0; volume < 2; ++volume) {
+            const auto& g = d.covariates[clock][volume];
+            const auto mean = [&](double sum, std::size_t count, double scale = 1) {
+                return count ? number(sum * scale / static_cast<double>(count)) : "undefined";
+            };
+            out << "<tr><td>" << 30 * (clock + 1) << " / " << (volume ? "other" : "high") << "</td><td>" << g.count
+                << "</td><td>" << mean(g.move_sum, g.count, 10000) << "</td><td>" << mean(g.normalized_move_sum, g.normalized_count)
+                << "</td><td>" << mean(g.realized_volatility_sum, g.count, 10000) << "</td><td>"
+                << mean(g.forward_gross_sum, g.count, 10000) << "</td></tr>";
+        }
+    }
+    out << "</tbody></table></div><p class=\"small\">A zero historical scale leaves the normalized move undefined and outside its mean denominator. "
+        "Unsigned share volume cannot measure signed order flow or dealer gamma.</p></section>";
+    out << "<section class=\"card\"><h2>Entry timing and execution evidence</h2>"
+        "<p>The entry gap is the delayed reference open relative to the last completed decision close. It measures intervening price movement, "
+        "not broker slippage. Entry-minute range and shares are ex-post context, unavailable at entry.</p>"
+        "<table><thead><tr><th>Variant</th><th>Entries</th><th>Mean signed gap, bp</th><th>Mean absolute gap, bp</th>"
+        "<th>Mean entry-minute range, bp</th><th>Mean entry-minute shares</th></tr></thead><tbody>";
+    for (std::size_t variant = 0; variant < 2; ++variant) {
+        const auto& e = d.entry_summaries[variant];
+        out << "<tr><td>" << names[variant] << "</td><td>" << e.count;
+        for (const double value : {e.mean_signed_gap * 10000, e.mean_absolute_gap * 10000, e.mean_entry_minute_range * 10000, e.mean_entry_minute_volume}) {
+            out << "</td><td>" << (e.count ? number(value) : "undefined");
+        }
+        out << "</td></tr>";
+    }
+    out << "</tbody></table><p>Quotes, order size, queue position, impact and actual fills remain unmeasured. "
+        "Alpaca can revise completed bars after late trades, including close and volume. Historical final bars therefore do not prove "
+        "point-in-time signal availability. Historical SIP access also does not establish live SIP subscription entitlement.</p>"
+        "<p><a href=\"removed_exposure.csv\">Matched exposure</a> | <a href=\"opportunity_diagnostics.csv\">Clock covariates and calendar labels</a> | "
+        "<a href=\"entry_timing.csv\">Entry timing</a></p></section>";
+    return out.str();
+}
+
 } // namespace
 
 std::string format_continuation_daily_csv(const ContinuationStudyResult& study) {
@@ -235,7 +386,47 @@ std::string format_continuation_trades_csv(const ContinuationStudyResult& study)
     return out.str();
 }
 
-std::string format_continuation_study_html(const ContinuationStudyResult& study, const ContinuationReportContext& context) {
+std::string_view continuation_release_calendar_sha256() noexcept { return TRADING_RELEASE_CALENDAR_SHA256; }
+
+std::string format_removed_exposure_csv(const ContinuationDiagnosticsResult& d) {
+    auto out = stream();
+    out << "date,match,price_entry_utc,exit_utc,price_entry_price,exit_price,volume_entry_utc,volume_entry_price,removed_gross_log_return,saved_cost_log_drag,net_log_increment\n";
+    for (const auto& row : d.exposure) {
+        out << row.date << ',' << exposure_match_name(row.match) << ',' << format_utc_seconds(row.price_trade.entry_reference_time)
+            << ',' << format_utc_seconds(row.price_trade.exit_reference_time) << ',' << row.price_trade.entry_reference_price
+            << ',' << row.price_trade.exit_reference_price << ',';
+        if (row.volume_trade) { out << format_utc_seconds(row.volume_trade->entry_reference_time); }
+        out << ',';
+        if (row.volume_trade) { out << row.volume_trade->entry_reference_price; }
+        out << ',' << row.removed_gross_log_return << ',' << row.saved_cost_log_drag << ',' << row.net_log_increment << '\n';
+    }
+    return out.str();
+}
+
+std::string format_opportunity_diagnostics_csv(const ContinuationDiagnosticsResult& d) {
+    auto out = stream();
+    out << "date,elapsed_minute,release_flags,release_group,price_condition,high_volume,move,normalized_move,prefix_realized_volatility,forward_gross_return\n";
+    for (const auto& row : d.opportunities) {
+        out << row.date << ',' << row.elapsed_minute << ',' << row.release_flags << ',' << scheduled_release_label(row.release_flags)
+            << ',' << row.price_condition << ',' << row.high_volume << ',' << row.move << ',';
+        if (row.normalized_move) { out << *row.normalized_move; }
+        out << ',' << row.prefix_realized_volatility << ',' << row.forward_gross_return << '\n';
+    }
+    return out.str();
+}
+
+std::string format_entry_timing_csv(const ContinuationDiagnosticsResult& d) {
+    auto out = stream();
+    out << "date,variant,entry_decision_utc,entry_reference_utc,entry_gap,ex_post_entry_minute_range,ex_post_entry_minute_volume\n";
+    for (const auto& row : d.entries) {
+        out << row.date << ',' << continuation_variant_name(row.variant) << ',' << format_utc_seconds(row.decision) << ','
+            << format_utc_seconds(row.reference) << ',' << row.entry_gap << ',' << row.entry_minute_range << ',' << row.entry_minute_volume << '\n';
+    }
+    return out.str();
+}
+
+std::string format_continuation_study_html(const ContinuationStudyResult& study, const ContinuationReportContext& context,
+                                          const ContinuationDiagnosticsResult* diagnostics) {
     validate_report(study);
     if (context.data_kind != "development" && context.data_kind != "synthetic_contract") {
         throw std::invalid_argument("report requires an explicit data kind");
@@ -250,6 +441,7 @@ body{margin:0;background:#eef2f7;color:#16273e;font:15px/1.55 system-ui,Segoe UI
         out << "<p class=\"note\">2022-2023 development evidence. Selection follows prior research and an inspected baseline. "
             "This sample is not an independent final test. Bar opens are delayed trade-price proxies; costs are hypothetical.</p>";
     }
+    if (diagnostics) { out << "<p><a href=\"#diagnostics\">Exposure attribution and development diagnostics</a> | <a href=\"#gates\">Registered gates</a></p>"; }
     out << "<p>" << study.days.front().date << " to " << study.days.back().date << " | " << study.days.size()
         << " scored sessions | 20 earlier eligible sessions warm up the features. Primary: one-minute delay, 1 bp per side.</p>"
         << "<div class=\"grid\">";
@@ -376,7 +568,8 @@ body{margin:0;background:#eef2f7;color:#16273e;font:15px/1.55 system-ui,Segoe UI
     }
     out << "</div><p class=\"small\">These are arithmetic daily-return contributions, not compounded attribution. "
         "The registered screen requires a share at most 50% and a positive sum after removing the five winners.</p></section>";
-    out << "<section class=\"card\"><h2>Registered continuation gates</h2><div class=\"grid\">";
+    if (diagnostics) { out << diagnostic_html(study, *diagnostics); }
+    out << "<section class=\"card\" id=\"gates\"><h2>Registered continuation gates</h2><div class=\"grid\">";
     for (std::size_t variant = 0; variant < 2; ++variant) {
         out << "<div><h3>" << names[variant] << ": " << escape(study.variants[variant].status) << "</h3>" << gate_table(study.variants[variant]) << "</div>";
     }
@@ -395,16 +588,21 @@ body{margin:0;background:#eef2f7;color:#16273e;font:15px/1.55 system-ui,Segoe UI
 }
 
 std::filesystem::path save_continuation_report(const FrozenDevelopmentDataset& dataset, const ContinuationStudyResult& study,
+                                              const ContinuationDiagnosticsResult& diagnostics, std::string_view release_calendar_csv,
                                               const std::filesystem::path& output_root) {
     validate_report(study);
     if (dataset.manifest_sha256 != continuation_development_manifest_sha256 || dataset.sessions.size() != 496 ||
-        study.days.size() != 476 || sha256_file(contained_path(dataset.directory, dataset.manifest_file)) != dataset.manifest_sha256) {
+        study.days.size() != 476 || sha256_file(contained_path(dataset.directory, dataset.manifest_file)) != dataset.manifest_sha256 ||
+        sha256(release_calendar_csv) != continuation_release_calendar_sha256()) {
         throw std::invalid_argument("development report requires the unchanged frozen snapshot and 476 scored days");
     }
     const auto daily = format_continuation_daily_csv(study);
     const auto features = format_continuation_features_csv(study);
     const auto trades = format_continuation_trades_csv(study);
-    const auto html = format_continuation_study_html(study, {"development", dataset.manifest_sha256, sha256(features)});
+    const auto removed = format_removed_exposure_csv(diagnostics);
+    const auto covariates = format_opportunity_diagnostics_csv(diagnostics);
+    const auto entries = format_entry_timing_csv(diagnostics);
+    const auto html = format_continuation_study_html(study, {"development", dataset.manifest_sha256, sha256(features)}, &diagnostics);
     Json cases = Json::array(), boots = Json::array(), excluded = Json::array();
     for (std::size_t i = 0; i < continuation_cases().size(); ++i) {
         const auto& spec = continuation_cases()[i];
@@ -422,7 +620,7 @@ std::filesystem::path save_continuation_report(const FrozenDevelopmentDataset& d
             {"undefined_volume_replicates", b.undefined_volume_replicates}});
     }
     for (const auto& exclusion : dataset.exclusions) { excluded.push_back({{"date", exclusion.date}, {"reason", exclusion.reason}}); }
-    const Json summary{{"schema_version", 1}, {"protocol", "SPY-TOD-01"}, {"protocol_revision", 1}, {"purpose", "development"},
+    const Json summary{{"schema_version", 2}, {"protocol", "SPY-TOD-01"}, {"protocol_revision", 1}, {"purpose", "development"},
         {"primary_variant", "volume_conditioned"}, {"price_only_role", "declared reference; assessed separately"},
         {"eligible_sessions", 496}, {"warmup_sessions", 20}, {"scored_sessions", study.days.size()},
         {"first_scored_date", study.days.front().date}, {"last_scored_date", study.days.back().date}, {"exclusions", excluded},
@@ -442,13 +640,20 @@ std::filesystem::path save_continuation_report(const FrozenDevelopmentDataset& d
         {"paired_net_increment", study.paired_net_increment}, {"paired_gross_increment", study.paired_gross_increment},
         {"price_assessment", assessment_json(study.variants[0])}, {"volume_assessment", assessment_json(study.variants[1])},
         {"incremental_volume_assessment", assessment_json(study.volume_increment)},
-        {"artifacts", {{"daily_returns.csv", sha256(daily)}, {"features.csv", sha256(features)}, {"trades.csv", sha256(trades)}, {"report.html", sha256(html)}}},
+        {"diagnostics", diagnostics_json(diagnostics)},
+        {"artifacts", {{"daily_returns.csv", sha256(daily)}, {"features.csv", sha256(features)}, {"trades.csv", sha256(trades)}, {"report.html", sha256(html)},
+            {"removed_exposure.csv", sha256(removed)}, {"opportunity_diagnostics.csv", sha256(covariates)},
+            {"entry_timing.csv", sha256(entries)}, {"scheduled_releases.csv", sha256(release_calendar_csv)}}},
         {"limitations", {"development sample; literature includes 2024-2026", "delayed bar-open price proxies; hypothetical costs",
             "no independent later evaluation, broker fills or account reconciliation", "daily-close drawdown is not intraday worst-case loss"}}};
     const auto directory = create_unique_directory(output_root, "SPY_TOD_01_development_2022-2023");
     write_new_text_file(directory / "daily_returns.csv", daily);
     write_new_text_file(directory / "features.csv", features);
     write_new_text_file(directory / "trades.csv", trades);
+    write_new_text_file(directory / "removed_exposure.csv", removed);
+    write_new_text_file(directory / "opportunity_diagnostics.csv", covariates);
+    write_new_text_file(directory / "entry_timing.csv", entries);
+    write_new_text_file(directory / "scheduled_releases.csv", release_calendar_csv);
     write_new_text_file(directory / "report.html", html);
     // Summary is the publication record and is written only after its artifacts.
     write_new_text_file(directory / "summary.json", summary.dump(2) + "\n");

@@ -52,7 +52,7 @@ are treated as errors.
 1. Open the project folder with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for ten routine groups.
+4. Select **Test > Run Test Preset > windows-debug** for eleven routine groups.
 5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
 6. Open the printed `trace.html` path for the price/volume plots and paired
    decision table. `decisions.csv` retains unrounded features and UTC clocks.
@@ -76,6 +76,10 @@ Each new `scratch/runs/SPY_TOD_01_development_2022-2023_*` directory contains:
 | `daily_returns.csv` | All scored dates and twenty cases, including cash days, exposure and turnover |
 | `features.csv` | Prior-history identities, completed features, paired actions and both delayed forward windows |
 | `trades.csv` | Completed strategy round trips with decisions, reference clocks/prices and costs |
+| `removed_exposure.csv` | Shared trades, delayed entries and skipped trades with additive log-return attribution |
+| `opportunity_diagnostics.csv` | Calendar labels, normalized price moves and completed-prefix realized volatility |
+| `entry_timing.csv` | Decision-to-reference gaps and explicitly ex-post entry-minute context |
+| `scheduled_releases.csv` | Complete 2022-2023 CPI, employment and FOMC statement calendar with official sources |
 | `summary.json` | Full statistics, bootstrap configuration, screens, input/feature/source hashes and build identity |
 
 The first twenty eligible sessions are never counted as zero-return days. Both
@@ -83,6 +87,13 @@ variants and the always-long control use the same scored dates. Bootstrap indice
 resample their complete paired session records; missing diagnostic groups remain
 explicitly undefined. Source artifacts, raw pages and the frozen study manifest
 are read-only. This target does not access 2024-2025 data or submit orders.
+
+The same report includes [development diagnostics](research/continuation_diagnostics.md):
+exact exposure and cost attribution, common-date winner removal, monthly omission
+tests, scheduled-release groups, price/risk covariates and entry timing. These are
+post-result descriptive analyses. They do not revise strategy gates or authorize
+later-period evaluation. `summary.json` schema version 2 retains the diagnostic
+statistics and the hashes of all eight report artifacts.
 
 The existing baseline is run through **development_finalize.exe** followed by
 **development_replay.exe**, each with **Ctrl+F5**, when offline evidence
@@ -95,7 +106,7 @@ The regular preset excludes this test. These two test presets explicitly select 
 For optimized offline runs, select build preset **windows-release**, rebuild,
 then run the targets from `scratch/build/Release/` through the Visual Studio
 startup-item selector. The matching **windows-release** test preset runs the
-ten routine groups in Release. Domain and artifact validation remain enabled.
+eleven routine groups in Release. Domain and artifact validation remain enabled.
 
 Finalization and replay are offline. Their paths are anchored to the source
 folder, independently of the IDE working directory. Repeated finalization

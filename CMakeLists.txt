@@ -61,6 +61,7 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
 file(SHA256 "${CMAKE_CURRENT_SOURCE_DIR}/research/intraday_momentum_protocol.md" protocol_sha256)
 file(SHA256 "${CMAKE_CURRENT_SOURCE_DIR}/research/development_data_policy.json" data_policy_sha256)
 file(SHA256 "${CMAKE_CURRENT_SOURCE_DIR}/research/intraday_continuation_protocol.md" continuation_protocol_sha256)
+file(SHA256 "${CMAKE_CURRENT_SOURCE_DIR}/research/scheduled_releases_2022_2023.csv" release_calendar_sha256)
 
 add_library(session_data
     src/storage/session_download.cpp src/storage/session_storage.cpp src/storage/session_gap_probe.cpp
@@ -72,7 +73,8 @@ configure_trading_target(session_data)
 add_library(momentum_research
     src/research/intraday_momentum.cpp src/research/batch_momentum.cpp
     src/research/return_statistics.cpp src/research/development_study.cpp
-    src/research/intraday_continuation.cpp src/research/continuation_study.cpp)
+    src/research/intraday_continuation.cpp src/research/continuation_study.cpp
+    src/research/continuation_diagnostics.cpp)
 target_include_directories(momentum_research PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/research")
 target_link_libraries(momentum_research PUBLIC session_data PRIVATE nlohmann_json::nlohmann_json)
 target_compile_definitions(momentum_research PRIVATE TRADING_PROTOCOL_SHA256="${protocol_sha256}")
@@ -97,6 +99,7 @@ target_include_directories(continuation_reporting PUBLIC "${CMAKE_CURRENT_SOURCE
 target_link_libraries(continuation_reporting PUBLIC momentum_research PRIVATE nlohmann_json::nlohmann_json)
 target_compile_definitions(continuation_reporting PRIVATE
     TRADING_SOURCE_SHA256="${source_sha256}"
+    TRADING_RELEASE_CALENDAR_SHA256="${release_calendar_sha256}"
     TRADING_BUILD_COMPILER="${CMAKE_CXX_COMPILER_ID}-${CMAKE_CXX_COMPILER_VERSION}"
     TRADING_BUILD_CONFIGURATION="$<CONFIG>")
 configure_trading_target(continuation_reporting)
@@ -159,6 +162,7 @@ if(BUILD_TESTING)
     target_sources(intraday_continuation_tests PRIVATE src/reporting/continuation_diagnostic_report.cpp)
     target_include_directories(intraday_continuation_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
     add_trading_contract(continuation_study_tests continuation_study_contracts "continuation_reporting;nlohmann_json::nlohmann_json")
+    add_trading_contract(continuation_diagnostics_tests continuation_diagnostics_contracts "continuation_reporting;nlohmann_json::nlohmann_json")
     add_trading_contract(batch_pipeline_tests batch_pipeline_contracts "momentum_research;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(return_statistics_tests return_statistics_contracts "momentum_research;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(development_dataset_tests development_dataset_contracts "momentum_research;nlohmann_json::nlohmann_json" OUTPUT)
