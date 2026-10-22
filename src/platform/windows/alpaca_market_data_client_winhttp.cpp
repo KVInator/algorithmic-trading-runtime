@@ -1,4 +1,5 @@
 #include "alpaca_market_data_client.hpp"
+#include "alpaca_corporate_action_request.hpp"
 
 #include <windows.h>
 #include <winhttp.h>
@@ -51,6 +52,10 @@ MarketDataResponse AlpacaMarketDataClient::get_historical_bars(
 
 MarketDataResponse AlpacaMarketDataClient::get_market_calendar(const CalendarRange& range) const {
     return get_page(true, range.path());
+}
+
+MarketDataResponse AlpacaMarketDataClient::get_corporate_action_probe(int year) const {
+    return get_page(false, CorporateActionProbeRequest{year}.path());
 }
 
 MarketDataResponse AlpacaMarketDataClient::get_page(bool calendar, const std::string& request_path) const {

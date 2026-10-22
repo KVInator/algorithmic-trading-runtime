@@ -38,8 +38,14 @@ Windows uses the existing Visual Studio `windows-x64` configure preset and
 full-period integration test. `continuation_diagnostic` runs offline and writes
 HTML/CSV under `scratch/runs/`. `continuation_development` verifies the frozen
 snapshot and generates the paired historical study with HTML/SVG, CSV and JSON.
-The routine presets run eleven contract groups; full-period disk integration stays
+The routine presets run thirteen contract groups; full-period disk integration stays
 optional.
+
+`risk_preflight` audits the full 2022-2023 exchange calendar and synthetic
+long/cash accounting. Its Windows corporate-action requests are access probes,
+not a reconciled ledger. Preserve the distinction between observed coverage,
+constructed account traces and strategy results. SPY-RISK-01 remains a proposal;
+its preflight does not authorize scoring or later-period access.
 
 On Linux, use `cmake --preset linux-debug`, `cmake --build --preset linux-debug`
 and `ctest --preset linux-debug`. Keep warnings as errors. For a targeted change,

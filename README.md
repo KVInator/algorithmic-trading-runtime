@@ -27,6 +27,7 @@ incremental-information comparison with price-only.
 | `apps/` | Acquisition, offline finalization and study entry points |
 | `apps/diagnostics/` | Optional live gap investigation |
 | `src/market/` | Minute-bar invariants, UTC timestamps and session calendar |
+| `src/accounting/` | Fractional long/cash account, corporate actions and chronological ledger |
 | `src/alpaca/` | Request, response, JSON and rate-limit contracts |
 | `src/storage/` | Raw evidence, checkpoints, integrity and dataset finalization |
 | `src/research/` | Signal/replay, return statistics and moving-block bootstrap |
@@ -52,7 +53,7 @@ are treated as errors.
 1. Open the project folder with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for eleven routine groups.
+4. Select **Test > Run Test Preset > windows-debug** for thirteen routine groups.
 5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
 6. Open the printed `trace.html` path for the price/volume plots and paired
    decision table. `decisions.csv` retains unrounded features and UTC clocks.
@@ -60,6 +61,17 @@ are treated as errors.
 The diagnostic uses constructed observations, requires no API credentials and
 does not score historical strategy performance. Its chart compares the signal
 with the same-clock historical scale and shows the volume entry condition.
+
+For the [daily-risk feasibility checkpoint](research/daily_risk_preflight.md),
+select **risk_preflight.exe** and **Ctrl+F5** after the routine tests pass. It
+verifies the frozen development inputs, audits all 501 exchange sessions and
+checks the new long/cash account against constructed dividend, payment and split
+identities. On Windows it also makes three bounded read-only corporate-action
+access requests using the existing credential store. It writes an HTML coverage
+chart, accounting tables, CSV evidence and a hashed JSON manifest. Open the
+printed `report.html` path. `blocked_before_registration` is an expected outcome:
+additional history, distribution reconciliation and missing-risk rules remain
+prerequisites. This target does not score a new strategy or alter frozen inputs.
 
 For the historical continuation study, select **continuation_development.exe**
 and **Ctrl+F5** after the routine tests pass. This offline target verifies the
