@@ -1,10 +1,20 @@
 # Repository instructions
 
-Before substantive code changes, verify that the `build-pristine-code` skill is
-available, then read and apply it. The authoritative implementation is C++20
+Apply the `build-pristine-code` skill throughout this workflow, including
+research, implementation, reviews, refactoring and technical documentation.
+Verify that the skill is available and read its applicable instructions before
+substantive work. The authoritative implementation is C++20
 under `src/`, built by the root CMake configuration.
 Application and reporting layers call that implementation; do not duplicate
 signal or financial calculations in presentation code.
+
+## Technical language
+
+Commit messages describe the concrete change in concise, conventional language.
+Reports, comments and Markdown describe methods, evidence and limitations in an
+impersonal technical voice. Omit chat instructions, promotional quality claims
+and unsupported claims of profitability or production readiness. Preserve the
+published commit history; improve wording in subsequent work.
 
 ## Research boundaries
 
