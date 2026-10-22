@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "protocol": "SPY-IM-01",
+  "protocol_revision": 2,
+  "recorded_date": "2026-10-21",
+  "scope": "2022-2023 development; whole-session data-quality exclusion before full-period evaluation",
+  "acquisition_audit": {
+    "file": "scratch/runs/SPY_development_acquisition_audit_0/summary.json",
+    "sha256": "290f890236d7caf7c76cd819ac7d1304ad305ae55e536f994ff0f7f77f6f7705"
+  },
+  "gap_probe": {
+    "file": "scratch/runs/gap_probe_SPY_2023-06-05_0/summary.json",
+    "sha256": "9106bada868788a1de556db72293ee7a73a9a3caf060d1b4f12257d2f73097e7"
+  },
+  "data_exclusions": [
+    {
+      "date": "2023-06-05",
+      "reason": "persistent historical SIP minute-bar gap; full session excluded under protocol revision 2",
+      "session_directory": "scratch/datasets/SPY_1Min_SIP_development_2022-2023/months/2023-06/sessions/SPY_2023-06-05_2026-10-21T124755Z_0",
+      "expected_minutes": 390,
+      "observed_bars": 386,
+      "missing_minutes_utc": [
+        "2023-06-05T13:52:00Z",
+        "2023-06-05T13:53:00Z",
+        "2023-06-05T13:54:00Z",
+        "2023-06-05T13:55:00Z"
+      ],
+      "files": [
+        {
+          "file": "metadata.json",
+          "sha256": "ff06bfbf6375562c81633d2dc795748693dde699c5809257bbb90d60d9f26fab"
+        },
+        {
+          "file": "bars.csv",
+          "sha256": "9c6c2ead6c07e31f4c96fc55cc75eb3a6b3a254cf82352e503024b94170d0354"
+        },
+        {
+          "file": "page_001.json",
+          "sha256": "4f594e692fbfe0d8802a90ba713d376f5d9f27ba38e9e8c1f6441b23a40fb2f0"
+        },
+        {
+          "file": "page_002.json",
+          "sha256": "2f88aba246e30d4d109f304ce292de15dae483eed7afe1fe7b737b53f475ec40"
+        },
+        {
+          "file": "page_003.json",
+          "sha256": "268f373d5e679e06545507eb6cff8abce53a4c689233cc66c4405b215701e873"
+        },
+        {
+          "file": "page_004.json",
+          "sha256": "add1f20f490cbcea14a6e3f24c32d8fdb5f23fe33c081bcc0ea856a7b5ce46c8"
+        }
+      ]
+    }
+  ],
+  "frozen_march_manifest_sha256": "a8d9489284efe604ab8350f945e0e5393ae769c6bc3a0350450a2328759416e5"
+}

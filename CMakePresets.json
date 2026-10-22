@@ -1,0 +1,105 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-x64",
+      "displayName": "Windows x64 (MSVC)",
+      "generator": "Visual Studio 18 2026",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/scratch/build",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug (GCC/Clang)",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/scratch/build-linux",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTING": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-debug",
+      "configurePreset": "windows-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-x64",
+      "configuration": "Release"
+    },
+    {
+      "name": "linux-debug",
+      "configurePreset": "linux-debug"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-debug",
+      "configurePreset": "windows-x64",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "exclude": {
+          "label": "integration"
+        }
+      }
+    },
+    {
+      "name": "windows-debug-full",
+      "displayName": "Windows Debug: all contracts and full-period integration",
+      "configurePreset": "windows-x64",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-x64",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "exclude": {
+          "label": "integration"
+        }
+      }
+    },
+    {
+      "name": "linux-debug",
+      "configurePreset": "linux-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "exclude": {
+          "label": "integration"
+        }
+      }
+    }
+  ]
+}
