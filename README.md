@@ -95,6 +95,12 @@ post-result descriptive analyses. They do not revise strategy gates or authorize
 later-period evaluation. `summary.json` schema version 2 retains the diagnostic
 statistics and the hashes of all eight report artifacts.
 
+The [strategy candidate comparison](research/strategy_candidates.md) evaluates
+opening-range continuation and daily exposure informed by intraday risk. These
+are uncomputed proposals. The recommended next milestone is a full-calendar
+data and account-feasibility preflight for the daily risk proposal, followed by
+protocol registration before performance evaluation.
+
 The existing baseline is run through **development_finalize.exe** followed by
 **development_replay.exe**, each with **Ctrl+F5**, when offline evidence
 verification or baseline reproduction is required.
