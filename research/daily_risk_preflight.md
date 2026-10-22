@@ -112,3 +112,77 @@ failure. A successful process exit means the audit and synthetic checks complete
 Acquisition of the additional calendar/price history, distribution reconciliation,
 the missing-risk policy and protocol registration remain prerequisites for any
 candidate scoring. Local 2024–2025 candidate performance remains unopened.
+
+## Bounded input acquisition
+
+`risk_acquire` adds inputs under `scratch/datasets/SPY_RISK_01_inputs` and
+publishes a coverage/reconciliation report under `scratch/runs/SPY_RISK_01_inputs_*`.
+The frozen development dataset, its exclusions and its manifests are not replaced.
+
+The fixed price plan has 256 windows and 8,663 minute slots:
+
+- The final regular-session minute on 31 December 2020 provides the leading
+  close for the first 2021 daily return.
+- The 252 NYSE sessions in 2021 provide closing-reference calibration. The final
+  twenty sessions, 3–31 December, are acquired in full for warm-up; the remaining
+  232 calibration sessions require only their final minute. Early closes use
+  the actual regular-session endpoint.
+- Three full shortened sessions supplement the account calendar: 25 November
+  2022, 3 July 2023 and 24 November 2023, each with 210 minute slots.
+
+Thirteen provider calendar snapshots are checked against the NYSE reference,
+including the closing boundary. The reference follows the exchange's
+[2021–2023 holiday and early-close announcement](https://ir.theice.com/press/news-details/2020/NYSE-Group-Announces-2021-2022-and-2023-Holiday-and-Early-Closings-Calendar/default.aspx).
+NYSE remained open on 31 December 2021; the Juneteenth closure first affects the
+existing 2022–2023 reference, not the 2021 calibration calendar. Calendar extension
+does not change the frozen intraday studies' eligibility rules.
+
+Each price window reuses the established downloader, raw-page decoder, CSV
+verification and minute-grid audit. A separate evidence record hashes the raw
+pages, metadata and CSV. An interrupted acquisition resumes by verifying saved
+windows; an incomplete retained window remains incomplete on subsequent runs.
+No minute is filled, no feed is substituted and no earlier evidence is overwritten.
+HTTP and malformed-response failures retain available evidence and stop with a
+specific error. Explicit corporate-action HTTP rejections remain reportable
+blockers rather than empty action histories.
+
+Four corporate-action process intervals cover 2021, 2022, 2023 and 1 January–
+31 March 2024. Requests include all action types, use 100 records per page and
+retain each raw response with request, status, receipt time and hash. Pagination
+rejects repeated tokens, duplicate action IDs and sequences longer than 32 pages
+per interval. Unsupported action types remain blockers. The 2024 tail contains
+corporate-action metadata only; the price plan ends in 2023.
+
+`spy_distribution_reference.json` contains twelve SPY cash distributions with
+2021–2023 ex-dates, extracted from State Street's
+[historical distribution workbook](https://www.ssga.com/library-content/products/fund-data/etfs/us/spdr-etf-historical-distributions.xlsx).
+It records the workbook SHA-256, retrieval time and worksheet row for each record.
+The source workbook is retained locally; the small extracted reference is versioned.
+The extractor reads only SPY records in that horizon and rejects nonzero capital-
+gain distributions. Reproduction from the retained workbook is:
+
+```text
+python research/extract_distribution_reference.py SOURCE.xlsx OUTPUT.json --retrieved-utc YYYY-MM-DDTHH:MM:SSZ
+```
+
+The C++ comparison checks both directions of ex-date coverage, record/payment
+dates and USD/share amounts, with an absolute 1e-6 amount tolerance matching the
+six-decimal reference precision. In particular, the 15 December 2023 entitlement
+is USD 1.906073 per share, payable 31 January 2024; it must remain in terminal
+receivables when earned. Records outside the ex-date horizon remain retained but
+are excluded from that comparison. Matching historical sources does not establish
+when a record became available in real time or independently prove the absence
+of every unsupported corporate-action type.
+
+`acquisition_manifest.json` is published only after the bounded inventory is
+inspected. Its existence is an inventory-completion marker, not a completeness
+claim for all prices or a strategy registration. It retains gaps, action access
+failures, issuer comparison status and hashes of the input evidence. The preflight
+uses verified shortened-session supplements and removes the calibration blocker
+only when all 253 calibration/boundary windows are complete.
+
+The generated report includes `price_inputs.csv`, `cash_distributions.csv`,
+`coverage.csv` and a hashed `summary.json`. A successful run may still report
+`blocked_before_registration`. The original June gap, the missing-risk policy,
+action-event ordering and strategy protocol remain separate prerequisites. No
+candidate forecast, target allocation or performance score is calculated here.

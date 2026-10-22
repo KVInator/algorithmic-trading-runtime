@@ -9,7 +9,7 @@
 
 namespace trading {
 
-// Daytime New York sessions in the protocol's 2022-2025 historical interval.
+// Daytime New York sessions in the 2020-12-31 through 2025 historical interval.
 // Uses the post-2007 US DST rule; it is not a general timezone database.
 [[nodiscard]] std::chrono::sys_days parse_session_date(std::string_view date);
 
@@ -44,5 +44,8 @@ private:
 
 // Independent NYSE holiday/early-close reference, restricted to 2022-2023.
 [[nodiscard]] std::vector<CalendarSession> development_calendar(const CalendarRange& range);
+
+// NYSE 2021 holiday/early-close reference, plus the preceding 2020-12-31 close.
+[[nodiscard]] std::vector<CalendarSession> risk_calibration_calendar(const CalendarRange& range);
 
 } // namespace trading

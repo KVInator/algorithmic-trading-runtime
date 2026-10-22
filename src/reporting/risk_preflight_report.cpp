@@ -49,6 +49,7 @@ std::filesystem::path save_risk_preflight_report(const RiskPreflightResult& resu
     Json summary{{"schema_version", 1}, {"kind", "data_and_synthetic_accounting_preflight"},
                  {"strategy_scored", false}, {"status", "blocked_before_registration"},
                  {"input_manifest_sha256", result.input_manifest_sha256},
+                 {"supplemental_manifest_sha256", result.supplemental_manifest_sha256},
                  {"blockers", result.blockers}, {"corporate_action_access", access_status},
                  {"source_sha256", TRADING_SOURCE_SHA256}, {"compiler", TRADING_COMPILER_ID},
                  {"build_configuration", TRADING_BUILD_CONFIGURATION}};

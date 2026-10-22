@@ -87,9 +87,14 @@ add_library(accounting src/accounting/long_cash_account.cpp)
 target_include_directories(accounting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/accounting")
 configure_trading_target(accounting)
 
+add_library(risk_inputs src/storage/risk_input_dataset.cpp src/accounting/corporate_action_history.cpp)
+target_include_directories(risk_inputs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/accounting")
+target_link_libraries(risk_inputs PUBLIC session_data PRIVATE nlohmann_json::nlohmann_json)
+configure_trading_target(risk_inputs)
+
 add_library(risk_preflight_core src/research/risk_preflight.cpp)
 target_include_directories(risk_preflight_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/research")
-target_link_libraries(risk_preflight_core PUBLIC accounting session_data PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(risk_preflight_core PUBLIC accounting session_data risk_inputs PRIVATE nlohmann_json::nlohmann_json)
 configure_trading_target(risk_preflight_core)
 
 # Actual source-file bytes and build identity accompany every generated study.
@@ -114,7 +119,7 @@ target_compile_definitions(continuation_reporting PRIVATE
     TRADING_BUILD_CONFIGURATION="$<CONFIG>")
 configure_trading_target(continuation_reporting)
 
-add_library(risk_preflight_reporting src/reporting/risk_preflight_report.cpp)
+add_library(risk_preflight_reporting src/reporting/risk_preflight_report.cpp src/reporting/risk_input_report.cpp)
 target_include_directories(risk_preflight_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 target_link_libraries(risk_preflight_reporting PUBLIC risk_preflight_core PRIVATE nlohmann_json::nlohmann_json)
 target_compile_definitions(risk_preflight_reporting PRIVATE
@@ -134,6 +139,7 @@ add_trading_app(development_replay momentum_research)
 add_trading_app(continuation_diagnostic momentum_research)
 add_trading_app(continuation_development continuation_reporting)
 add_trading_app(risk_preflight risk_preflight_reporting)
+add_trading_app(risk_acquire risk_preflight_reporting)
 target_sources(continuation_diagnostic PRIVATE src/reporting/continuation_diagnostic_report.cpp)
 target_include_directories(continuation_diagnostic PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 
@@ -153,6 +159,7 @@ if(WIN32)
 
     add_trading_app(alpaca_development "alpaca_market_data;session_data;alpaca_console")
     target_link_libraries(risk_preflight PRIVATE alpaca_market_data alpaca_console)
+    target_link_libraries(risk_acquire PRIVATE alpaca_market_data alpaca_console)
     if(TRADING_BUILD_DIAGNOSTICS)
         add_executable(alpaca_gap_probe apps/diagnostics/alpaca_gap_probe.cpp)
         target_link_libraries(alpaca_gap_probe PRIVATE alpaca_market_data session_data alpaca_console)
@@ -189,6 +196,7 @@ if(BUILD_TESTING)
     add_trading_contract(development_dataset_tests development_dataset_contracts "momentum_research;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(long_cash_account_tests long_cash_account_contracts "accounting;momentum_research")
     add_trading_contract(risk_preflight_tests risk_preflight_contracts "risk_preflight_reporting;nlohmann_json::nlohmann_json" OUTPUT)
+    add_trading_contract(risk_input_tests risk_input_contracts "risk_preflight_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_test(NAME development_full_period_integration COMMAND development_dataset_tests
         "${CMAKE_CURRENT_BINARY_DIR}/development-full-test-output" --full)
     set_tests_properties(development_full_period_integration PROPERTIES LABELS integration)

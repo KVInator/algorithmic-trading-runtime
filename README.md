@@ -53,7 +53,7 @@ are treated as errors.
 1. Open the project folder with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for thirteen routine groups.
+4. Select **Test > Run Test Preset > windows-debug** for fourteen routine groups.
 5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
 6. Open the printed `trace.html` path for the price/volume plots and paired
    decision table. `decisions.csv` retains unrounded features and UTC clocks.
@@ -72,6 +72,14 @@ chart, accounting tables, CSV evidence and a hashed JSON manifest. Open the
 printed `report.html` path. `blocked_before_registration` is an expected outcome:
 additional history, distribution reconciliation and missing-risk rules remain
 prerequisites. This target does not score a new strategy or alter frozen inputs.
+
+For the [bounded risk-input acquisition](research/daily_risk_preflight.md#bounded-input-acquisition),
+select **risk_acquire.exe** and **Ctrl+F5**. It acquires the additional calibration
+and shortened-session references into a separate dataset, paginates corporate
+actions through the early-2024 processing boundary and compares cash dividends
+with the retained issuer reference. Completed evidence is verified and reused on
+restart. Open the printed `report.html`; input gaps and unresolved conventions
+remain explicit. This target does not request 2024–2025 prices or strategy returns.
 
 For the historical continuation study, select **continuation_development.exe**
 and **Ctrl+F5** after the routine tests pass. This offline target verifies the
@@ -124,7 +132,7 @@ The regular preset excludes this test. These two test presets explicitly select 
 For optimized offline runs, select build preset **windows-release**, rebuild,
 then run the targets from `scratch/build/Release/` through the Visual Studio
 startup-item selector. The matching **windows-release** test preset runs the
-thirteen routine groups in Release. Domain and artifact validation remain enabled.
+fourteen routine groups in Release. Domain and artifact validation remain enabled.
 
 Finalization and replay are offline. Their paths are anchored to the source
 folder, independently of the IDE working directory. Repeated finalization

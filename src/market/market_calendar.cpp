@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <array>
+#include <span>
 #include <utility>
 
 namespace trading {
@@ -41,8 +42,8 @@ std::chrono::sys_days parse_session_date(std::string_view date) {
     const auto value = std::chrono::floor<std::chrono::days>(
         parse_utc_seconds(std::string{date} + "T00:00:00Z"));
     const auto year = static_cast<int>(std::chrono::year_month_day{value}.year());
-    if (year < 2022 || year > 2025) {
-        throw std::invalid_argument("historical calendar conversion is bounded to 2022-2025");
+    if (date < "2020-12-31" || year > 2025) {
+        throw std::invalid_argument("historical calendar conversion is bounded to 2020-12-31 through 2025");
     }
     return value;
 }
@@ -109,6 +110,22 @@ std::vector<CalendarSession> decode_market_calendar(std::string_view payload, co
     return result;
 }
 
+namespace {
+std::vector<CalendarSession> reference_sessions(const CalendarRange& range,
+    std::span<const std::string_view> holidays, std::span<const std::string_view> short_dates) {
+    std::vector<CalendarSession> result;
+    for (auto day = parse_session_date(range.first()); day <= parse_session_date(range.last()); day += std::chrono::days{1}) {
+        const auto weekday = std::chrono::weekday{day};
+        const auto date = format_utc_seconds(day).substr(0, 10);
+        if (weekday == std::chrono::Saturday || weekday == std::chrono::Sunday ||
+            std::find(holidays.begin(), holidays.end(), date) != holidays.end()) { continue; }
+        const auto shortened = std::find(short_dates.begin(), short_dates.end(), date) != short_dates.end();
+        result.emplace_back(date, "09:30", shortened ? "13:00" : "16:00");
+    }
+    return result;
+}
+} // namespace
+
 std::vector<CalendarSession> development_calendar(const CalendarRange& range) {
     if (range.first() < "2022-01-01" || range.last() > "2023-12-31") {
         throw std::invalid_argument("development calendar is restricted to 2022-2023");
@@ -119,17 +136,18 @@ std::vector<CalendarSession> development_calendar(const CalendarRange& range) {
         "2023-01-02", "2023-01-16", "2023-02-20", "2023-04-07", "2023-05-29",
         "2023-06-19", "2023-07-04", "2023-09-04", "2023-11-23", "2023-12-25"};
     constexpr std::array<std::string_view, 3> short_dates{"2022-11-25", "2023-07-03", "2023-11-24"};
-    std::vector<CalendarSession> result;
-    for (auto day = parse_session_date(range.first()); day <= parse_session_date(range.last());
-         day += std::chrono::days{1}) {
-        const auto weekday = std::chrono::weekday{day};
-        const auto date = format_utc_seconds(day).substr(0, 10);
-        if (weekday == std::chrono::Saturday || weekday == std::chrono::Sunday ||
-            std::find(holidays.begin(), holidays.end(), date) != holidays.end()) { continue; }
-        const auto shortened = std::find(short_dates.begin(), short_dates.end(), date) != short_dates.end();
-        result.emplace_back(date, "09:30", shortened ? "13:00" : "16:00");
+    return reference_sessions(range, holidays, short_dates);
+}
+
+std::vector<CalendarSession> risk_calibration_calendar(const CalendarRange& range) {
+    if (range.first() < "2020-12-31" || range.last() > "2021-12-31") {
+        throw std::invalid_argument("risk calibration calendar is restricted to the 2020 boundary and 2021");
     }
-    return result;
+    constexpr std::array<std::string_view, 9> holidays{
+        "2021-01-01", "2021-01-18", "2021-02-15", "2021-04-02", "2021-05-31",
+        "2021-07-05", "2021-09-06", "2021-11-25", "2021-12-24"};
+    constexpr std::array<std::string_view, 1> short_dates{"2021-11-26"};
+    return reference_sessions(range, holidays, short_dates);
 }
 
 } // namespace trading

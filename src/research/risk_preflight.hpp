@@ -43,6 +43,7 @@ struct RiskPreflightResult {
     std::vector<RiskSessionCoverage> coverage;
     AccountingDemonstration accounting;
     std::vector<std::string> blockers;
+    std::string supplemental_manifest_sha256;
 };
 
 class RiskPreflight {

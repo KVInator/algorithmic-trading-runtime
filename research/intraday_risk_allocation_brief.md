@@ -150,9 +150,9 @@ sessions. That count is the starting coverage requirement for the new account.
 - Dividend amounts, ex-dates, payment dates and split events require verified
   coverage for calibration, warm-up and development. API access and historical
   completeness must be checked, not inferred from successful bar requests.
-- The existing calendar conversion is bounded to 2022-2025 and its independent
-  development calendar to 2022-2023. A 2021 segment requires a deliberate calendar
-  extension and verification, not a fabricated list of weekdays.
+- The risk-input collector extends calendar conversion to the 31 December 2020
+  closing boundary and verifies 2021 against the NYSE holiday/early-close
+  reference. The independent development calendar remains bounded to 2022-2023.
 - Historical final bars and present corporate-action records do not prove what
   arrived by the original decision cutoff. Source timestamps, revisions and
   announcement availability remain a point-in-time evidence limitation.

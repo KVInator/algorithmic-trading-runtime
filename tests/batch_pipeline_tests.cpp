@@ -45,6 +45,8 @@ void overwrite(const std::filesystem::path& path, const std::string& text) {
 
 void test_calendar() {
     for (const auto& [date, opening] : std::vector<std::pair<std::string, std::string>>{
+        {"2021-03-12", "14:30"}, {"2021-03-15", "13:30"},
+        {"2021-11-05", "13:30"}, {"2021-11-08", "14:30"},
         {"2022-03-11", "14:30"}, {"2022-03-14", "13:30"},
         {"2022-11-04", "13:30"}, {"2022-11-07", "14:30"},
         {"2023-03-10", "14:30"}, {"2023-03-13", "13:30"},
@@ -61,7 +63,7 @@ void test_calendar() {
             "short calendar sessions must remain explicitly distinguishable");
     const trading::CalendarRange range{"2022-03-01", "2022-03-31"};
     require(range.path() == "/v2/calendar?start=2022-03-01&end=2022-03-31&date_type=TRADING", "calendar request path mismatch");
-    for (const auto* date : {"2021-12-31", "2026-01-02", "2023-02-29", "2022-03-12"}) {
+    for (const auto* date : {"2020-12-30", "2026-01-02", "2023-02-29", "2022-03-12"}) {
         rejects([&] { static_cast<void>(trading::CalendarSession{date, "09:30", "16:00"}); }, "unsupported date accepted");
     }
     rejects([] { static_cast<void>(trading::CalendarRange{"2022-03-01", "2022-04-01"}); }, "oversized range accepted");

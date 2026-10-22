@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "symbol": "SPY",
+  "cusip": "78462F103",
+  "source_url": "https://www.ssga.com/library-content/products/fund-data/etfs/us/spdr-etf-historical-distributions.xlsx",
+  "source_file_sha256": "6b65cbf956b5d25705d08470006a0e97e6a7d2a0d5cfd08b63f6f79783b06320",
+  "retrieved_utc": "2026-10-22T16:10:29Z",
+  "worksheet": "dividend",
+  "ex_date_first": "2021-01-01",
+  "ex_date_last": "2023-12-31",
+  "cash_distributions": [
+    {
+      "ex_date": "2021-03-19",
+      "record_date": "2021-03-22",
+      "payable_date": "2021-04-30",
+      "usd_per_share": 1.277788,
+      "worksheet_row": 9152
+    },
+    {
+      "ex_date": "2021-06-18",
+      "record_date": "2021-06-21",
+      "payable_date": "2021-07-30",
+      "usd_per_share": 1.375875,
+      "worksheet_row": 9151
+    },
+    {
+      "ex_date": "2021-09-17",
+      "record_date": "2021-09-20",
+      "payable_date": "2021-10-29",
+      "usd_per_share": 1.428117,
+      "worksheet_row": 9150
+    },
+    {
+      "ex_date": "2021-12-17",
+      "record_date": "2021-12-20",
+      "payable_date": "2022-01-31",
+      "usd_per_share": 1.636431,
+      "worksheet_row": 9149
+    },
+    {
+      "ex_date": "2022-03-18",
+      "record_date": "2022-03-21",
+      "payable_date": "2022-04-29",
+      "usd_per_share": 1.366009,
+      "worksheet_row": 9148
+    },
+    {
+      "ex_date": "2022-06-17",
+      "record_date": "2022-06-21",
+      "payable_date": "2022-07-29",
+      "usd_per_share": 1.576871,
+      "worksheet_row": 9147
+    },
+    {
+      "ex_date": "2022-09-16",
+      "record_date": "2022-09-19",
+      "payable_date": "2022-10-31",
+      "usd_per_share": 1.596398,
+      "worksheet_row": 9146
+    },
+    {
+      "ex_date": "2022-12-16",
+      "record_date": "2022-12-19",
+      "payable_date": "2023-01-31",
+      "usd_per_share": 1.7814,
+      "worksheet_row": 9145
+    },
+    {
+      "ex_date": "2023-03-17",
+      "record_date": "2023-03-20",
+      "payable_date": "2023-04-28",
+      "usd_per_share": 1.506204,
+      "worksheet_row": 9144
+    },
+    {
+      "ex_date": "2023-06-16",
+      "record_date": "2023-06-20",
+      "payable_date": "2023-07-31",
+      "usd_per_share": 1.638367,
+      "worksheet_row": 9143
+    },
+    {
+      "ex_date": "2023-09-15",
+      "record_date": "2023-09-18",
+      "payable_date": "2023-10-31",
+      "usd_per_share": 1.583169,
+      "worksheet_row": 9142
+    },
+    {
+      "ex_date": "2023-12-15",
+      "record_date": "2023-12-18",
+      "payable_date": "2024-01-31",
+      "usd_per_share": 1.906073,
+      "worksheet_row": 9141
+    }
+  ]
+}

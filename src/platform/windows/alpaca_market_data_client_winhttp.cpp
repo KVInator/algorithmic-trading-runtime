@@ -58,6 +58,11 @@ MarketDataResponse AlpacaMarketDataClient::get_corporate_action_probe(int year) 
     return get_page(false, CorporateActionProbeRequest{year}.path());
 }
 
+MarketDataResponse AlpacaMarketDataClient::get_corporate_actions(const CorporateActionRequest& request,
+    const std::optional<std::string>& token) const {
+    return get_page(false, request.path(token));
+}
+
 MarketDataResponse AlpacaMarketDataClient::get_page(bool calendar, const std::string& request_path) const {
     const auto path = widen_ascii(request_path);
     auto session = require_handle(

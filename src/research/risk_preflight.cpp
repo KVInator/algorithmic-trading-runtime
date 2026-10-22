@@ -6,6 +6,7 @@
 #include "json_input.hpp"
 #include "minute_bar_csv.hpp"
 #include "session_storage.hpp"
+#include "risk_input_dataset.hpp"
 #include "utc_timestamp.hpp"
 
 #include <algorithm>
@@ -110,6 +111,22 @@ RiskPreflightResult RiskPreflight::run(const DevelopmentStudyDataset::Progress& 
     const auto policy = parse_json_document(read_text_file(project_root_ / "research/development_data_policy.json"));
     const auto gap_root = contained_path(project_root_, policy.at("data_exclusions").at(0).at("session_directory").get<std::string>());
     dataset.sessions.push_back(load_session_download(gap_root));
+    const auto supplemental = project_root_ / "scratch/datasets/SPY_RISK_01_inputs";
+    bool calibration_complete = false;
+    bool dividends_reconciled = false;
+    if (std::filesystem::exists(supplemental / "acquisition_manifest.json")) {
+        const auto inputs = RiskInputDataset{supplemental, project_root_ / "research/spy_distribution_reference.json"}.load();
+        dividends_reconciled = inputs.cash_distributions_reconciled;
+        result.supplemental_manifest_sha256 = sha256_file(supplemental / "acquisition_manifest.json");
+        calibration_complete = std::count_if(inputs.prices.begin(), inputs.prices.end(), [](const auto& row) {
+            return row.input.role != "shortened_session" && row.observed_minutes == row.input.request.expected_minutes();
+        }) == 253;
+    }
+    if (std::filesystem::exists(supplemental)) {
+        for (auto& session : RiskInputDataset{supplemental}.supplementary_sessions()) {
+            dataset.sessions.push_back(std::move(session));
+        }
+    }
     // Retired diagnostic evidence can be reused only after raw/CSV/metadata
     // verification. A missing retained run remains absent, never a cash day.
     for (const auto& session : calendar) {
@@ -131,8 +148,14 @@ RiskPreflightResult RiskPreflight::run(const DevelopmentStudyDataset::Progress& 
     });
     if (missing_references != 0) { result.blockers.push_back(std::to_string(missing_references) + " sessions lack required account price references."); }
     if (missing_risk != 0) { result.blockers.push_back(std::to_string(missing_risk) + " sessions lack required five-minute risk endpoints; a missing-data policy is unresolved."); }
-    result.blockers.push_back("Full 2021 daily calibration and leading 20-session intraday history are not part of the verified input contract.");
-    result.blockers.push_back("Raw-price dividend/split/distribution ledger, ex/pay dates and independent distribution totals are not reconciled.");
+    if (!calibration_complete) {
+        result.blockers.push_back("Full 2021 daily calibration and leading 20-session intraday history are not part of the verified input contract.");
+    }
+    if (!dividends_reconciled) {
+        result.blockers.push_back("Raw-price dividend/split/distribution ledger, ex/pay dates and independent distribution totals are not reconciled.");
+    } else {
+        result.blockers.push_back("Cash dividends reconcile to the issuer reference; the historical action-event ledger and same-date ordering remain unregistered.");
+    }
     result.blockers.push_back("The candidate protocol, missing-risk policy and same-date action ordering must be registered before scoring.");
     if (progress) { progress("Checking synthetic account, dividend, payment and split identities"); }
     result.accounting = demonstrate_long_cash_account();
