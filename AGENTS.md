@@ -43,7 +43,7 @@ Windows uses the existing Visual Studio `windows-x64` configure preset and
 full-period integration test. `continuation_diagnostic` runs offline and writes
 HTML/CSV under `scratch/runs/`. `continuation_development` verifies the frozen
 snapshot and generates the paired historical study with HTML/SVG, CSV and JSON.
-The routine presets run sixteen contract groups; full-period disk integration stays
+The routine presets run seventeen contract groups; full-period disk integration stays
 optional.
 
 `risk_preflight` audits the full 2022-2023 exchange calendar and synthetic
@@ -62,6 +62,14 @@ identities before measurement and retains every development account date. Its
 routine contracts use explicitly synthetic full-calendar fixtures; successful
 contracts do not establish historical scores. Run the historical entry point on
 the machine retaining the completed isolated acquisition dataset.
+
+`execution_diagnostic` exercises the single-symbol whole-share limit-order core
+with synthetic broker messages. Its integer-cent cash/inventory model is separate
+from historical fractional target-weight accounting. Preserve reservations until
+terminal quantities reconcile, deduplicate both events and executions, and gate
+new orders on contradictory reports or reconnect until an exact snapshot matches.
+Keep this diagnostic offline; it requires neither datasets nor credentials.
+The per-file source inventory is embedded with the configure-time aggregate.
 
 On Linux, use `cmake --preset linux-debug`, `cmake --build --preset linux-debug`
 and `ctest --preset linux-debug`. Keep warnings as errors. For a targeted change,

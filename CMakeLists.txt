@@ -87,6 +87,10 @@ add_library(accounting src/accounting/long_cash_account.cpp)
 target_include_directories(accounting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/accounting")
 configure_trading_target(accounting)
 
+add_library(order_execution src/execution/order_runtime.cpp src/execution/execution_diagnostic.cpp)
+target_include_directories(order_execution PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/execution")
+configure_trading_target(order_execution)
+
 add_library(risk_inputs src/storage/risk_input_dataset.cpp src/accounting/corporate_action_history.cpp)
 target_include_directories(risk_inputs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/accounting")
 target_link_libraries(risk_inputs PUBLIC session_data PRIVATE nlohmann_json::nlohmann_json)
@@ -114,6 +118,23 @@ foreach(source_file IN LISTS study_sources)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${source_file}")
 endforeach()
 string(SHA256 source_sha256 "${source_records}")
+# Embed the exact configure-time inventory with its aggregate. A rebuilt report
+# can diagnose individual source-byte differences without opening any dataset.
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/source_inventory.txt" "${source_records}")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/generated/trading_source_inventory.hpp"
+    "#pragma once\n#include <string_view>\nnamespace trading::build {\n"
+    "inline constexpr std::string_view source_sha256{\"${source_sha256}\"};\n"
+    "inline constexpr std::string_view source_records{R\"inventory(${source_records})inventory\"};\n}\n")
+
+add_library(execution_reporting src/reporting/execution_diagnostic_report.cpp)
+target_include_directories(execution_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting"
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+target_link_libraries(execution_reporting PUBLIC order_execution trading_core PRIVATE artifact_integrity nlohmann_json::nlohmann_json)
+target_compile_definitions(execution_reporting PRIVATE
+    TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
+    TRADING_BUILD_CONFIGURATION="$<CONFIG>")
+configure_trading_target(execution_reporting)
 add_library(continuation_reporting src/reporting/continuation_study_report.cpp)
 target_include_directories(continuation_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 target_link_libraries(continuation_reporting PUBLIC momentum_research PRIVATE nlohmann_json::nlohmann_json)
@@ -155,6 +176,7 @@ add_trading_app(continuation_development continuation_reporting)
 add_trading_app(risk_preflight risk_preflight_reporting)
 add_trading_app(risk_acquire risk_preflight_reporting)
 add_trading_app(risk_development daily_risk_reporting)
+add_trading_app(execution_diagnostic execution_reporting)
 target_sources(continuation_diagnostic PRIVATE src/reporting/continuation_diagnostic_report.cpp)
 target_include_directories(continuation_diagnostic PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 
@@ -214,6 +236,7 @@ if(BUILD_TESTING)
     add_trading_contract(risk_input_tests risk_input_contracts "risk_preflight_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(risk_measurement_tests risk_measurement_contracts daily_risk_research)
     add_trading_contract(daily_risk_study_tests daily_risk_study_contracts "daily_risk_reporting;nlohmann_json::nlohmann_json" OUTPUT)
+    add_trading_contract(order_runtime_tests order_runtime_contracts "execution_reporting;artifact_integrity;nlohmann_json::nlohmann_json" OUTPUT)
     add_test(NAME development_full_period_integration COMMAND development_dataset_tests
         "${CMAKE_CURRENT_BINARY_DIR}/development-full-test-output" --full)
     set_tests_properties(development_full_period_integration PROPERTIES LABELS integration)

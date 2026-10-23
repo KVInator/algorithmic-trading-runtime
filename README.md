@@ -1,9 +1,12 @@
 # Algorithmic Trading Runtime
 
-C++20 historical market-data ingestion, intraday strategy research and daily-risk allocation on SPY.
+C++20 market-data ingestion, SPY strategy research and a deterministic execution runtime.
 The implemented workflow acquires Alpaca SIP minute bars, preserves the original
 responses, verifies saved inputs and evaluates fixed intraday trading rules
 with delayed price references, explicit costs and block-bootstrap uncertainty.
+The [execution core](docs/execution_runtime.md) separately checks order lifecycle,
+cash and whole-share positions under partial fills, duplicate messages,
+cancellation races, disconnects and exact broker-snapshot reconciliation.
 
 The baseline research design and continuation gates are defined in the
 [SPY-IM-01 protocol](research/intraday_momentum_protocol.md). The
@@ -28,6 +31,7 @@ incremental-information comparison with price-only.
 | `apps/diagnostics/` | Optional live gap investigation |
 | `src/market/` | Minute-bar invariants, UTC timestamps and session calendar |
 | `src/accounting/` | Fractional long/cash account, corporate actions and chronological ledger |
+| `src/execution/` | Limit-order lifecycle, integer cash/inventory, reservations and synthetic message replay |
 | `src/alpaca/` | Request, response, JSON and rate-limit contracts |
 | `src/storage/` | Raw evidence, checkpoints, integrity and dataset finalization |
 | `src/research/` | Signal/replay, return statistics and moving-block bootstrap |
@@ -53,7 +57,7 @@ are treated as errors.
 1. Open the project folder with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for sixteen routine groups.
+4. Select **Test > Run Test Preset > windows-debug** for seventeen routine groups.
 5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
 6. Open the printed `trace.html` path for the price/volume plots and paired
    decision table. `decisions.csv` retains unrounded features and UTC clocks.
@@ -98,6 +102,17 @@ post-cost liquid targets and terminal liquidation. The runner reports its
 registered screens, rather than treating successful execution as advancement.
 The immutable acquisition inventory retains its original registration-time note;
 the registered study separately verifies that required evidence is complete.
+
+For the next runtime milestone, select **execution_diagnostic.exe** and
+**Ctrl+F5** after building and running the routine tests. It needs no dataset or
+credentials. Six constructed broker-message schedules check 69 transitions,
+final integer balances and identical traces on repeated replay. Open the printed
+`report.html`; expected quarantined rows identify injected faults, retained
+reservations and the entry gate. The accompanying input journal, CSV trace and
+hashed manifest retain the evidence. A per-file source inventory accompanies the
+compiled aggregate fingerprint. The [runtime contracts and limits](docs/execution_runtime.md)
+distinguish this in-memory execution stage from durable recovery, broker transport
+and strategy integration, which remain pending.
 
 Each `scratch/runs/SPY_RISK_01_development_2022-2023_*` directory contains:
 
@@ -168,7 +183,7 @@ The regular preset excludes this test. These two test presets explicitly select 
 For optimized offline runs, select build preset **windows-release**, rebuild,
 then run the targets from `scratch/build/Release/` through the Visual Studio
 startup-item selector. The matching **windows-release** test preset runs the
-sixteen routine groups in Release. Domain and artifact validation remain enabled.
+seventeen routine groups in Release. Domain and artifact validation remain enabled.
 
 Finalization and replay are offline. Their paths are anchored to the source
 folder, independently of the IDE working directory. Repeated finalization
