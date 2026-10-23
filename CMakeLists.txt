@@ -87,9 +87,20 @@ add_library(accounting src/accounting/long_cash_account.cpp)
 target_include_directories(accounting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/accounting")
 configure_trading_target(accounting)
 
-add_library(order_execution src/execution/order_runtime.cpp src/execution/execution_diagnostic.cpp)
+add_library(order_execution src/execution/order_runtime.cpp src/execution/runtime_input.cpp src/execution/execution_diagnostic.cpp)
 target_include_directories(order_execution PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/execution")
 configure_trading_target(order_execution)
+
+add_library(execution_persistence src/execution/journaled_runtime.cpp src/storage/runtime_json.cpp src/execution/recovery_diagnostic.cpp)
+target_link_libraries(execution_persistence PUBLIC order_execution artifact_integrity nlohmann_json::nlohmann_json
+    PRIVATE alpaca_decoder)
+if(WIN32)
+    target_sources(execution_persistence PRIVATE src/platform/windows/journal_storage_windows.cpp)
+    target_compile_definitions(execution_persistence PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
+else()
+    target_sources(execution_persistence PRIVATE src/platform/posix/journal_storage_posix.cpp)
+endif()
+configure_trading_target(execution_persistence)
 
 add_library(risk_inputs src/storage/risk_input_dataset.cpp src/accounting/corporate_action_history.cpp)
 target_include_directories(risk_inputs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/accounting")
@@ -127,10 +138,10 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/generated/trading_source_inventory.hpp"
     "inline constexpr std::string_view source_sha256{\"${source_sha256}\"};\n"
     "inline constexpr std::string_view source_records{R\"inventory(${source_records})inventory\"};\n}\n")
 
-add_library(execution_reporting src/reporting/execution_diagnostic_report.cpp)
+add_library(execution_reporting src/reporting/execution_diagnostic_report.cpp src/reporting/recovery_diagnostic_report.cpp)
 target_include_directories(execution_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting"
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
-target_link_libraries(execution_reporting PUBLIC order_execution trading_core PRIVATE artifact_integrity nlohmann_json::nlohmann_json)
+target_link_libraries(execution_reporting PUBLIC execution_persistence trading_core PRIVATE nlohmann_json::nlohmann_json)
 target_compile_definitions(execution_reporting PRIVATE
     TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
     TRADING_BUILD_CONFIGURATION="$<CONFIG>")
@@ -177,6 +188,7 @@ add_trading_app(risk_preflight risk_preflight_reporting)
 add_trading_app(risk_acquire risk_preflight_reporting)
 add_trading_app(risk_development daily_risk_reporting)
 add_trading_app(execution_diagnostic execution_reporting)
+add_trading_app(recovery_diagnostic execution_reporting)
 target_sources(continuation_diagnostic PRIVATE src/reporting/continuation_diagnostic_report.cpp)
 target_include_directories(continuation_diagnostic PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 
@@ -237,6 +249,12 @@ if(BUILD_TESTING)
     add_trading_contract(risk_measurement_tests risk_measurement_contracts daily_risk_research)
     add_trading_contract(daily_risk_study_tests daily_risk_study_contracts "daily_risk_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(order_runtime_tests order_runtime_contracts "execution_reporting;artifact_integrity;nlohmann_json::nlohmann_json" OUTPUT)
+    add_executable(journaled_runtime_tests tests/journaled_runtime_tests.cpp)
+    target_link_libraries(journaled_runtime_tests PRIVATE execution_persistence)
+    configure_trading_target(journaled_runtime_tests)
+    add_test(NAME journaled_runtime_contracts COMMAND "${CMAKE_COMMAND}"
+        "-DPROGRAM=$<TARGET_FILE:journaled_runtime_tests>" "-DROOT=${CMAKE_CURRENT_BINARY_DIR}/journaled_runtime_tests-output"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/journal_recovery_contracts.cmake")
     add_test(NAME development_full_period_integration COMMAND development_dataset_tests
         "${CMAKE_CURRENT_BINARY_DIR}/development-full-test-output" --full)
     set_tests_properties(development_full_period_integration PROPERTIES LABELS integration)

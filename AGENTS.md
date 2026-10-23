@@ -43,7 +43,7 @@ Windows uses the existing Visual Studio `windows-x64` configure preset and
 full-period integration test. `continuation_diagnostic` runs offline and writes
 HTML/CSV under `scratch/runs/`. `continuation_development` verifies the frozen
 snapshot and generates the paired historical study with HTML/SVG, CSV and JSON.
-The routine presets run seventeen contract groups; full-period disk integration stays
+The routine presets run eighteen contract groups; full-period disk integration stays
 optional.
 
 `risk_preflight` audits the full 2022-2023 exchange calendar and synthetic
@@ -70,6 +70,13 @@ terminal quantities reconcile, deduplicate both events and executions, and gate
 new orders on contradictory reports or reconnect until an exact snapshot matches.
 Keep this diagnostic offline; it requires neither datasets nor credentials.
 The per-file source inventory is embedded with the configure-time aggregate.
+
+`recovery_diagnostic` exercises the journaled wrapper with real synchronized
+files, partial-fill restart, separate verified-prefix recovery and complete-frame
+corruption rejection. Journal before dispatch eligibility, retain exclusive writer
+ownership, replay through the existing order core and persist a disconnect barrier
+on writer creation/recovery. Never truncate a damaged source or automatically resend uncertain
+intents. The journal contract group also launches four abrupt-exit child processes.
 
 On Linux, use `cmake --preset linux-debug`, `cmake --build --preset linux-debug`
 and `ctest --preset linux-debug`. Keep warnings as errors. For a targeted change,

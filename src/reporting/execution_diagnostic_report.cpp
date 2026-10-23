@@ -2,52 +2,18 @@
 
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
+#include "runtime_json.hpp"
 #include "trading_source_inventory.hpp"
 
 #include <nlohmann/json.hpp>
 
 #include <sstream>
 #include <string>
-#include <type_traits>
 
 namespace trading::execution {
 namespace {
 
 using Json = nlohmann::json;
-Json order_json(const OrderRequest& order) {
-    return {{"id", order.id}, {"symbol", order.symbol}, {"side", name(order.side)}, {"shares", order.shares},
-            {"limit_cents", order.limit_cents}, {"fee_per_share_ceiling_cents", order.fee_per_share_ceiling_cents}};
-}
-Json input_json(const RuntimeInput& input) {
-    return std::visit([](const auto& item) -> Json {
-        using T = std::decay_t<decltype(item)>;
-        if constexpr (std::is_same_v<T, SubmitInput>) {
-            return {{"kind", "submit"}, {"order", order_json(item.request)}};
-        } else if constexpr (std::is_same_v<T, CancelInput>) {
-            return {{"kind", "cancel"}, {"order_id", item.order_id}, {"cancel_id", item.cancel_id}};
-        } else if constexpr (std::is_same_v<T, ConnectionInput>) {
-            return {{"kind", item.connected ? "reconnect" : "disconnect"}};
-        } else if constexpr (std::is_same_v<T, BrokerSnapshot>) {
-            Json orders = Json::array();
-            for (const auto& order : item.open_orders) {
-                orders.push_back({{"order", order_json(order.request)}, {"filled_shares", order.filled_shares}});
-            }
-            return {{"kind", "reconcile"}, {"cash_cents", item.cash_cents}, {"position_shares", item.position_shares},
-                    {"open_orders", std::move(orders)}};
-        } else {
-            return {{"kind", "report"}, {"report_kind", name(item.kind)}, {"event_id", item.event_id},
-                    {"order_id", item.order_id}, {"execution_id", item.execution_id}, {"fill_shares", item.fill_shares},
-                    {"fill_price_cents", item.fill_price_cents}, {"fee_cents", item.fee_cents},
-                    {"cumulative_filled_shares", item.cumulative_filled_shares}, {"cancel_id", item.cancel_id}};
-        }
-    }, input);
-}
-Json account_json(const AccountSnapshot& account) {
-    return {{"cash_cents", account.cash_cents}, {"position_shares", account.position_shares},
-            {"reserved_cash_cents", account.reserved_cash_cents}, {"reserved_sell_shares", account.reserved_sell_shares},
-            {"outstanding_buy_shares", account.outstanding_buy_shares}, {"open_orders", account.open_orders},
-            {"connected", account.connected}, {"reconciliation_required", account.reconciliation_required}};
-}
 std::string html_escape(std::string_view text) {
     std::string result;
     for (const char c : text) {

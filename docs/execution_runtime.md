@@ -130,9 +130,11 @@ the [curated provenance record](../research/daily_risk_development_result.json).
 
 Runtime contracts additionally check acknowledgement/fill delivery permutations,
 exact integer cash identities, reservation retention, full-order snapshot
-comparison, numerical overflow and invalid inputs. The trace is in memory and
-the account is copied per report to make validation atomic. No persistence,
-crash recovery, real broker transport, market matching/liquidity model,
-strategy-to-order adapter or throughput target is implemented in this milestone.
-Those are subsequent runtime stages; passing these synthetic checks establishes
-neither executable strategy returns nor live-trading readiness.
+comparison, numerical overflow and invalid inputs. The order core retains an
+in-memory trace and copies account state per report to make validation atomic.
+The [journaled wrapper](journal_recovery.md) adds synchronized input persistence,
+verified replay, a restart gate and separate recovery of an incomplete tail.
+Broker transport, automatic resend, market matching/liquidity, strategy-to-order
+integration and throughput targets remain outside the implemented scope.
+Passing these synthetic checks establishes neither executable strategy returns
+nor live-trading readiness.

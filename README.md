@@ -57,7 +57,7 @@ are treated as errors.
 1. Open the project folder with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for seventeen routine groups.
+4. Select **Test > Run Test Preset > windows-debug** for eighteen routine groups.
 5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
 6. Open the printed `trace.html` path for the price/volume plots and paired
    decision table. `decisions.csv` retains unrounded features and UTC clocks.
@@ -111,8 +111,17 @@ final integer balances and identical traces on repeated replay. Open the printed
 reservations and the entry gate. The accompanying input journal, CSV trace and
 hashed manifest retain the evidence. A per-file source inventory accompanies the
 compiled aggregate fingerprint. The [runtime contracts and limits](docs/execution_runtime.md)
-distinguish this in-memory execution stage from durable recovery, broker transport
-and strategy integration, which remain pending.
+describe the order-state model separately from the durable wrapper.
+
+For [durable journaling and restart recovery](docs/journal_recovery.md), select
+**recovery_diagnostic.exe** and **Ctrl+F5** after the routine tests pass. The
+offline diagnostic checks 33 assertions and seven account checkpoints across
+partial-fill restart, incomplete-tail recovery into a separate file, and rejection
+of complete-frame corruption. Open the printed `report.html`; its manifest hashes
+the retained journals, check table and source inventory. The eighteenth contract
+group additionally launches four abruptly exiting child processes to verify
+recovery across the append/synchronization boundary. Broker transport, automatic
+resend, market matching and strategy integration remain pending.
 
 Each `scratch/runs/SPY_RISK_01_development_2022-2023_*` directory contains:
 
@@ -183,7 +192,7 @@ The regular preset excludes this test. These two test presets explicitly select 
 For optimized offline runs, select build preset **windows-release**, rebuild,
 then run the targets from `scratch/build/Release/` through the Visual Studio
 startup-item selector. The matching **windows-release** test preset runs the
-seventeen routine groups in Release. Domain and artifact validation remain enabled.
+eighteen routine groups in Release. Domain and artifact validation remain enabled.
 
 Finalization and replay are offline. Their paths are anchored to the source
 folder, independently of the IDE working directory. Repeated finalization

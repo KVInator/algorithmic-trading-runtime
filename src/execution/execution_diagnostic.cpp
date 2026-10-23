@@ -1,7 +1,6 @@
 #include "execution_diagnostic.hpp"
 
 #include <stdexcept>
-#include <type_traits>
 #include <utility>
 
 namespace trading::execution {
@@ -104,17 +103,7 @@ std::vector<ExecutionScenario> scenarios() {
 OrderRuntime replay(const ExecutionScenario& scenario) {
     OrderRuntime runtime{"SPY", 1000000, {20, 4}};
     for (const auto& step : scenario.steps) {
-        const auto actual = std::visit([&](const auto& input) -> Outcome {
-            using T = std::decay_t<decltype(input)>;
-            if constexpr (std::is_same_v<T, SubmitInput>) { return runtime.submit(input.request); }
-            else if constexpr (std::is_same_v<T, CancelInput>) { return runtime.request_cancel(input.order_id, input.cancel_id); }
-            else if constexpr (std::is_same_v<T, BrokerReport>) { return runtime.receive(input); }
-            else if constexpr (std::is_same_v<T, BrokerSnapshot>) { return runtime.reconcile(input); }
-            else {
-                if (input.connected) { runtime.reconnect(); } else { runtime.disconnect(); }
-                return Outcome::applied;
-            }
-        }, step.input);
+        const auto actual = apply_input(runtime, step.input);
         if (actual != step.expected_outcome) {
             throw std::logic_error("execution scenario outcome differs at step " + std::to_string(runtime.trace().size()) +
                                    ": " + scenario.name + "; " + runtime.trace().back().reason);

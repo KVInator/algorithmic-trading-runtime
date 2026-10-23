@@ -1,15 +1,9 @@
 #pragma once
 
-#include "order_runtime.hpp"
-
-#include <variant>
+#include "runtime_input.hpp"
 
 namespace trading::execution {
 
-struct SubmitInput { OrderRequest request; };
-struct CancelInput { std::string order_id; std::string cancel_id; };
-struct ConnectionInput { bool connected; };
-using RuntimeInput = std::variant<SubmitInput, CancelInput, BrokerReport, ConnectionInput, BrokerSnapshot>;
 struct DiagnosticStep { RuntimeInput input; Outcome expected_outcome; };
 struct ExecutionScenario {
     std::string name;
