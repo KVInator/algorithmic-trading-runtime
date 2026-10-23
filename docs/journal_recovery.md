@@ -107,6 +107,40 @@ exits. These synthetic cases establish execution/recovery contracts rather than
 historical strategy performance. Existing study protocols, raw datasets and
 later-period boundaries remain unchanged.
 
+## Native verification
+
+The MSVC 19.51.36260.0 Debug build and all eighteen routine groups were reported
+successful on 23 October 2026 for implementation revision `52556bf`. The native
+diagnostic retains 33 passing assertions and seven checkpoints. Its uploaded
+manifest SHA-256 is
+`198d43792175a37d88880a4a971c5de05562a9b562c7c86ca4a078a60274f13d`;
+all seven artifact hashes match the recorded identities.
+
+| Valid journal | Complete frames including header | Input records | Incomplete tail |
+| --- | ---: | ---: | ---: |
+| `restart.journal` | 15 | 14 | 0 bytes |
+| `torn-original.journal` | 6 | 5 | 28 bytes |
+| `prefix-recovered.journal` | 12 | 11 | 0 bytes |
+
+Independent SHA-256, sequence and predecessor checks validate all 33 complete
+frames. An integer ledger independently reproduces cash, positions, cash/share
+reservations, outstanding buys and open-order counts after all thirty input
+records. The recovered file begins with the exact 3,540-byte complete original
+prefix, followed by a new disconnect barrier. The corrupt fixture differs from
+the valid restart journal only at byte offset five; its first frame's checksum
+fails as intended.
+
+All four journal files and `recovery_checks.json` are byte-identical to the
+verified Linux diagnostic. The HTML differs only in its source digest. The
+130-entry native source inventory contains 122 exact local byte matches and the
+same eight exact CRLF variants recorded in the earlier
+[provenance resolution](../research/daily_risk_development_result.json).
+Its aggregate SHA-256 is
+`2e04f38536468d1ea349d8f649ddaee41ac95f41c23db3b61d9709fefa044a82`.
+The eighteen-group native test result includes the four abrupt-exit contract
+cases; the uploaded diagnostic artifacts separately verify the closed/reopened
+file scenarios. Physical power-loss behavior remains outside this evidence.
+
 ## Platform references
 
 - Microsoft: [CreateFileW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew)

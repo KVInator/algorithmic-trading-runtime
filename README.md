@@ -122,6 +122,8 @@ the retained journals, check table and source inventory. The eighteenth contract
 group additionally launches four abruptly exiting child processes to verify
 recovery across the append/synchronization boundary. Broker transport, automatic
 resend, market matching and strategy integration remain pending.
+The completed [native recovery verification](docs/journal_recovery.md#native-verification)
+records matching Windows/Linux journals and independent account-state checks.
 
 Each `scratch/runs/SPY_RISK_01_development_2022-2023_*` directory contains:
 
