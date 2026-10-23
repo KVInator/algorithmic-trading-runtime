@@ -7,7 +7,7 @@ evidence rather than a completion percentage.
 
 | Milestone | Status | Evidence and remaining acceptance |
 | --- | --- | --- |
-| 1. Native integration checkpoint | Open: Windows output pending | The offline pipeline has Linux evidence. Native verification of the preceding journal milestone is complete; the combined pipeline still needs its native run. |
+| 1. Native integration checkpoint | Open: pipeline diagnostic artifacts pending | The current twenty-group Windows test log and reversion preflight are verified. The combined pipeline diagnostic still needs its native report/journals; passing its contract group does not supply those artifacts. |
 | 2. Strategy research | In progress: reversion specification/preflight | Two trend-oriented designs and the separate daily-risk study are retained. The new reversion brief, numerical kernel and structural coverage audit are implemented. Final registration, uncertainty/stability experiments, prior-only history, decisions, controls and scored study remain. |
 | 3. Shared execution path | Partially implemented | The original momentum adapter has synthetic fill/restart evidence. Continuation/reversion adapters, historical reference replay and account-convention comparisons remain. |
 | 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
@@ -39,8 +39,35 @@ synthetic fits and their residual variances. Separate checks reproduce the openi
 reference and residual samples, validate the five artifact hashes against the
 149-file source inventory and check all 496 coverage cells and report links.
 These are numerical and structural checks, not finite-sample estimator or
-historical profitability evidence. The current Windows build and native runs
-remain open; prior native results do not verify this implementation.
+historical profitability evidence. Native verification of this preflight is
+recorded below; the separate pipeline diagnostic remains open.
+
+## Windows reversion verification
+
+For implementation revision `8e19546`, the MSVC 19.51.36260.0 Debug build was
+reported successful on 23 October 2026. The supplied console log records all
+twenty routine groups passing in 307.50 seconds. The separate native preflight
+passes all 22 checks, verifies 496 sessions and records 476 input-ready dates,
+zero historical model fits and zero strategy scores. Its frozen study-manifest
+identity matches the Linux run.
+
+The uploaded summary SHA-256 is
+`3b69053b03f48a44ebbec765fb356d4b6783a858af35dbbd0f80509c42c1bf04`.
+All five artifact hashes match. Coverage and the exact synthetic prefix are
+byte-identical to Linux. All four controls retain identical statuses and input
+sequences; fitted numerical fields agree within relative tolerance 1e-12 and
+absolute tolerance 1e-15. The largest absolute parameter difference is
+approximately 1.07e-14. The 149-entry source inventory has 141 exact byte matches
+and eight exact CRLF variants, with no unexplained source differences.
+
+The supplied timing log attributes 175.19 seconds to `daily_risk_study_contracts`
+and 101.46 seconds to `risk_input_contracts`, together 89.97% of the suite.
+These groups exercise full-calendar synthetic study/replay and persisted
+acquisition/reload scenarios. The new reversion contract takes 0.19 seconds.
+The preflight's frozen-input verification completes at 188.2 seconds; the
+log does not isolate disk, decoder, hashing or other system costs. Build timings
+were not supplied, so the cause of the reported slow build is not established.
+No performance improvement is inferred from successful correctness checks.
 
 ## Next dependency
 
