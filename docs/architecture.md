@@ -12,11 +12,11 @@ application state.
 | --- | --- | --- |
 | Market observations | `MinuteBar`, `HistoricalBarRequest`, `CalendarSession` | Validated prices, quantities, UTC intervals and exchange clocks |
 | Input evidence | `SessionDownloader`, `DevelopmentStudyDataset`, `RiskInputDataset`, `DailyRiskDataset` | Bounded requests, checkpoint identities and immutable-study verification |
-| Research | Strategy/history classes, `OpeningAnchorMeasurement`, `PooledReversionEstimator`, study engines | Completed information, prior-only estimates and explicit failures |
+| Research | Strategy/history classes, `OpeningAnchorMeasurement`, `PooledReversionEstimator`, `ReversionUncertainty`, study engines | Completed information, prior-only estimates and explicit failures |
 | Fractional accounting | `LongCashAccount` | Cash, holdings, claims/payments and chronological ledger |
 | Order accounting | `OrderRuntime`, `JournaledRuntime` | Integer units, reservations, deduplication, durability and routing gates |
 | Broker coordination | `MomentumOrderAdapter`, `OfflinePipeline`, `SimulatedBroker` | Targets, independent quote budgets, events and reconciliation |
-| Diagnostics | `ExecutionDiagnostic`, `RecoveryDiagnostic`, `PipelineDiagnostic`, `ReversionPreflight` | Constructed scenarios composed from existing engines |
+| Diagnostics | `ExecutionDiagnostic`, `RecoveryDiagnostic`, `PipelineDiagnostic`, `ReversionPreflight`, `ReversionValidationStudy` | Constructed scenarios composed from existing engines |
 | Presentation | Study/diagnostic report classes, `ReportText` | Result-bound exports and shared text encoding |
 
 Entry points select data/configuration, invoke these objects and display status

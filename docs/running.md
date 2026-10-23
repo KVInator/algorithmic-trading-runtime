@@ -9,10 +9,10 @@ working directory. Each diagnostic or study writes a new directory under
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
 **Test > Run Test Preset > windows-debug**. Select an executable and use
-**Ctrl+F5**. The routine preset runs twenty contract groups.
+**Ctrl+F5**. The routine preset runs twenty-one contract groups.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
-has a matching twenty-group test preset. Financial/artifact validation stays
+has a matching twenty-one-group test preset. Financial/artifact validation stays
 enabled. `windows-debug-full` additionally runs the optional 497-session
 synthetic disk integration test.
 
@@ -50,7 +50,13 @@ branches. Local datasets remain in place.
 | `execution_diagnostic` | Six scenarios, 69 transitions, identical repeated replay and retained input/trace files |
 | `recovery_diagnostic` | 33 checks, seven checkpoints and valid/torn/recovered/corrupt journals |
 | `pipeline_diagnostic` | 58 checks, three cases, paired interrupted/uninterrupted paths and journals |
+| `reversion_validation` | Thirteen cases, 1,000 trials each, whole-session coverage/noise evidence and retained first-trial observations |
 | `reversion_preflight --synthetic-only` | 22 checks, four estimator controls, exact synthetic prefix and hashed report |
+
+`reversion_validation` runs a separate Monte Carlo workload; routine contracts
+use small constructed cases and do not repeat the full diagnostic. Release
+is suitable for the full run. Parameter ranges are descriptive; the diagnostic
+contains deliberate failures of latent-parameter coverage.
 
 These targets need no credentials or private market datasets. Quarantined/denied
 rows in prescribed fault schedules are expected. The journal test group
@@ -76,8 +82,8 @@ dataset and reuses completed evidence. Its corporate-action process dates extend
 through March 2024 solely for earlier entitlements; later-period prices are not
 requested.
 
-`reversion_preflight` remains unregistered and unscored. It audits timestamps and
-positive opening volume without historical residuals, fits, forecasts, trades or
+`reversion_preflight` verifies inputs for registered revision 1 without scoring.
+It audits timestamps and positive opening volume without historical residuals, fits, forecasts, trades or
 returns. Default full-data verification can take several minutes;
 `--synthetic-only` omits it.
 
@@ -117,6 +123,7 @@ sample and is verified on every historical study load.
 | SPY-IM-01 | `daily_returns.csv` and `summary.json` |
 | SPY-TOD-01 | `report.html`, `daily_returns.csv`, `features.csv`, `trades.csv`, `removed_exposure.csv`, `opportunity_diagnostics.csv`, `entry_timing.csv`, `scheduled_releases.csv` and `summary.json` |
 | SPY-RISK-01 | `report.html`, `measurements.csv`, `features.csv`, `daily_accounts.csv`, `account_ledger.csv` and `summary.json` |
+| SPY-MR-01 synthetic validation | `report.html`, `trials_<case-index>.json`, `reference_sessions.csv`, `source_inventory.txt` and `summary.json` |
 | SPY-MR-01 preflight | `report.html`, `controls.json`, `coverage.csv`, `synthetic_prefix.csv`, `source_inventory.txt` and `summary.json` |
 
 Continuation's twenty initial sessions are training history, not zero-return
@@ -133,3 +140,9 @@ python research/verify_daily_risk_report.py <report-directory>
 
 The [research index](../research/README.md) links exact conventions and findings.
 Historical delayed price proxies do not establish broker fills or market impact.
+
+The independent synthetic reversion report check uses only the standard library:
+
+```sh
+python research/verify_reversion_validation.py <report-directory>
+```

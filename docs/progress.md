@@ -8,16 +8,16 @@ evidence rather than a completion percentage.
 | Milestone | Status | Evidence and remaining acceptance |
 | --- | --- | --- |
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
-| 2. Strategy research | In progress: reversion specification/preflight | Two trend-oriented designs and the separate daily-risk study are retained. The new reversion brief, numerical kernel and structural coverage audit are implemented. Final registration, uncertainty/stability experiments, prior-only history, decisions, controls and scored study remain. |
+| 2. Strategy research | In progress: reversion revision 1 registered | Synthetic finite-sample/noise evidence, whole-session parameter ranges and failure conventions are complete. Prior-only history, policies/control accounts, registered historical scoring and new native verification remain. |
 | 3. Shared execution path | Partially implemented | The original momentum adapter has synthetic fill/restart evidence. Continuation/reversion adapters, historical reference replay and account-convention comparisons remain. |
 | 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
 | 7. Final technical publication | Not complete | Individual reports and research notes exist. The unified analytical HTML/PDF report, offline showcase and final repository presentation remain. |
 
-## Current checkpoint: reversion specification and feasibility
+## Reversion specification and feasibility checkpoint
 
-SPY-MR-01 is proposed and unscored. The [brief](../research/intraday_reversion_brief.md)
+At this preceding checkpoint SPY-MR-01 was proposed and unscored. The [brief](../research/intraday_reversion_brief.md)
 defines a fixed opening reference, a noon decision, prior-session estimation
 and common-window controls. It records the difference between conditional OU
 interpretation and empirical evidence of stationary residuals.
@@ -118,11 +118,73 @@ current Linux diagnostic; the HTML differs only in its source fingerprint.
 Five CRLF variants explain the native source inventory, with no unexplained
 source differences. This closes milestone 1 for the recorded implementation.
 
+## Reversion sampling, noise and registration checkpoint
+
+The [synthetic specification](../research/reversion_validation.md) fixes thirteen
+cases before the first Monte Carlo run. `ReversionSimulator` generates known
+latent paths with independent observation error, session-common anchor error,
+short/long histories, transients and across-session shock dependence.
+`ReversionUncertainty` reuses the authoritative estimator and whole-session block
+sampler. Every refit retains its status; missing coefficients invalidate the
+slope range and OU-derived ranges are explicitly conditional. An unavailable
+current residual preserves history parameter ranges without fabricating a move.
+
+The completed diagnostic retains 13,000 point fits and 1,034,800 refits, all
+coverage denominators and first-trial observations. The
+[findings](../research/reversion_validation_result.md) show false latent-OU
+admissibility in 618/1,000 clean unit-root and 1,000/1,000 noisy unit-root trials.
+Observation-noise latent-slope coverage is 0/200 at block one and 1/200 at block
+five. Even clean twenty-session ranges under-cover. These are model/inference
+limitations, not software-contract failures; no estimator or trading threshold
+was selected to conceal them.
+
+[Protocol revision 1](../research/intraday_reversion_protocol.md) and its
+[settings](../research/intraday_reversion_protocol.json) are registered after
+that synthetic evidence and before historical residuals/fits/scoring. They fix
+all policies, dates, costs/delays, comparison masks, seeds and advancement rules.
+Parameter ranges are descriptive and cannot filter entries or establish
+stationarity/latent-OU identification. Registered document identities are:
+
+- Protocol: `1fa24089060ccfc82963ee53216927fb0fa9e0f10f02948eae5b72b4032207b9`.
+- Settings: `64640f797613466b43b6c0c8686f317aa6a5bcc5425985e931816a6910e8ff86`.
+
+GCC 13.3 Debug Build All passes with warnings as errors. All twenty-one routine
+groups pass in 19.43 seconds; the new small-workload contract takes 0.12 seconds.
+The two reversion groups also pass ASan/UBSan with leak detection disabled.
+The full Monte Carlo workload is a separate application rather than routine CI
+work. No performance benchmark is inferred from these correctness timings.
+
+Release evidence is retained at `scratch/runs/reversion_validation_2`; Debug at
+`reversion_validation_3`. Thirteen trial files, first-trial CSV, HTML, source
+inventory and all case aggregates are byte-identical between builds. Independent
+60-digit Decimal arithmetic verifies all thirteen first-trial fits/variances;
+the verifier checks every point aggregate, range coverage denominator, refit
+status total and all sixteen artifact hashes. All HTML artifact links resolve.
+Visual browser rendering was unavailable because the local browser executable
+is absent; report structure and numerical content were checked directly.
+The current synthetic-only preflight passes its 22 controls at
+`scratch/runs/reversion_preflight_11` with `registered_unscored` status.
+
+The Debug summary SHA-256 is
+`5ffa9cbd09fcbe0f57c0b57bc284a91ab3b4a99aa339263246b8b7e2ea3d80ab`;
+Release summary SHA-256 is
+`bfb38fa09ac8820128f37192ba64486f56ccf7f8986e3dda07b161dfb47265d3`.
+Both retain the same 163-file inventory aggregate
+`c733f3bfad4967d868ca35bc6cfd755208777fb19b9c5e901ba821de024038cc`.
+The repository hygiene audit reports no findings. Existing frozen studies,
+policies, briefs, datasets, result records and journals retain their bytes.
+No 2024-2025 prices/performance were accessed. New MSVC build, twenty-one-group
+suite and native synthetic diagnostic evidence remain pending; the completed
+milestone-1 native baseline remains valid for its recorded implementation.
+
 ## Next dependency
 
-Complete finite-sample and observation-noise controls for estimator/interval
-behavior, define session-level uncertainty and failure conventions, then
-register the final protocol and machine-readable settings before historical
-model fitting. Subsequent work implements the prior-only history, decision,
-control accounts and scored comparison. A negative empirical result does not
-reopen frozen rules or trigger an additional strategy search.
+Implement and test the registered prior-only history, noon policies, four market
+accounts/cash reference, protocol identity checks and paired outcome uncertainty.
+Then run the bounded registered 2022-2023 historical comparison, retaining all
+failure dates and negative screens. No further registration or threshold choice
+is needed unless the actual design changes. Milestone 2 remains open until that
+comparison and reproducibility checks are complete. Remaining execution adapters,
+paper capture/measurements, Release benchmarks/CI and the unified report remain
+open under milestones 3-7. A negative result does not reopen frozen rules or
+trigger another strategy search.

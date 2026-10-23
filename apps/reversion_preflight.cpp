@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
         if (argc > 2 || (argc == 2 && !synthetic_only)) { throw std::invalid_argument("supported option: --synthetic-only"); }
         const trading::ConsoleProgress progress;
         const std::filesystem::path root{TRADING_PROJECT_ROOT};
-        progress("SPY-MR-01 | unregistered reversion specification and feasibility");
+        progress("SPY-MR-01 | registered reversion input feasibility");
         const trading::ReversionPreflight preflight{};
         auto result = preflight.controls();
         progress("Constructed AR(1), OU mapping and completed-prefix controls passed");
@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
         const auto ready = std::count_if(result.coverage.begin(), result.coverage.end(),
             [](const auto& row) { return row.input_ready; });
         std::cout << "Constructed checks passed: " << result.checks.size() << "\nAudited sessions: " << result.coverage.size()
-            << "\nInput-ready dates after warm-up: " << ready << "\nStudy status: unregistered_unscored"
+            << "\nInput-ready dates after warm-up: " << ready << "\nStudy status: registered_unscored"
             << "\nVisual report: " << (directory / "report.html").string()
             << "\nManifest: " << (directory / "summary.json").string()
             << "\nNo historical model was fitted and no strategy was scored.\n";

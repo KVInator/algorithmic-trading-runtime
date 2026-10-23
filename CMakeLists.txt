@@ -76,7 +76,8 @@ add_library(momentum_research
     src/research/return_statistics.cpp src/research/development_study.cpp
     src/research/intraday_continuation.cpp src/research/continuation_study.cpp
     src/research/continuation_diagnostics.cpp src/research/intraday_reversion.cpp
-    src/research/reversion_preflight.cpp)
+    src/research/reversion_preflight.cpp src/research/reversion_uncertainty.cpp
+    src/research/reversion_validation.cpp)
 target_include_directories(momentum_research PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/research")
 target_link_libraries(momentum_research PUBLIC session_data PRIVATE nlohmann_json::nlohmann_json)
 target_compile_definitions(momentum_research PRIVATE TRADING_PROTOCOL_SHA256="${protocol_sha256}")
@@ -160,7 +161,8 @@ target_compile_definitions(pipeline_reporting PRIVATE
     TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
     TRADING_BUILD_CONFIGURATION="$<CONFIG>")
 configure_trading_target(pipeline_reporting)
-add_library(reversion_reporting src/reporting/reversion_preflight_report.cpp)
+add_library(reversion_reporting src/reporting/reversion_preflight_report.cpp
+    src/reporting/reversion_validation_report.cpp)
 target_include_directories(reversion_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting"
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_link_libraries(reversion_reporting PUBLIC momentum_research PRIVATE nlohmann_json::nlohmann_json)
@@ -213,6 +215,7 @@ add_trading_app(execution_diagnostic execution_reporting)
 add_trading_app(recovery_diagnostic execution_reporting)
 add_trading_app(pipeline_diagnostic pipeline_reporting)
 add_trading_app(reversion_preflight reversion_reporting)
+add_trading_app(reversion_validation reversion_reporting)
 target_sources(continuation_diagnostic PRIVATE src/reporting/continuation_diagnostic_report.cpp)
 target_include_directories(continuation_diagnostic PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 
@@ -261,6 +264,7 @@ if(BUILD_TESTING)
     add_trading_contract(momentum_replay_tests momentum_replay_contracts momentum_research)
     add_trading_contract(intraday_continuation_tests intraday_continuation_contracts momentum_research)
     add_trading_contract(intraday_reversion_tests intraday_reversion_contracts "reversion_reporting;nlohmann_json::nlohmann_json" OUTPUT)
+    add_trading_contract(reversion_validation_tests reversion_validation_contracts "reversion_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     target_sources(intraday_continuation_tests PRIVATE src/reporting/continuation_diagnostic_report.cpp)
     target_include_directories(intraday_continuation_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
     add_trading_contract(continuation_study_tests continuation_study_contracts "continuation_reporting;nlohmann_json::nlohmann_json")

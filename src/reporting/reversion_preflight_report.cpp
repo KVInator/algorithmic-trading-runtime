@@ -32,7 +32,7 @@ void ReversionPreflightReport::write(const std::filesystem::path& directory) con
         "<title>Opening-anchor reversion preflight</title><style>body{font:16px system-ui;max-width:1150px;margin:2rem auto;padding:0 1rem;"
         "color:#192c40;background:#f6f8fb}table{border-collapse:collapse;width:100%;background:white}th,td{padding:10px;text-align:left;"
         "border-bottom:1px solid #ccd7e2}th{background:#e8eff7}.scroll{overflow:auto}code{overflow-wrap:anywhere}</style>"
-        "<main><h1>Opening-anchor reversion preflight</h1><p>Proposed research design. Registration and historical model evaluation are pending.</p>"
+        "<main><h1>Opening-anchor reversion preflight</h1><p>Revision 1 is registered. Historical model evaluation remains pending.</p>"
         "<p>The opening reference is fixed from the first thirty minutes. Five-minute closing residuals end at noon. "
         "The estimator fits within-session AR(1) transitions without connecting session boundaries.</p>"
         "<p>All parameter fits below use constructed controls. Historical coverage checks inspect timestamps and positive opening volume only. "
@@ -81,11 +81,11 @@ void ReversionPreflightReport::write(const std::filesystem::path& directory) con
     for (const auto* file : {"controls.json", "coverage.csv", "synthetic_prefix.csv", "source_inventory.txt", "report.html"}) {
         artifacts.push_back({{"path", file}, {"sha256", sha256_file(directory / file)}});
     }
-    const Json summary{{"schema_version", 1}, {"candidate", "SPY-MR-01"}, {"study_status", "unregistered_unscored"},
+    const Json summary{{"schema_version", 1}, {"candidate", "SPY-MR-01"}, {"study_status", "registered_unscored"},
         {"historical_model_fits", 0}, {"historical_strategy_scores", 0}, {"constructed_checks", result.checks.size()},
         {"synthetic_control_cases", result.controls.size()}, {"audited_sessions", result.coverage.size()}, {"input_ready_dates", ready},
         {"coverage_status", !result.study_manifest_sha256 ? "not_audited" :
-            result.coverage.size() == 496 && ready == 476 ? "available_before_registration" : "incomplete_prerequisites"},
+            result.coverage.size() == 496 && ready == 476 ? "available_before_historical_evaluation" : "incomplete_prerequisites"},
         {"historical_inputs_verified", result.study_manifest_sha256.has_value()},
         {"study_manifest_sha256", result.study_manifest_sha256 ? Json(*result.study_manifest_sha256) : Json(nullptr)},
         {"source_sha256", build::source_sha256}, {"compiler", TRADING_COMPILER_ID},

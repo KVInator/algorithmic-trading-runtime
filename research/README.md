@@ -39,13 +39,18 @@ independent checks and the explained native/local source-fingerprint difference.
 Its primary intraday-risk CER increment over daily-only is -1.5430 percentage
 points. Point forecast-loss improvement fails registered uncertainty requirements.
 
-## Active proposal
+## Registered reversion design
 
-[SPY-MR-01 opening-anchor reversion](intraday_reversion_brief.md) remains
-unregistered and unscored. Causal prefix measurement, unrestricted AR(1) fitting,
-algebraic controls and input coverage are implemented. Finite-sample/noise checks,
-uncertainty and failure conventions, final registration and historical comparison
-remain open. Input availability does not establish stationarity or economic value.
+[SPY-MR-01 revision 1](intraday_reversion_protocol.md) and its
+[settings](intraday_reversion_protocol.json) are registered before historical
+fitting/scoring. The [synthetic specification](reversion_validation.md) and
+[evidence](reversion_validation_result.md) quantify finite-sample error,
+observation/anchor noise, false OU admissibility and range undercoverage.
+Causal measurements, pooled OLS, whole-session ranges and input coverage are
+implemented. Prior-only history, policies, control accounts and the historical
+comparison remain open. Parameter ranges are descriptive and cannot filter
+entries or establish stationarity. The [original brief](intraday_reversion_brief.md)
+remains unchanged as selection history.
 
 ## Selection and prerequisite history
 

@@ -125,7 +125,7 @@ void coverage_and_reporting(const std::filesystem::path& root, ReversionPrefligh
     ReversionPreflightReport{result}.write(directory);
     const auto summary = nlohmann::json::parse(read_text_file(directory / "summary.json"));
     require(summary.at("historical_model_fits").get<int>() == 0 && summary.at("historical_strategy_scores").get<int>() == 0 &&
-        summary.at("study_status").get<std::string>() == "unregistered_unscored", "preflight report cannot imply registration or performance");
+        summary.at("study_status").get<std::string>() == "registered_unscored", "registered preflight report cannot imply historical performance");
     for (const auto& artifact : summary.at("artifacts")) {
         const auto path = artifact.at("path").get<std::string>();
         require(sha256_file(directory / path) == artifact.at("sha256").get<std::string>(), "artifact hashes match saved evidence");
