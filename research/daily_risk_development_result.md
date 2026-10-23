@@ -98,13 +98,21 @@ verification scope. The original report directory is
   intervals, including their paired date masks. All thirty omission diagnostics
   also reproduce. The three native SVG charts were rendered and inspected.
 
-One source-provenance comparison remains unresolved. The native report records
-source digest `291931d8d07a0a992c72cf7f9223c249d20c0b7fc57509f2c1d8f524d6a3e5bc`.
+The source-fingerprint difference is explained by line endings. The native
+report records source digest
+`291931d8d07a0a992c72cf7f9223c249d20c0b7fc57509f2c1d8f524d6a3e5bc`.
 The inspected pre-documentation checkout at commit `e90f64a` produces
 `d6110ed23e2e5c7f5b0369462bdd668201cc85051192e0f676546406e12df6f7`.
-The aggregate digest does not identify the differing files. The verified input
-identities and numerical export checks do not establish byte-identical native
-and local source trees; full source-byte parity is unconfirmed.
+The subsequent [native execution diagnostic](../docs/execution_runtime.md#native-verification)
+provides a per-file inventory for source revision `f5992df`. Of its 116 entries,
+108 match the local file bytes exactly; the other eight match exactly after
+LF-to-CRLF conversion. The curated JSON lists these eight paths and the inventory
+identity. Applying only this observed conversion pattern to the earlier
+`e90f64a` source records reproduces the original native risk-study digest exactly.
+This accounts for the aggregate discrepancy without changing code, frozen inputs
+or reported results. The raw source bytes retain their platform line endings;
+the unavailable raw calibration and shortened-session inputs remain a separate
+verification limit.
 
 This is retrospective development evidence with hypothetical proportional costs
 and minute-open execution references. It does not establish announcement-time

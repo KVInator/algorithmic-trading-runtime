@@ -288,8 +288,10 @@ The intraday account's CER increment over daily-only is -1.5430 percentage point
 Its point QLIKE improvement is positive, but both registered confidence intervals
 include zero. Annual consistency and confidence-bound requirements fail; revision
 1 does not advance. The result record preserves exact metrics, artifact identities,
-independent numerical checks and the unresolved native/local source-fingerprint
-comparison. No later-period strategy evaluation follows from this result.
+independent numerical checks and the native/local source-fingerprint comparison.
+The subsequent per-file inventory explains that difference through eight CRLF
+files and exactly reproduces the earlier native aggregate. No later-period
+strategy evaluation follows from this result.
 
 ## Version control
 

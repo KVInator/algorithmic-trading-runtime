@@ -98,9 +98,35 @@ C++ files, `research/` files, `CMakeLists.txt` and `CMakePresets.json`. It is
 embedded in the binary together with its aggregate SHA-256; its file hash equals
 that aggregate. CMake also writes the inventory in the build directory. Tests
 and general documentation are outside this established fingerprint scope.
-Inventories must be compared for the same intended source revision. This adds
-diagnostic evidence to new builds and does not resolve the earlier native/local
-SPY-RISK-01 aggregate mismatch retroactively.
+Inventories must be compared for the same intended source revision. The first
+native inventory also explains the earlier SPY-RISK-01 aggregate difference;
+the [result record](../research/daily_risk_development_result.md#verification-and-provenance)
+retains the reconstruction and its limits.
+
+## Native verification
+
+The native MSVC 19.51.36260.0 Debug diagnostic for source revision `f5992df`
+completed with exit code zero on 23 October 2026. The accompanying build and all
+seventeen routine test groups were reported successful. The uploaded manifest's
+SHA-256 is `84a8fdeceeb61107c588d53e65710ae6cab4563eee6cf793ecb94d6a012559bc`;
+all four artifact hashes match the manifest's recorded identities.
+
+The complete `inputs.json` and 69-row `trace.csv` are byte-identical to the Linux
+diagnostic. The HTML differs only in its displayed source digest. An independent
+integer ledger reproduces cash, positions, both reservation balances,
+outstanding buys and open-order counts after every input. All six scenarios end
+with their expected balances, no open orders or reservations, and an open entry
+gate. Ten quarantined reports and seven denied commands are expected fault
+cases; their complete traces match across the two compilers.
+
+The native source inventory contains 116 entries: 108 exact local byte matches
+and eight exact matches after LF-to-CRLF conversion. All execution-core files
+match without conversion. The raw platform fingerprints differ, while the
+inventory accounts for every file within the declared source scope. The eight
+paths and the reconstruction of the earlier risk-study aggregate are retained in
+the [curated provenance record](../research/daily_risk_development_result.json).
+
+## Remaining scope
 
 Runtime contracts additionally check acknowledgement/fill delivery permutations,
 exact integer cash identities, reservation retention, full-order snapshot

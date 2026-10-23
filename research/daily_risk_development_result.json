@@ -454,7 +454,30 @@
     "native_source_sha256": "291931d8d07a0a992c72cf7f9223c249d20c0b7fc57509f2c1d8f524d6a3e5bc",
     "local_pre_documentation_source_sha256": "d6110ed23e2e5c7f5b0369462bdd668201cc85051192e0f676546406e12df6f7",
     "source_fingerprint_match": false,
-    "interpretation": "Registered protocol/input identities and the uploaded calculations verify. Exact Windows/Linux source-byte parity remains unconfirmed; the aggregate digest does not identify the differing files."
+    "source_difference_explained": true,
+    "source_resolution": {
+      "status": "reproduced_with_observed_crlf_pattern",
+      "inventory_source_revision": "f5992dfe51c8d56c5b5cb4317ab058ef7506a60b",
+      "native_inventory_sha256": "08fa977e223ed44a659983ebb19cf93a156636592d60f8a732a03b99cc3decaa",
+      "native_execution_summary_sha256": "84a8fdeceeb61107c588d53e65710ae6cab4563eee6cf793ecb94d6a012559bc",
+      "inventory_entries": 116,
+      "exact_byte_matches": 108,
+      "crlf_byte_matches": 8,
+      "crlf_paths": [
+        "CMakePresets.json",
+        "apps/continuation_diagnostic.cpp",
+        "research/intraday_continuation_protocol.md",
+        "src/platform/windows/alpaca_console_credentials.cpp",
+        "src/reporting/continuation_diagnostic_report.cpp",
+        "src/reporting/continuation_diagnostic_report.hpp",
+        "src/research/intraday_continuation.cpp",
+        "src/research/intraday_continuation.hpp"
+      ],
+      "reconstructed_revision": "e90f64a393381a30b15c86449e9d71c776f120ac",
+      "method": "Read the reconstructed revision's tracked files in the CMake source-fingerprint scope, convert LF to CRLF only for the eight observed paths, hash each file, sort path:sha256 records with LF terminators, and hash their concatenation.",
+      "reconstructed_native_source_sha256": "291931d8d07a0a992c72cf7f9223c249d20c0b7fc57509f2c1d8f524d6a3e5bc"
+    },
+    "interpretation": "The raw Windows/Linux fingerprints differ because eight files use CRLF on Windows. The later per-file inventory accounts for every source entry, and applying its observed line-ending pattern to the earlier checkout reproduces the risk study's original native aggregate exactly. The source difference is explained; unavailable raw acquisition files remain a separate verification limit."
   },
   "decision": "No advancement under revision 1; no later-period evaluation follows from this result."
 }
