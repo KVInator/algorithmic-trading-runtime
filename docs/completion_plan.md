@@ -2,6 +2,9 @@
 
 Revision 1, 23 October 2026. Implementation baseline: `aa58bf6`.
 
+The [milestone ledger](progress.md) records subsequent acceptance evidence and
+open dependencies. This scope remains the governing completion plan.
+
 ## Objective
 
 Complete a bounded C++20 study of how specified intraday strategies translate
@@ -44,7 +47,7 @@ interchangeable.
 
 ### 1. Close the current integration checkpoint
 
-Build and run the existing nineteen-group Windows preset and
+Build and run the current routine Windows preset and
 `pipeline_diagnostic`. Retain the native evidence and compare numerical traces,
 journals and source identities with the Linux run. Resolve introduced compiler
 or replay discrepancies and retain legacy replay checks during later changes.

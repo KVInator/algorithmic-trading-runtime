@@ -12,6 +12,8 @@ The remaining project scope and milestone dependencies are defined in
 `docs/completion_plan.md`. Preserve dated candidate briefs as research history;
 they do not supersede this completion plan. Its broker work is paper-only and
 does not authorize later-period strategy access or changes to frozen results.
+Milestone updates must identify the completed acceptance evidence, open plan
+items and the next dependency. Test counts do not define a completion percentage.
 
 ## Technical language
 
@@ -48,7 +50,7 @@ Windows uses the existing Visual Studio `windows-x64` configure preset and
 full-period integration test. `continuation_diagnostic` runs offline and writes
 HTML/CSV under `scratch/runs/`. `continuation_development` verifies the frozen
 snapshot and generates the paired historical study with HTML/SVG, CSV and JSON.
-The routine presets run nineteen contract groups; full-period disk integration stays
+The routine presets run twenty contract groups; full-period disk integration stays
 optional.
 
 `risk_preflight` audits the full 2022-2023 exchange calendar and synthetic
@@ -90,6 +92,12 @@ readable and cannot accept target inputs. Reconstruct a fresh client against the
 same independent broker state, replay reports, and reconcile before routing.
 Never resend an already durable order automatically, even if the broker snapshot
 does not contain it. Keep these engineering fixtures separate from study scores.
+
+`reversion_preflight` follows the proposed SPY-MR-01 brief. It fits constructed
+controls and audits the frozen development input coverage without historical
+residuals, model fits, forecasts or returns. Keep it unregistered/unscored until
+the final protocol and instability/resampling conventions are fixed. The exact
+synthetic fits do not establish statistical stationarity or SPY reversion.
 
 On Linux, use `cmake --preset linux-debug`, `cmake --build --preset linux-debug`
 and `ctest --preset linux-debug`. Keep warnings as errors. For a targeted change,

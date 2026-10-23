@@ -59,7 +59,7 @@ are treated as errors.
 1. Open the project folder with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for nineteen routine groups.
+4. Select **Test > Run Test Preset > windows-debug** for twenty routine groups.
 5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
 6. Open the printed `trace.html` path for the price/volume plots and paired
    decision table. `decisions.csv` retains unrounded features and UTC clocks.
@@ -128,7 +128,7 @@ The completed [native recovery verification](docs/journal_recovery.md#native-ver
 records matching Windows/Linux journals and independent account-state checks.
 
 For the [offline strategy-to-broker pipeline](docs/offline_pipeline.md), select
-**pipeline_diagnostic.exe** and **Ctrl+F5** after the nineteen-group test preset.
+**pipeline_diagnostic.exe** and **Ctrl+F5** after the routine test preset.
 The unchanged momentum signal consumes completed synthetic bars, persists a
 whole-share target and routes through the journaled runtime to a quote-size-limited
 broker simulator. Three cases check an uninterrupted client, two restarts with
@@ -136,6 +136,15 @@ missing reports, and a cash signal. All 58 diagnostic checks must pass, with
 identical broker fills in both active cases. The report retains quotes, targets,
 client traces, journals and both signal prefixes. These are engineering fixtures;
 the historical candidates' failed advancement decisions remain unchanged.
+
+For the proposed [opening-anchor reversion study](research/intraday_reversion_brief.md),
+run **reversion_preflight.exe** with **Ctrl+F5** after the routine test preset.
+It checks constructed AR(1) parameter controls and audits the frozen development
+snapshot's prefix/reference coverage. Its status remains unregistered and
+unscored: no historical model, forecast, trade or return is calculated.
+The printed HTML report retains controls, coverage and source identities.
+The optional **--synthetic-only** argument runs without local market datasets.
+The [milestone ledger](docs/progress.md) records the remaining completion work.
 
 Each `scratch/runs/SPY_RISK_01_development_2022-2023_*` directory contains:
 
@@ -206,7 +215,7 @@ The regular preset excludes this test. These two test presets explicitly select 
 For optimized offline runs, select build preset **windows-release**, rebuild,
 then run the targets from `scratch/build/Release/` through the Visual Studio
 startup-item selector. The matching **windows-release** test preset runs the
-nineteen routine groups in Release. Domain and artifact validation remain enabled.
+twenty routine groups in Release. Domain and artifact validation remain enabled.
 
 Finalization and replay are offline. Their paths are anchored to the source
 folder, independently of the IDE working directory. Repeated finalization

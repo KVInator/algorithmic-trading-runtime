@@ -76,7 +76,7 @@ power loss or controller failure.
 
 ## Verification and native workflow
 
-Build All, run the `windows-debug` preset's nineteen groups, then select
+Build All, run the `windows-debug` routine preset, then select
 `recovery_diagnostic.exe` and **Ctrl+F5**. No market dataset or credentials are
 required. Linux:
 

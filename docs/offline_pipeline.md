@@ -87,7 +87,7 @@ to reproduce each case.
 
 ## Verification and native workflow
 
-Build All, run the `windows-debug` preset's nineteen groups, then select
+Build All, run the `windows-debug` routine preset, then select
 `pipeline_diagnostic.exe` and **Ctrl+F5**. No dataset or credentials are needed.
 The diagnostic checks 58 assertions across:
 
