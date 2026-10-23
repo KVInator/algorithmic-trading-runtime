@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
         const trading::ConsoleProgress progress;
         const std::filesystem::path root{TRADING_PROJECT_ROOT};
         progress("SPY-MR-01 | unregistered reversion specification and feasibility");
-        const trading::ReversionPreflight preflight;
+        const trading::ReversionPreflight preflight{};
         auto result = preflight.controls();
         progress("Constructed AR(1), OU mapping and completed-prefix controls passed");
         if (!synthetic_only) {

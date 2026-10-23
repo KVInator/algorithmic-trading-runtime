@@ -35,6 +35,7 @@ struct ReversionPreflightResult {
 // Constructed controls and input availability only; no historical model fitting.
 class ReversionPreflight {
 public:
+    ReversionPreflight() : measurement_{}, estimator_{} {}
     [[nodiscard]] ReversionPreflightResult controls() const;
     [[nodiscard]] std::vector<ReversionCoverage> audit_coverage(std::span<const SessionDownload> sessions) const;
 
