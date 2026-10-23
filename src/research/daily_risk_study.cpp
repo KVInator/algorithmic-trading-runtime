@@ -12,6 +12,10 @@
 namespace trading {
 namespace {
 using namespace std::chrono;
+sys_days action_date(const std::string& date) {
+    // Retained action metadata can predate the bounded price-session calendar.
+    return floor<days>(parse_utc_seconds(date + "T00:00:00Z"));
+}
 double dividend_on(const RiskStudyInputs& inputs, const std::string& date) {
     double total = 0;
     for (const auto& d : inputs.distributions) { if (d.ex_date == date) { total += d.usd_per_share; } }
@@ -47,7 +51,7 @@ void validate(const RiskStudyInputs& inputs, std::size_t replicates) {
     }
     std::set<std::string> ids;
     for (const auto& d : inputs.distributions) {
-        const auto ex = parse_session_date(d.ex_date), pay = parse_session_date(d.payable_date);
+        const auto ex = action_date(d.ex_date), pay = action_date(d.payable_date);
         if (d.id.empty() || !ids.insert(d.id).second || !std::isfinite(d.usd_per_share) || d.usd_per_share <= 0 || pay < ex) {
             throw std::invalid_argument("invalid or duplicate cash distribution");
         }
@@ -91,14 +95,14 @@ RiskAccountCase run_account(const RiskStudyInputs& inputs, const DailyRiskResult
             double ex_total = 0;
             bool payment = false;
             for (const auto& d : inputs.distributions) {
-                if (d.ex_date >= inputs.development.front().calendar().date() && parse_session_date(d.ex_date) == next_date) { ex_total += d.usd_per_share; }
-                if (d.ex_date >= inputs.development.front().calendar().date() && parse_session_date(d.payable_date) == next_date) { payment = true; }
+                if (d.ex_date >= inputs.development.front().calendar().date() && action_date(d.ex_date) == next_date) { ex_total += d.usd_per_share; }
+                if (d.ex_date >= inputs.development.front().calendar().date() && action_date(d.payable_date) == next_date) { payment = true; }
             }
             continuity_price -= ex_total;
             if (continuity_price <= 0) { throw std::invalid_argument("nonpositive theoretical ex-date continuity reference"); }
             for (const auto& d : inputs.distributions) {
-                if (d.ex_date >= inputs.development.front().calendar().date() && parse_session_date(d.ex_date) == next_date) {
-                    account.accrue_dividend(next_date, d.id, parse_session_date(d.payable_date), d.usd_per_share, continuity_price);
+                if (d.ex_date >= inputs.development.front().calendar().date() && action_date(d.ex_date) == next_date) {
+                    account.accrue_dividend(next_date, d.id, action_date(d.payable_date), d.usd_per_share, continuity_price);
                 }
             }
             if (payment) { account.settle_dividends(next_date, continuity_price); }

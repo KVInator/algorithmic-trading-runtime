@@ -40,7 +40,8 @@ RiskStudyInputs fixture(bool all_missing = false) {
     RiskStudyInputs inputs{}; inputs.synthetic = true; inputs.boundary_close = 100;
     inputs.protocol_sha256 = "synthetic"; inputs.development_manifest_sha256 = "synthetic";
     inputs.acquisition_manifest_sha256 = "synthetic"; inputs.issuer_reference_sha256 = "synthetic";
-    inputs.distributions = {{"constructed-weekend-payment", "2022-01-04", "2022-01-04", "2022-01-08", "2022-01-08", .4},
+    inputs.distributions = {{"constructed-prior-horizon", "2020-12-18", "2020-12-21", "2021-01-29", "2021-01-29", 1.58},
+        {"constructed-weekend-payment", "2022-01-04", "2022-01-04", "2022-01-08", "2022-01-08", .4},
         {"constructed-terminal-claim", "2023-12-15", "2023-12-18", "2024-01-31", "2024-01-31", .6}};
     double previous = inputs.boundary_close; std::size_t index = 0;
     for (const auto& c : risk_rules::calibration_calendar()) {
@@ -175,6 +176,32 @@ void check_unavailable_loss() {
     require(std::none_of(result.gates.begin(), result.gates.end(), [](const auto& g) { return g.name.find("QLIKE") != std::string::npos && g.passed; }),
         "unavailable forecasts cannot pass advancement");
 }
+void check_prior_action_history(RiskStudyInputs& inputs, const DailyRiskResult& result) {
+    const auto prior = inputs.distributions.front();
+    require(prior.ex_date == "2020-12-18", "fixture retains the earlier process-date action record");
+    inputs.distributions.erase(inputs.distributions.begin());
+    const auto without_prior = DailyRiskStudy{16}.run(inputs);
+    inputs.distributions.insert(inputs.distributions.begin(), prior);
+    near(without_prior.static_weight, result.static_weight, 0);
+    for (std::size_t i = 0; i < result.measurements.size(); ++i) {
+        near(without_prior.measurements[i].daily2, result.measurements[i].daily2, 0);
+        require(without_prior.measurements[i].rv5 == result.measurements[i].rv5, "earlier metadata cannot change in-period risk measurements");
+    }
+    for (const auto& account : result.accounts) {
+        const auto& control = risk_account_case(without_prior, account.account, account.delay_minutes, account.cost_bps);
+        require(account.ledger.size() == control.ledger.size(), "prior entitlement produces no development ledger event");
+        for (std::size_t i = 0; i < account.days.size(); ++i) {
+            near(account.days[i].close.equity_usd, control.days[i].close.equity_usd, 0);
+            near(account.days[i].close.receivable_usd, control.days[i].close.receivable_usd, 0);
+        }
+        require(std::none_of(account.ledger.begin(), account.ledger.end(), [&](const auto& event) { return event.action_id == prior.id; }),
+            "accounts starting flat cannot earn a prior-horizon dividend");
+    }
+    rejects([] { static_cast<void>(parse_session_date("2020-12-18")); });
+    inputs.distributions.front().ex_date = "2020-02-30";
+    rejects([&] { static_cast<void>(DailyRiskStudy{16}.run(inputs)); });
+    inputs.distributions.front() = prior;
+}
 void check_report(const DailyRiskResult& result, const std::filesystem::path& output) {
     const auto directory = save_daily_risk_report(result, output);
     const auto j = nlohmann::json::parse(read_text_file(directory / "summary.json"));
@@ -194,7 +221,8 @@ int main(int argc, char** argv) {
         }
         check_registration(); auto inputs = fixture();
         const auto result = DailyRiskStudy{argc == 3 ? 10000U : 64U}.run(inputs);
-        check_features(result); check_accounts(result); check_bootstrap(result); check_report(result, argv[1]); check_causality(inputs, result); check_unavailable_loss();
+        check_features(result); check_accounts(result); check_bootstrap(result); check_report(result, argv[1]);
+        check_prior_action_history(inputs, result); check_causality(inputs, result); check_unavailable_loss();
         inputs.synthetic = false;
         rejects([&] { static_cast<void>(DailyRiskStudy{}.run(inputs)); });
         inputs.protocol_sha256 = risk_rules::protocol_identity;
