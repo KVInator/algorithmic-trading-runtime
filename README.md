@@ -154,8 +154,8 @@ statistics and the hashes of all eight report artifacts.
 The [strategy candidate comparison](research/strategy_candidates.md) evaluates
 opening-range continuation and daily exposure informed by intraday risk. The
 daily-risk candidate is now registered in revision 1 and implemented by
-`risk_development`; its historical outcome remains uncomputed at engine
-publication. The opening-range alternative remains a proposal.
+`risk_development`; its completed development run fails the registered
+advancement screens. The opening-range alternative remains a proposal.
 
 The existing baseline is run through **development_finalize.exe** followed by
 **development_replay.exe**, each with **Ctrl+F5**, when offline evidence
@@ -255,6 +255,26 @@ An optional Python standard-library reference check is retained under
 statistics, concentration and both bootstrap calculations. Its recorded
 verification identifies the same frozen manifest and daily-return digest.
 The application workflow and numerical engine are C++.
+
+## Daily-risk development finding
+
+The completed [SPY-RISK-01 result](research/daily_risk_development_result.md)
+uses all 501 development exchange sessions and forty fixed account cases. In the
+primary one-minute-delay, 1 bp-per-side case:
+
+| Account | Compounded 2022–2023 return | Daily-close maximum drawdown | Annualized CER |
+| --- | ---: | ---: | ---: |
+| Intraday risk | 1.7072% | 16.3524% | -0.2749% |
+| Daily-only risk | 4.7624% | 13.3556% | 1.2681% |
+| Static risk budget | 2.7920% | 19.1612% | -0.8472% |
+| Passive equity | 2.3777% | 24.4204% | -2.5230% |
+
+The intraday account's CER increment over daily-only is -1.5430 percentage points.
+Its point QLIKE improvement is positive, but both registered confidence intervals
+include zero. Annual consistency and confidence-bound requirements fail; revision
+1 does not advance. The result record preserves exact metrics, artifact identities,
+independent numerical checks and the unresolved native/local source-fingerprint
+comparison. No later-period strategy evaluation follows from this result.
 
 ## Version control
 
