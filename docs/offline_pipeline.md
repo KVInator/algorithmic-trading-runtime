@@ -108,14 +108,15 @@ boundaries, stale/future observations, clock regression, risk rejection, broker
 rejection without retry and external broker discrepancies. The prior journal
 group retains its four actual abrupt-exit child-process tests.
 
-The Linux Debug build passes all nineteen routine groups with warnings as errors.
-The order, pipeline and journal groups, plus the pipeline entry point, also pass
+At implementation baseline `aa58bf6`, the Linux Debug build passed all nineteen
+routine groups with warnings as errors. The order, pipeline and journal groups,
+plus the pipeline entry point, also passed
 AddressSanitizer/UndefinedBehaviorSanitizer with leak detection disabled. An
 independent ledger check reproduces all eighty pipeline input checkpoints and
 both broker accounts, checks per-quote liquidity budgets and validates all eight
 artifact hashes. The original execution inputs/trace and all four legacy recovery
 journals plus their check table remain byte-identical to the verified native
-baseline. The new pipeline's native Windows run remains pending.
+baseline. Current native verification is recorded below.
 
 Each `scratch/runs/pipeline_diagnostic_*` directory contains:
 
@@ -132,3 +133,39 @@ Legacy schema-1 journals remain readable and keep their version. Schema 2 adds
 target inputs while retaining the existing financial model and framing. New
 target records cannot be appended to schema-1 files. No journal, historical
 input or result is migrated in place.
+
+## Native verification
+
+On 23 October 2026, the MSVC 19.51.36260.0 Debug build and all twenty routine
+contract groups were reported successful for implementation `370f274`. The
+native pipeline records 58 passing assertions across three cases with schema-2
+journals. The uploaded summary SHA-256 is
+`45279d6fb5ffcd0241c059ffecc1a0a6769b2a0fe45c287025a88d6039fa03fb`;
+all eight artifact hashes match the supplied files.
+
+| Journal | Complete frames including header | Input checkpoints | Final cash, cents | Final shares |
+| --- | ---: | ---: | ---: | ---: |
+| `uninterrupted.journal` | 30 | 29 | 1,000,023 | 0 |
+| `interrupted.journal` | 43 | 42 | 1,000,023 | 0 |
+| `cash-signal.journal` | 10 | 9 | 1,000,000 | 0 |
+
+Independent checks validate every frame's SHA-256, sequence and predecessor.
+An integer ledger reproduces cash, inventory, cash/share reservations,
+outstanding buys and open-order counts at all eighty input checkpoints. A
+separate broker ledger reproduces final balances and checks unique executions,
+per-quote side liquidity budgets and execution prices. The active cases have
+identical five-fill broker paths despite the interrupted client's two restarts.
+The cash case creates no order or fill and retains its balance after restart.
+
+All three journals, `pipeline_evidence.json` and both signal CSVs are byte-identical
+to the current GNU Debug diagnostic. The HTML differs only in source fingerprint.
+The native 151-entry source inventory contains 146 exact local byte matches and
+five exact CRLF variants, with no unexplained differences. The variants are
+`CMakePresets.json`, `research/intraday_continuation_protocol.md`,
+`src/platform/windows/alpaca_console_credentials.cpp`,
+`src/research/intraday_continuation.cpp` and
+`src/research/intraday_continuation.hpp`. Its aggregate SHA-256 is
+`ef6fdd43b49c72da75d6f5b5bd727be9faa8ab7dd245f3ae205c7721fb769412`.
+
+These are constructed execution/recovery identities. The small cash difference
+in the active cases is not historical performance or observed paper execution.

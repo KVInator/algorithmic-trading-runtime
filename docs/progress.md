@@ -7,7 +7,7 @@ evidence rather than a completion percentage.
 
 | Milestone | Status | Evidence and remaining acceptance |
 | --- | --- | --- |
-| 1. Native integration checkpoint | Open: cleanup build and pipeline artifacts pending | The preceding twenty-group Windows log and reversion preflight are verified. The class-interface cleanup needs a native rebuild; the combined pipeline diagnostic still needs its native report/journals. |
+| 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
 | 2. Strategy research | In progress: reversion specification/preflight | Two trend-oriented designs and the separate daily-risk study are retained. The new reversion brief, numerical kernel and structural coverage audit are implemented. Final registration, uncertainty/stability experiments, prior-only history, decisions, controls and scored study remain. |
 | 3. Shared execution path | Partially implemented | The original momentum adapter has synthetic fill/restart evidence. Continuation/reversion adapters, historical reference replay and account-convention comparisons remain. |
 | 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
@@ -40,7 +40,7 @@ reference and residual samples, validate the five artifact hashes against the
 149-file source inventory and check all 496 coverage cells and report links.
 These are numerical and structural checks, not finite-sample estimator or
 historical profitability evidence. Native verification of this preflight is
-recorded below; the separate pipeline diagnostic remains open.
+recorded below; the pipeline checkpoint is recorded in the native integration section.
 
 ## Windows reversion verification
 
@@ -99,9 +99,24 @@ dates, with zero historical model fits or scores. Its controls, coverage and
 synthetic prefix remain byte-identical to the earlier implementation.
 
 This checkpoint changes internal C++ interfaces and documentation, retaining
-executable options, artifact schemas and journal compatibility. Native MSVC
-verification of the cleanup remains open. It does not close a research or
-paper-execution milestone.
+executable options, artifact schemas and journal compatibility. The subsequent
+initialization fix and native verification are recorded below. The cleanup
+does not close a research or paper-execution milestone.
+
+## Native integration verification
+
+The MSVC 19.51.36260.0 Debug build and twenty routine groups were reported
+successful on 23 October 2026 for implementation `370f274`. This includes the
+explicit-initialization correction for the C4269 build warning introduced during
+cleanup. The pipeline passes all 58 checks across three cases.
+
+The [native pipeline evidence](offline_pipeline.md#native-verification) verifies
+all eight artifact hashes, all 83 complete chained journal frames, eighty
+independent integer-account checkpoints and all 151 source records. The three
+journals, broker evidence and both signal prefixes are byte-identical to the
+current Linux diagnostic; the HTML differs only in its source fingerprint.
+Five CRLF variants explain the native source inventory, with no unexplained
+source differences. This closes milestone 1 for the recorded implementation.
 
 ## Next dependency
 
@@ -111,7 +126,3 @@ register the final protocol and machine-readable settings before historical
 model fitting. Subsequent work implements the prior-only history, decision,
 control accounts and scored comparison. A negative empirical result does not
 reopen frozen rules or trigger an additional strategy search.
-
-Native pipeline verification can proceed separately through Build All,
-the current windows-debug routine preset and pipeline_diagnostic. The new
-reversion_preflight performs only the documented unscored audit.
