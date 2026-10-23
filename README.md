@@ -57,7 +57,7 @@ are treated as errors.
 1. Open the project folder with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for eighteen routine groups.
+4. Select **Test > Run Test Preset > windows-debug** for nineteen routine groups.
 5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
 6. Open the printed `trace.html` path for the price/volume plots and paired
    decision table. `decisions.csv` retains unrounded features and UTC clocks.
@@ -118,12 +118,22 @@ For [durable journaling and restart recovery](docs/journal_recovery.md), select
 offline diagnostic checks 33 assertions and seven account checkpoints across
 partial-fill restart, incomplete-tail recovery into a separate file, and rejection
 of complete-frame corruption. Open the printed `report.html`; its manifest hashes
-the retained journals, check table and source inventory. The eighteenth contract
+the retained journals, check table and source inventory. The journal contract
 group additionally launches four abruptly exiting child processes to verify
-recovery across the append/synchronization boundary. Broker transport, automatic
-resend, market matching and strategy integration remain pending.
+recovery across the append/synchronization boundary. Real broker transport,
+automatic resend and calibrated market matching remain pending.
 The completed [native recovery verification](docs/journal_recovery.md#native-verification)
 records matching Windows/Linux journals and independent account-state checks.
+
+For the [offline strategy-to-broker pipeline](docs/offline_pipeline.md), select
+**pipeline_diagnostic.exe** and **Ctrl+F5** after the nineteen-group test preset.
+The unchanged momentum signal consumes completed synthetic bars, persists a
+whole-share target and routes through the journaled runtime to a quote-size-limited
+broker simulator. Three cases check an uninterrupted client, two restarts with
+missing reports, and a cash signal. All 58 diagnostic checks must pass, with
+identical broker fills in both active cases. The report retains quotes, targets,
+client traces, journals and both signal prefixes. These are engineering fixtures;
+the historical candidates' failed advancement decisions remain unchanged.
 
 Each `scratch/runs/SPY_RISK_01_development_2022-2023_*` directory contains:
 
@@ -194,7 +204,7 @@ The regular preset excludes this test. These two test presets explicitly select 
 For optimized offline runs, select build preset **windows-release**, rebuild,
 then run the targets from `scratch/build/Release/` through the Visual Studio
 startup-item selector. The matching **windows-release** test preset runs the
-eighteen routine groups in Release. Domain and artifact validation remain enabled.
+nineteen routine groups in Release. Domain and artifact validation remain enabled.
 
 Finalization and replay are offline. Their paths are anchored to the source
 folder, independently of the IDE working directory. Repeated finalization

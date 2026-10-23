@@ -28,8 +28,9 @@ void validate_configuration(const RuntimeConfiguration& config) {
         throw JournalError("journal configuration exceeds the supported order limit");
     }
 }
-Json header_json(const RuntimeConfiguration& config) {
-    return {{"kind", "header"}, {"schema_version", 1}, {"model_contract", "whole_share_limit_v1"},
+Json header_json(const RuntimeConfiguration& config, int schema) {
+    if (schema != 1 && schema != 2) { throw JournalError("unsupported journal schema"); }
+    return {{"kind", "header"}, {"schema_version", schema}, {"model_contract", "whole_share_limit_v1"},
             {"sequence", 0}, {"previous_sha256", zero_digest}, {"configuration", configuration_json(config)}};
 }
 Json entry_json(const RuntimeInput& input, const TraceEntry& trace, const std::string& previous) {
@@ -69,13 +70,19 @@ Loaded load(JournalStorage& storage, const RuntimeConfiguration& expected) {
         try {
             const auto value = parse_json_document(payload);
             if (!header_seen) {
-                if (value.dump() != header_json(expected).dump()) {
+                const auto& version = value.at("schema_version");
+                const int schema = version == 1 ? 1 : version == 2 ? 2 : 0;
+                if (value.dump() != header_json(expected, schema).dump()) {
                     throw JournalError("journal header, model version or expected configuration differs");
                 }
                 header_seen = true;
+                loaded.inspection.schema_version = schema;
             } else {
                 if (loaded.inspection.input_records >= maximum_input_records) { throw JournalError("journal record limit exceeded"); }
                 const auto input = parse_runtime_input(value.at("input"));
+                if (loaded.inspection.schema_version == 1 && std::holds_alternative<TargetIntent>(input)) {
+                    throw JournalError("strategy targets require journal schema 2");
+                }
                 static_cast<void>(apply_input(loaded.runtime, input));
                 if (value.dump() != entry_json(input, loaded.runtime.trace().back(), loaded.inspection.last_sha256).dump()) {
                     throw JournalError("journal sequence, chain or deterministic replay checkpoint differs");
@@ -104,14 +111,14 @@ void require_storage(const std::unique_ptr<JournalStorage>& storage) {
 JournaledRuntime::JournaledRuntime(std::unique_ptr<JournalStorage> storage, OrderRuntime runtime, JournalInspection inspection)
     : storage_{std::move(storage)}, runtime_{std::move(runtime)}, inspection_{std::move(inspection)} {}
 
-JournaledRuntime JournaledRuntime::create(std::unique_ptr<JournalStorage> storage, const RuntimeConfiguration& config) {
+JournaledRuntime JournaledRuntime::create(std::unique_ptr<JournalStorage> storage, const RuntimeConfiguration& config, int schema) {
     require_storage(storage);
     validate_configuration(config);
     if (!storage->read_all().empty()) { throw JournalError("new journal storage must be empty"); }
-    auto [bytes, digest] = frame(header_json(config));
+    auto [bytes, digest] = frame(header_json(config, schema));
     storage->append_and_sync(bytes);
     JournaledRuntime result{std::move(storage), OrderRuntime{config.symbol, config.initial_cash_cents, config.limits},
-                            {0, bytes.size(), 0, std::move(digest)}};
+                            {0, bytes.size(), 0, std::move(digest), schema}};
     static_cast<void>(result.execute(ConnectionInput{false}));
     return result;
 }
@@ -144,6 +151,9 @@ void JournaledRuntime::ensure_healthy() const {
 }
 Outcome JournaledRuntime::execute(const RuntimeInput& input) {
     ensure_healthy();
+    if (inspection_.schema_version == 1 && std::holds_alternative<TargetIntent>(input)) {
+        throw JournalError("strategy targets require a new schema-2 journal");
+    }
     if (inspection_.input_records >= maximum_input_records) { throw JournalError("journal record limit exceeded"); }
     auto candidate = runtime_;
     const auto outcome = apply_input(candidate, input);
@@ -160,7 +170,10 @@ Outcome JournaledRuntime::execute(const RuntimeInput& input) {
     return outcome;
 }
 AccountSnapshot JournaledRuntime::account() const { ensure_healthy(); return runtime_.account(); }
+std::string JournaledRuntime::symbol() const { ensure_healthy(); return std::string{runtime_.symbol()}; }
 OrderView JournaledRuntime::order(const std::string& id) const { ensure_healthy(); return runtime_.order(id); }
+std::vector<OrderView> JournaledRuntime::orders() const { ensure_healthy(); return runtime_.orders(); }
+std::optional<TargetIntent> JournaledRuntime::latest_target() const { ensure_healthy(); return runtime_.latest_target(); }
 const std::vector<TraceEntry>& JournaledRuntime::trace() const { ensure_healthy(); return runtime_.trace(); }
 JournalInspection JournaledRuntime::inspection() const { ensure_healthy(); return inspection_; }
 

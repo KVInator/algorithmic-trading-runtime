@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -53,6 +54,17 @@ struct RuntimeLimits {
     Shares maximum_position_shares;
     std::size_t maximum_open_orders;
 };
+struct TargetIntent {
+    std::string id;
+    std::string symbol;
+    std::int64_t decision_at_seconds;
+    std::int64_t expires_at_seconds;
+    Shares target_shares;
+    Cents buy_limit_cents;
+    Cents sell_limit_cents;
+    Cents fee_per_share_ceiling_cents;
+    bool operator==(const TargetIntent&) const = default;
+};
 struct AccountSnapshot {
     Cents cash_cents;
     Shares position_shares;
@@ -93,6 +105,7 @@ class OrderRuntime {
 public:
     OrderRuntime(std::string symbol, Cents initial_cash_cents, RuntimeLimits limits);
     [[nodiscard]] Outcome submit(const OrderRequest& request);
+    [[nodiscard]] Outcome register_target(const TargetIntent& target);
     [[nodiscard]] Outcome request_cancel(const std::string& order_id, const std::string& cancel_id);
     [[nodiscard]] Outcome receive(const BrokerReport& report);
     void disconnect();
@@ -101,7 +114,10 @@ public:
     // Matching snapshots clear the gate; mismatches never overwrite local state.
     [[nodiscard]] Outcome reconcile(const BrokerSnapshot& broker);
     [[nodiscard]] AccountSnapshot account() const;
+    [[nodiscard]] std::string_view symbol() const noexcept;
     [[nodiscard]] OrderView order(const std::string& id) const;
+    [[nodiscard]] std::vector<OrderView> orders() const;
+    [[nodiscard]] std::optional<TargetIntent> latest_target() const;
     [[nodiscard]] const std::vector<TraceEntry>& trace() const noexcept;
 private:
     struct State {
@@ -111,6 +127,8 @@ private:
         std::map<std::string, BrokerReport> events;
         std::map<std::string, BrokerReport> executions;
         std::map<std::string, std::string> cancel_requests;
+        std::map<std::string, TargetIntent> targets;
+        std::string latest_target_id;
     };
     [[nodiscard]] AccountSnapshot snapshot(const State& state) const;
     [[nodiscard]] Outcome record(std::string input, std::string order_id,

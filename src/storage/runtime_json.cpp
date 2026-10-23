@@ -38,6 +38,11 @@ Json input_json(const RuntimeInput& input) {
             return {{"kind", "cancel"}, {"order_id", item.order_id}, {"cancel_id", item.cancel_id}};
         } else if constexpr (std::is_same_v<T, ConnectionInput>) {
             return {{"kind", item.connected ? "reconnect" : "disconnect"}};
+        } else if constexpr (std::is_same_v<T, TargetIntent>) {
+            return {{"kind", "target"}, {"id", item.id}, {"symbol", item.symbol},
+                {"decision_at_seconds", item.decision_at_seconds}, {"expires_at_seconds", item.expires_at_seconds},
+                {"target_shares", item.target_shares}, {"buy_limit_cents", item.buy_limit_cents},
+                {"sell_limit_cents", item.sell_limit_cents}, {"fee_per_share_ceiling_cents", item.fee_per_share_ceiling_cents}};
         } else if constexpr (std::is_same_v<T, BrokerSnapshot>) {
             Json orders = Json::array();
             for (const auto& order : item.open_orders) {
@@ -74,6 +79,11 @@ RuntimeInput parse_runtime_input(const Json& value) {
             snapshot.open_orders.push_back({parse_order(order.at("order")), integer(order.at("filled_shares"))});
         }
         input = std::move(snapshot);
+    } else if (kind == "target") {
+        input = TargetIntent{value.at("id").get<std::string>(), value.at("symbol").get<std::string>(),
+            integer(value.at("decision_at_seconds")), integer(value.at("expires_at_seconds")),
+            integer(value.at("target_shares")), integer(value.at("buy_limit_cents")),
+            integer(value.at("sell_limit_cents")), integer(value.at("fee_per_share_ceiling_cents"))};
     } else if (kind == "report") {
         const auto report_kind = value.at("report_kind").get<std::string>();
         ReportKind type;
@@ -88,7 +98,7 @@ RuntimeInput parse_runtime_input(const Json& value) {
             integer(value.at("fill_price_cents")), integer(value.at("fee_cents")),
             integer(value.at("cumulative_filled_shares")), value.at("cancel_id").get<std::string>()};
     } else { throw std::invalid_argument("unknown persisted runtime input kind"); }
-    if (input_json(input).dump() != value.dump()) { throw std::invalid_argument("runtime input schema differs from version 1"); }
+    if (input_json(input).dump() != value.dump()) { throw std::invalid_argument("runtime input schema differs from its canonical shape"); }
     return input;
 }
 Json trace_json(const TraceEntry& trace) {

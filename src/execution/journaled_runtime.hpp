@@ -18,6 +18,7 @@ struct JournalInspection {
     std::size_t complete_bytes;
     std::size_t incomplete_tail_bytes;
     std::string last_sha256;
+    int schema_version{1};
 };
 class JournalError : public std::runtime_error {
 public:
@@ -29,7 +30,8 @@ public:
 // No automatic resend, in-place truncation or broker transport is provided.
 class JournaledRuntime {
 public:
-    [[nodiscard]] static JournaledRuntime create(std::unique_ptr<JournalStorage> storage, const RuntimeConfiguration& config);
+    [[nodiscard]] static JournaledRuntime create(std::unique_ptr<JournalStorage> storage, const RuntimeConfiguration& config,
+                                                 int schema_version = 1);
     [[nodiscard]] static JournaledRuntime recover(std::unique_ptr<JournalStorage> storage, const RuntimeConfiguration& expected);
     [[nodiscard]] static JournaledRuntime recover_prefix(std::unique_ptr<JournalStorage> source,
         std::unique_ptr<JournalStorage> destination, const RuntimeConfiguration& expected);
@@ -40,7 +42,10 @@ public:
     JournaledRuntime& operator=(const JournaledRuntime&) = delete;
     [[nodiscard]] Outcome execute(const RuntimeInput& input);
     [[nodiscard]] AccountSnapshot account() const;
+    [[nodiscard]] std::string symbol() const;
     [[nodiscard]] OrderView order(const std::string& id) const;
+    [[nodiscard]] std::vector<OrderView> orders() const;
+    [[nodiscard]] std::optional<TargetIntent> latest_target() const;
     [[nodiscard]] const std::vector<TraceEntry>& trace() const;
     [[nodiscard]] JournalInspection inspection() const;
     [[nodiscard]] bool healthy() const noexcept;

@@ -134,7 +134,9 @@ comparison, numerical overflow and invalid inputs. The order core retains an
 in-memory trace and copies account state per report to make validation atomic.
 The [journaled wrapper](journal_recovery.md) adds synchronized input persistence,
 verified replay, a restart gate and separate recovery of an incomplete tail.
-Broker transport, automatic resend, market matching/liquidity, strategy-to-order
-integration and throughput targets remain outside the implemented scope.
+The [offline pipeline](offline_pipeline.md) adds persisted strategy targets and
+a deterministic displayed-size simulator. Real broker transport, automatic
+resend, calibrated liquidity/queue models and throughput targets remain outside
+the implemented scope.
 Passing these synthetic checks establishes neither executable strategy returns
 nor live-trading readiness.

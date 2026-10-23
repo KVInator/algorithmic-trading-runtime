@@ -102,7 +102,7 @@ std::string_view name(Outcome outcome) {
 }
 
 OrderRuntime::OrderRuntime(std::string symbol, Cents cash, RuntimeLimits limits)
-    : symbol_{std::move(symbol)}, limits_{limits}, state_{cash, 0, {}, {}, {}, {}} {
+    : symbol_{std::move(symbol)}, limits_{limits}, state_{cash, 0, {}, {}, {}, {}, {}, ""} {
     if (!token(symbol_) || cash <= 0 || limits_.maximum_position_shares <= 0 || limits_.maximum_open_orders == 0) {
         throw std::invalid_argument("runtime requires a symbol, positive cash and positive limits");
     }
@@ -130,7 +130,17 @@ AccountSnapshot OrderRuntime::snapshot(const State& state) const {
     return value;
 }
 AccountSnapshot OrderRuntime::account() const { return snapshot(state_); }
+std::string_view OrderRuntime::symbol() const noexcept { return symbol_; }
 OrderView OrderRuntime::order(const std::string& id) const { return state_.orders.at(id); }
+std::vector<OrderView> OrderRuntime::orders() const {
+    std::vector<OrderView> result;
+    for (const auto& [id, item] : state_.orders) { static_cast<void>(id); result.push_back(item); }
+    return result;
+}
+std::optional<TargetIntent> OrderRuntime::latest_target() const {
+    if (state_.latest_target_id.empty()) { return std::nullopt; }
+    return state_.targets.at(state_.latest_target_id);
+}
 const std::vector<TraceEntry>& OrderRuntime::trace() const noexcept { return trace_; }
 Outcome OrderRuntime::record(std::string input, std::string id, std::string event, Outcome outcome, std::string reason) {
     std::string status;
@@ -158,6 +168,31 @@ Outcome OrderRuntime::submit(const OrderRequest& request) {
         return record("submit", request.id, "", Outcome::denied, error.what());
     }
     return record("submit", request.id, "", Outcome::applied, "resources reserved before dispatch");
+}
+Outcome OrderRuntime::register_target(const TargetIntent& target) {
+    if (const auto previous = state_.targets.find(target.id); previous != state_.targets.end()) {
+        if (previous->second == target) {
+            return record("target", "", target.id, Outcome::duplicate, "identical strategy target already recorded");
+        }
+        reconciliation_required_ = true;
+        return record("target", "", target.id, Outcome::quarantined, "conflicting strategy target ID");
+    }
+    if (!connected_ || reconciliation_required_) {
+        return record("target", "", target.id, Outcome::denied, "target requires connection and reconciliation");
+    }
+    if (!token(target.id) || target.id.size() > 40 || target.symbol != symbol_ || target.decision_at_seconds <= 0 ||
+        target.expires_at_seconds < target.decision_at_seconds || target.target_shares < 0 ||
+        target.target_shares > limits_.maximum_position_shares || target.sell_limit_cents <= 0 ||
+        target.buy_limit_cents < target.sell_limit_cents || target.fee_per_share_ceiling_cents < 0 ||
+        target.fee_per_share_ceiling_cents >= target.sell_limit_cents ||
+        (!state_.latest_target_id.empty() && target.decision_at_seconds <= latest_target()->decision_at_seconds)) {
+        return record("target", "", target.id, Outcome::denied, "invalid, noncausal or out-of-limit strategy target");
+    }
+    auto candidate = state_;
+    candidate.targets.emplace(target.id, target);
+    candidate.latest_target_id = target.id;
+    state_ = std::move(candidate);
+    return record("target", "", target.id, Outcome::applied, "strategy target recorded before order routing");
 }
 Outcome OrderRuntime::request_cancel(const std::string& id, const std::string& cancel_id) {
     const auto item = state_.orders.find(id);

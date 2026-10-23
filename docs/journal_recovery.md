@@ -31,6 +31,13 @@ wrapper. No second order/accounting implementation or serialized-state shortcut
 is used. JSON decoding rejects duplicate keys, unknown shapes, excessive nesting,
 fractional quantities and unsupported model/schema versions.
 
+Schema 1 remains the default for the original order/recovery diagnostic. The
+[offline pipeline](offline_pipeline.md) explicitly creates schema-2 journals,
+which additionally persist whole-share strategy targets. The financial model
+contract remains `whole_share_limit_v1`. Recovery accepts both schemas and keeps
+the original schema when appending its restart barrier. A schema-1 writer refuses
+target inputs before I/O; records are never silently upgraded or rewritten.
+
 The platform storage contract returns from an append only after synchronization.
 Windows uses `CreateFileW` with read sharing and exclusive writer access,
 `WriteFile`, and `FlushFileBuffers`. POSIX uses `O_APPEND`, a nonblocking exclusive
@@ -69,7 +76,7 @@ power loss or controller failure.
 
 ## Verification and native workflow
 
-Build All, run the `windows-debug` preset's eighteen groups, then select
+Build All, run the `windows-debug` preset's nineteen groups, then select
 `recovery_diagnostic.exe` and **Ctrl+F5**. No market dataset or credentials are
 required. Linux:
 

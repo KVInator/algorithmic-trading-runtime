@@ -102,6 +102,11 @@ else()
 endif()
 configure_trading_target(execution_persistence)
 
+add_library(offline_execution src/execution/simulated_broker.cpp src/execution/offline_pipeline.cpp
+    src/execution/momentum_order_adapter.cpp src/execution/pipeline_diagnostic.cpp)
+target_link_libraries(offline_execution PUBLIC execution_persistence momentum_research)
+configure_trading_target(offline_execution)
+
 add_library(risk_inputs src/storage/risk_input_dataset.cpp src/accounting/corporate_action_history.cpp)
 target_include_directories(risk_inputs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/accounting")
 target_link_libraries(risk_inputs PUBLIC session_data PRIVATE nlohmann_json::nlohmann_json)
@@ -146,6 +151,14 @@ target_compile_definitions(execution_reporting PRIVATE
     TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
     TRADING_BUILD_CONFIGURATION="$<CONFIG>")
 configure_trading_target(execution_reporting)
+add_library(pipeline_reporting src/reporting/pipeline_diagnostic_report.cpp)
+target_include_directories(pipeline_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting"
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+target_link_libraries(pipeline_reporting PUBLIC offline_execution)
+target_compile_definitions(pipeline_reporting PRIVATE
+    TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
+    TRADING_BUILD_CONFIGURATION="$<CONFIG>")
+configure_trading_target(pipeline_reporting)
 add_library(continuation_reporting src/reporting/continuation_study_report.cpp)
 target_include_directories(continuation_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 target_link_libraries(continuation_reporting PUBLIC momentum_research PRIVATE nlohmann_json::nlohmann_json)
@@ -189,6 +202,7 @@ add_trading_app(risk_acquire risk_preflight_reporting)
 add_trading_app(risk_development daily_risk_reporting)
 add_trading_app(execution_diagnostic execution_reporting)
 add_trading_app(recovery_diagnostic execution_reporting)
+add_trading_app(pipeline_diagnostic pipeline_reporting)
 target_sources(continuation_diagnostic PRIVATE src/reporting/continuation_diagnostic_report.cpp)
 target_include_directories(continuation_diagnostic PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 
@@ -249,6 +263,7 @@ if(BUILD_TESTING)
     add_trading_contract(risk_measurement_tests risk_measurement_contracts daily_risk_research)
     add_trading_contract(daily_risk_study_tests daily_risk_study_contracts "daily_risk_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(order_runtime_tests order_runtime_contracts "execution_reporting;artifact_integrity;nlohmann_json::nlohmann_json" OUTPUT)
+    add_trading_contract(offline_pipeline_tests offline_pipeline_contracts offline_execution OUTPUT)
     add_executable(journaled_runtime_tests tests/journaled_runtime_tests.cpp)
     target_link_libraries(journaled_runtime_tests PRIVATE execution_persistence)
     configure_trading_target(journaled_runtime_tests)
