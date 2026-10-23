@@ -63,8 +63,9 @@ void check_registration() {
     require(rules.at("history_sessions") == risk_rules::history && rules.at("calibration_sessions") == 252 &&
         rules.at("development_sessions") == 501 && rules.at("initial_cash_usd") == risk_rules::initial_cash &&
         rules.at("cost_bps_per_side") == risk_rules::costs && rules.at("execution_delay_minutes") == risk_rules::delays &&
-        rules.at("frozen_development_manifest_sha256") == risk_rules::development_digest &&
-        rules.at("risk_acquisition_manifest_sha256") == risk_rules::acquisition_digest && rules.at("issuer_reference_sha256") == risk_rules::issuer_digest,
+        rules.at("frozen_development_manifest_sha256").get<std::string>() == risk_rules::development_digest &&
+        rules.at("risk_acquisition_manifest_sha256").get<std::string>() == risk_rules::acquisition_digest &&
+        rules.at("issuer_reference_sha256").get<std::string>() == risk_rules::issuer_digest,
         "compiled study settings must match registered settings");
 }
 void check_features(const DailyRiskResult& result) {
