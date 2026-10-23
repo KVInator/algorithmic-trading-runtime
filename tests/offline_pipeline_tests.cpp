@@ -161,7 +161,7 @@ void test_freshness_limits_and_rejection(const std::filesystem::path& root) {
     }
 }
 void test_diagnostic_and_causality(const std::filesystem::path& root) {
-    const auto result = run_pipeline_diagnostic(trading::create_unique_directory(root, "pipeline"));
+    const auto result = PipelineDiagnostic{trading::create_unique_directory(root, "pipeline")}.run();
     require(result.cases.size() == 3 && result.cases[1].client_restarts == 2 && result.cases[2].client_restarts == 1,
             "paired execution and cash cases retain fresh-client restarts");
     const auto start = result.rising_prefix.front().start();

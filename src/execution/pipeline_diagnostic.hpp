@@ -3,6 +3,8 @@
 #include "momentum_order_adapter.hpp"
 #include "offline_pipeline.hpp"
 
+#include <utility>
+
 namespace trading::execution {
 
 struct PipelineCheck { std::string name; bool passed; };
@@ -24,6 +26,13 @@ struct PipelineDiagnosticResult {
     std::vector<MinuteBar> falling_prefix;
 };
 
-[[nodiscard]] PipelineDiagnosticResult run_pipeline_diagnostic(const std::filesystem::path& directory);
+class PipelineDiagnostic {
+public:
+    explicit PipelineDiagnostic(std::filesystem::path directory) : directory_{std::move(directory)} {}
+    [[nodiscard]] PipelineDiagnosticResult run() const;
+
+private:
+    std::filesystem::path directory_;
+};
 
 } // namespace trading::execution

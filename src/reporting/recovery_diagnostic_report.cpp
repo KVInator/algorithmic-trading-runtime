@@ -11,7 +11,8 @@
 
 namespace trading::execution {
 
-void write_recovery_diagnostic_report(const std::filesystem::path& directory, const RecoveryDiagnosticResult& result) {
+void RecoveryDiagnosticReport::write(const std::filesystem::path& directory) const {
+    const auto& result = result_;
     using Json = nlohmann::json;
     Json checks = Json::array();
     Json checkpoints = Json::array();

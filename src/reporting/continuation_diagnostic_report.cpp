@@ -1,3 +1,4 @@
+#include "report_text.hpp"
 #include "continuation_diagnostic_report.hpp"
 #include "utc_timestamp.hpp"
 
@@ -13,20 +14,6 @@
 namespace trading {
 namespace {
 
-std::string escape_html(std::string_view text) {
-    std::string result;
-    for (const char character : text) {
-        switch (character) {
-        case '&': result += "&amp;"; break;
-        case '<': result += "&lt;"; break;
-        case '>': result += "&gt;"; break;
-        case '"': result += "&quot;"; break;
-        case '\'': result += "&#39;"; break;
-        default: result += character;
-        }
-    }
-    return result;
-}
 
 void validate_pair(const IntradayContinuationReplay& price, const IntradayContinuationReplay& volume) {
     if (price.decisions.size() != 13 || volume.decisions.size() != 13) {
@@ -81,7 +68,7 @@ std::string chart(std::string_view id, std::string_view title,
     out.imbue(std::locale::classic());
     out << std::fixed << std::setprecision(2);
     out << "<svg viewBox=\"0 0 880 260\" role=\"img\" aria-labelledby=\"" << id
-        << "\"><title id=\"" << id << "\">" << escape_html(title) << "</title>";
+        << "\"><title id=\"" << id << "\">" << ReportText{title}.html() << "</title>";
     for (int tick = 0; tick <= static_cast<int>(std::round(span / step)); ++tick) {
         const double value = axis_lower + step * static_cast<double>(tick);
         out << "<line x1=\"66\" x2=\"836\" y1=\"" << y(value) << "\" y2=\"" << y(value)
@@ -108,15 +95,16 @@ std::string chart(std::string_view id, std::string_view title,
                 << minutes / 60 << ':' << std::setfill('0') << std::setw(2) << minutes % 60 << "</text>";
         }
     }
-    out << "<text x=\"66\" y=\"16\">" << escape_html(unit)
+    out << "<text x=\"66\" y=\"16\">" << ReportText{unit}.html()
         << "</text><text x=\"836\" y=\"255\" text-anchor=\"end\">New York decision time</text></svg>";
     return out.str();
 }
 
 } // namespace
 
-std::string format_continuation_diagnostic_html(const HistoricalBarRequest& session,
-    const IntradayContinuationReplay& price, const IntradayContinuationReplay& volume) {
+std::string ContinuationDiagnosticReport::html(const HistoricalBarRequest& session) const {
+    const auto& price = price_;
+    const auto& volume = volume_;
     validate_pair(price, volume);
     if (price.decisions.front().at != session.start() + std::chrono::minutes{30}) {
         throw std::invalid_argument("diagnostic report session does not match the replay clocks");
@@ -169,14 +157,15 @@ body{margin:0;background:#f1f5f9;color:#172b4d;font:16px/1.55 system-ui,Segoe UI
     out << "</tbody></table></div><p class=\"small\">Displayed features are rounded; decisions use the full double values. Instructions use completed prefixes, followed by "
         << delay << "-minute delayed open-price references. No broker orders are submitted.</p></section>";
     out << "<section class=\"card\"><h2>Provenance</h2><p>Synthetic fixture calendar date: "
-        << escape_html(format_utc_seconds(session.start()).substr(0, 10))
+        << ReportText{format_utc_seconds(session.start()).substr(0, 10)}.html()
         << ". The diagnostic uses no API credentials, network request or historical market file.</p><p>Compiled protocol SHA-256: <code>"
         << continuation_protocol_sha256() << "</code></p></section></main></body></html>";
     return out.str();
 }
 
-std::string format_continuation_diagnostic_csv(const IntradayContinuationReplay& price,
-                                               const IntradayContinuationReplay& volume) {
+std::string ContinuationDiagnosticReport::csv() const {
+    const auto& price = price_;
+    const auto& volume = volume_;
     validate_pair(price, volume);
     std::ostringstream out;
     out.imbue(std::locale::classic());

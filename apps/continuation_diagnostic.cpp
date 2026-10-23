@@ -61,9 +61,9 @@ int main() {
         const auto report = trading::create_unique_directory(
             std::filesystem::path{TRADING_PROJECT_ROOT} / "scratch" / "runs", "SPY_TOD_01_synthetic_trace");
         trading::write_new_text_file(report / "trace.html",
-            trading::format_continuation_diagnostic_html(request, price, volume));
+            trading::ContinuationDiagnosticReport{price, volume}.html(request));
         trading::write_new_text_file(report / "decisions.csv",
-            trading::format_continuation_diagnostic_csv(price, volume));
+            trading::ContinuationDiagnosticReport{price, volume}.csv());
         std::cout << "Price-only round trips: " << price.trades.size()
                   << "\nVolume-conditioned round trips: " << volume.trades.size()
                   << "\nVisual trace: " << (report / "trace.html").string()

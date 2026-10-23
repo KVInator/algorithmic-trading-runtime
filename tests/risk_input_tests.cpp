@@ -137,7 +137,7 @@ void test_collection(const std::filesystem::path& root) {
         auto rows = trading::audit_risk_session_coverage(std::vector{trading::CalendarSession{date,"09:30","13:00"}}, std::vector{session});
         preflight.coverage.push_back(rows[0]);
     }
-    const auto report = trading::save_risk_input_report(result, preflight, root / "reports");
+    const auto report = trading::RiskInputReport{result}.write(preflight, root / "reports");
     const auto summary = Json::parse(trading::read_text_file(report / "summary.json"));
     require(summary.at("strategy_scored") == false && summary.at("counts").at("account_reference_sessions") == 3,
         "report publishes coverage without a historical strategy score");

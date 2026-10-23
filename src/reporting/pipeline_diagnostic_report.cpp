@@ -1,3 +1,4 @@
+#include "report_text.hpp"
 #include "pipeline_diagnostic_report.hpp"
 
 #include "artifact_io.hpp"
@@ -11,17 +12,8 @@
 #include <sstream>
 
 namespace trading::execution {
-namespace {
-std::string escape(std::string_view value) {
-    std::string text;
-    for (const char c : value) {
-        if (c == '&') { text += "&amp;"; } else if (c == '<') { text += "&lt;"; }
-        else if (c == '>') { text += "&gt;"; } else if (c == '"') { text += "&quot;"; } else { text += c; }
-    }
-    return text;
-}
-} // namespace
-void write_pipeline_diagnostic_report(const std::filesystem::path& directory, const PipelineDiagnosticResult& result) {
+void PipelineDiagnosticReport::write(const std::filesystem::path& directory) const {
+    const auto& result = result_;
     using Json = nlohmann::json;
     Json cases = Json::array();
     Json checks = Json::array();
@@ -54,25 +46,25 @@ void write_pipeline_diagnostic_report(const std::filesystem::path& directory, co
             {"broker_fills", fills}, {"broker_reports", reports}, {"runtime_trace", trace},
             {"final_account", account_json(item.final_account)}, {"client_restarts", item.client_restarts}});
         artifacts.push_back(item.journal_file);
-        html << "<section><h2>" << escape(item.name) << "</h2><p>Client restarts: " << item.client_restarts
+        html << "<section><h2>" << ReportText{item.name}.html() << "</h2><p>Client restarts: " << item.client_restarts
              << "; broker executions: " << item.fills.size() << "; final cash: " << item.final_account.cash_cents
              << " cents; final inventory: " << item.final_account.position_shares << " shares.</p><details><summary>Expand durable event trace</summary>"
                 "<div class=\"scroll\"><table><tr><th>Seq</th><th>Input</th><th>Order / event</th><th>Outcome</th><th>State</th>"
                 "<th>Cash (cents)</th><th>Shares</th><th>Cash reserved</th><th>Shares reserved</th><th>Entry gate</th><th>Reason</th></tr>";
         for (const auto& row : item.runtime_trace) {
             const auto& a = row.account;
-            html << "<tr><td>" << row.sequence << "</td><td>" << row.input << "</td><td>" << escape(row.order_id)
-                 << " / " << escape(row.event_id) << "</td><td>" << name(row.outcome) << "</td><td>" << row.order_status
+            html << "<tr><td>" << row.sequence << "</td><td>" << row.input << "</td><td>" << ReportText{row.order_id}.html()
+                 << " / " << ReportText{row.event_id}.html() << "</td><td>" << name(row.outcome) << "</td><td>" << row.order_status
                  << "</td><td>" << a.cash_cents << "</td><td>" << a.position_shares << "</td><td>" << a.reserved_cash_cents
                  << "</td><td>" << a.reserved_sell_shares << "</td><td>" << (a.connected && !a.reconciliation_required ? "open" : "closed")
-                 << "</td><td>" << escape(row.reason) << "</td></tr>";
+                 << "</td><td>" << ReportText{row.reason}.html() << "</td></tr>";
         }
         html << "</table></div></details></section>";
     }
     html << "<h2>Checks</h2><ul>";
     for (const auto& check : result.checks) {
         checks.push_back({{"name", check.name}, {"passed", check.passed}});
-        html << "<li>" << escape(check.name) << ": " << (check.passed ? "passed" : "failed") << "</li>";
+        html << "<li>" << ReportText{check.name}.html() << ": " << (check.passed ? "passed" : "failed") << "</li>";
     }
     html << "</ul><h2>Reproduction evidence</h2><p>Source SHA-256: <code>" << build::source_sha256
          << "</code></p><p><a href=\"pipeline_evidence.json\">Quotes, targets, fills and client traces</a> | "

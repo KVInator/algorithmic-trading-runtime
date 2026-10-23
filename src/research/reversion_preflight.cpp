@@ -21,7 +21,7 @@ std::vector<std::vector<double>> control(double intercept, double slope) {
 bool near(double a, double b) { return std::abs(a - b) <= 1e-12; }
 } // namespace
 
-ReversionPreflight run_reversion_controls() {
+ReversionPreflightResult ReversionPreflight::controls() const {
     const auto session = CalendarSession{"2022-02-01", "09:30", "16:00"}.bar_request();
     std::vector<MinuteBar> prefix;
     for (std::size_t i = 0; i < reversion_prefix_minutes; ++i) {
@@ -29,13 +29,13 @@ ReversionPreflight run_reversion_controls() {
         prefix.emplace_back("SPY", session.start() + std::chrono::minutes{static_cast<std::int64_t>(i)},
             Ohlc{price, price, price, price}, 100);
     }
-    const OpeningAnchorMeasurement measurement;
-    ReversionPreflight result{{}, {}, prefix, measurement.measure(session, prefix), {}, {}};
+    const auto& measurement = measurement_;
+    ReversionPreflightResult result{{}, {}, prefix, measurement.measure(session, prefix), {}, {}};
     auto check = [&](std::string label, bool passed) {
         if (!passed) { throw std::logic_error("reversion control failed: " + label); }
         result.checks.push_back({std::move(label), passed});
     };
-    const PooledReversionEstimator estimator;
+    const auto& estimator = estimator_;
     auto add = [&](std::string label, double intercept, double slope, ReversionFitStatus expected) {
         auto sequences = control(intercept, slope);
         auto fitted = estimator.fit(sequences);
@@ -63,11 +63,11 @@ ReversionPreflight run_reversion_controls() {
     return result;
 }
 
-std::vector<ReversionCoverage> audit_reversion_coverage(std::span<const SessionDownload> sessions) {
+std::vector<ReversionCoverage> ReversionPreflight::audit_coverage(std::span<const SessionDownload> sessions) const {
     std::vector<ReversionCoverage> result;
     std::size_t prior = 0;
     std::optional<std::chrono::sys_seconds> previous_end;
-    const OpeningAnchorMeasurement measurement;
+    const auto& measurement = measurement_;
     for (const auto& item : sessions) {
         const auto decision = measurement.decision_time(item.request);
         const auto date = format_utc_seconds(item.request.start()).substr(0, 10);

@@ -319,13 +319,13 @@ void test_report_contract() {
         {request, ContinuationVariant::price_only}, h, input);
     auto volume = IntradayContinuationReplayEngine{}.run(
         {request, ContinuationVariant::volume_conditioned}, h, input);
-    const auto html = trading::format_continuation_diagnostic_html(request, price, volume);
+    const auto html = trading::ContinuationDiagnosticReport{price, volume}.html(request);
     require(html.find("data-kind=\"synthetic\"") != std::string::npos &&
                 html.find("not market results") != std::string::npos && html.find("<script") == std::string::npos,
             "a diagnostic figure cannot be presented as observed market performance");
     require(html.find("price-chart") != std::string::npos && html.find("volume-chart") != std::string::npos,
             "the visual report contains both feature comparisons");
-    const auto csv = trading::format_continuation_diagnostic_csv(price, volume);
+    const auto csv = trading::ContinuationDiagnosticReport{price, volume}.csv();
     std::size_t lines = 0;
     std::size_t begin = 0;
     while (begin < csv.size()) {
@@ -339,7 +339,7 @@ void test_report_contract() {
     require(lines == 27, "the CSV retains the header and thirteen decisions for each variant");
     volume.decisions.front().features->relative_volume += 1;
     rejects<std::invalid_argument>([&] {
-        static_cast<void>(trading::format_continuation_diagnostic_html(request, price, volume));
+        static_cast<void>(trading::ContinuationDiagnosticReport{price, volume}.html(request));
     }, "a paired report cannot silently compare different input features");
 }
 

@@ -2,6 +2,7 @@
 #include "content_digest.hpp"
 #include "execution_diagnostic_report.hpp"
 #include "order_runtime.hpp"
+#include "report_text.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -173,11 +174,23 @@ void test_inventory_limits_and_invalid_units() {
     same_finances(rejected_before, rejected.account());
 }
 
+void test_report_text_ownership_and_encoding() {
+    std::string input{"\"<&>,\n"};
+    const trading::ReportText text{input};
+    input.clear();
+    require(text.html() == "&quot;&lt;&amp;&gt;,\n", "HTML encoding owns its input and escapes markup exactly once");
+    require(text.csv() == "\"\"\"<&>,\n\"", "CSV field quotes preserve commas/newlines and double embedded quotes");
+    require(trading::ReportText{""}.html().empty() && trading::ReportText{""}.csv() == "\"\"",
+        "empty text keeps format-specific semantics");
+    const std::string utf8{"\xC3\xA9"};
+    require(trading::ReportText{utf8}.html() == utf8, "encoding preserves non-markup UTF-8 bytes");
+}
+
 void test_scenarios_and_artifacts(const std::filesystem::path& output) {
-    const auto results = run_execution_diagnostic();
+    const auto results = ExecutionDiagnostic{}.run();
     require(results.size() == 6, "six constructed failure-mode schedules");
     const auto directory = trading::create_unique_directory(output, "execution-report");
-    write_execution_diagnostic_report(directory, results);
+    ExecutionDiagnosticReport{results}.write(directory);
     const auto summary = nlohmann::json::parse(trading::read_text_file(directory / "summary.json"));
     require(summary.at("status").get<std::string>() == "synthetic_contracts_passed", "manifest identifies synthetic scope");
     require(summary.at("scenario_count").get<std::size_t>() == results.size(), "manifest includes every scenario");
@@ -200,6 +213,7 @@ int main(int argc, char** argv) {
         test_delivery_permutations_and_integer_oracle();
         test_quarantine_and_reconciliation();
         test_inventory_limits_and_invalid_units();
+        test_report_text_ownership_and_encoding();
         test_scenarios_and_artifacts(argv[1]);
         std::cout << "Order runtime contracts passed\n";
         return 0;

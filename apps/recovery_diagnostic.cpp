@@ -9,8 +9,8 @@ int main() {
         std::cout << "Execution runtime | durable journal and restart diagnostic\n" << std::flush;
         const auto directory = trading::create_unique_directory(
             std::filesystem::path{TRADING_PROJECT_ROOT} / "scratch" / "runs", "recovery_diagnostic");
-        const auto result = trading::execution::run_recovery_diagnostic(directory);
-        trading::execution::write_recovery_diagnostic_report(directory, result);
+        const auto result = trading::execution::RecoveryDiagnostic{directory}.run();
+        trading::execution::RecoveryDiagnosticReport{result}.write(directory);
         std::cout << "Recovery checks passed: " << result.checks.size()
                   << "\nState checkpoints: " << result.checkpoints.size()
                   << "\nPreserved incomplete tail: " << result.preserved_tail_bytes << " bytes"

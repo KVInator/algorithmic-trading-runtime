@@ -23,7 +23,8 @@ std::vector<MinuteBar> prefix(const IntradayMomentumStrategy& strategy, bool ris
 }
 } // namespace
 
-PipelineDiagnosticResult run_pipeline_diagnostic(const std::filesystem::path& directory) {
+PipelineDiagnosticResult PipelineDiagnostic::run() const {
+    const auto& directory = directory_;
     const RuntimeConfiguration config{"SPY", 1000000, {20, 4}};
     const auto strategy = synthetic_strategy();
     const MomentumOrderAdapter adapter{strategy, 10, 10};

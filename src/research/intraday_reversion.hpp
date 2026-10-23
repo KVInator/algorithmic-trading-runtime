@@ -3,9 +3,11 @@
 #include "session_download.hpp"
 
 #include <array>
+#include <cstddef>
 #include <optional>
 #include <span>
 #include <string_view>
+#include <vector>
 
 namespace trading {
 

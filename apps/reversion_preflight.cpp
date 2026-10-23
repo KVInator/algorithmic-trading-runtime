@@ -15,15 +15,16 @@ int main(int argc, char** argv) {
         const trading::ConsoleProgress progress;
         const std::filesystem::path root{TRADING_PROJECT_ROOT};
         progress("SPY-MR-01 | unregistered reversion specification and feasibility");
-        auto result = trading::run_reversion_controls();
+        const trading::ReversionPreflight preflight;
+        auto result = preflight.controls();
         progress("Constructed AR(1), OU mapping and completed-prefix controls passed");
         if (!synthetic_only) {
             const auto dataset = trading::DevelopmentStudyDataset{root}.load(progress);
-            result.coverage = trading::audit_reversion_coverage(dataset.sessions);
+            result.coverage = preflight.audit_coverage(dataset.sessions);
             result.study_manifest_sha256 = dataset.manifest_sha256;
         }
         const auto directory = trading::create_unique_directory(root / "scratch/runs", "reversion_preflight");
-        trading::write_reversion_preflight_report(directory, result);
+        trading::ReversionPreflightReport{result}.write(directory);
         const auto ready = std::count_if(result.coverage.begin(), result.coverage.end(),
             [](const auto& row) { return row.input_ready; });
         std::cout << "Constructed checks passed: " << result.checks.size() << "\nAudited sessions: " << result.coverage.size()

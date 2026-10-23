@@ -23,7 +23,7 @@ struct ReversionCoverage {
     bool reference_clocks_present;
     bool input_ready;
 };
-struct ReversionPreflight {
+struct ReversionPreflightResult {
     std::vector<ReversionCheck> checks;
     std::vector<ReversionControl> controls;
     std::vector<MinuteBar> synthetic_prefix;
@@ -32,9 +32,15 @@ struct ReversionPreflight {
     std::optional<std::string> study_manifest_sha256;
 };
 
-// Constructed statistical/causality controls only. No historical model fitting,
-// forecasts, trading decisions or returns occur in either preflight function.
-[[nodiscard]] ReversionPreflight run_reversion_controls();
-[[nodiscard]] std::vector<ReversionCoverage> audit_reversion_coverage(std::span<const SessionDownload> sessions);
+// Constructed controls and input availability only; no historical model fitting.
+class ReversionPreflight {
+public:
+    [[nodiscard]] ReversionPreflightResult controls() const;
+    [[nodiscard]] std::vector<ReversionCoverage> audit_coverage(std::span<const SessionDownload> sessions) const;
+
+private:
+    OpeningAnchorMeasurement measurement_;
+    PooledReversionEstimator estimator_;
+};
 
 } // namespace trading

@@ -3,6 +3,7 @@
 #include "journaled_runtime.hpp"
 
 #include <filesystem>
+#include <utility>
 
 namespace trading::execution {
 
@@ -21,6 +22,13 @@ struct RecoveryDiagnosticResult {
     std::size_t preserved_tail_bytes;
 };
 
-[[nodiscard]] RecoveryDiagnosticResult run_recovery_diagnostic(const std::filesystem::path& directory);
+class RecoveryDiagnostic {
+public:
+    explicit RecoveryDiagnostic(std::filesystem::path directory) : directory_{std::move(directory)} {}
+    [[nodiscard]] RecoveryDiagnosticResult run() const;
+
+private:
+    std::filesystem::path directory_;
+};
 
 } // namespace trading::execution

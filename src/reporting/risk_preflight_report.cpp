@@ -1,3 +1,4 @@
+#include "report_text.hpp"
 #include "risk_preflight_report.hpp"
 
 #include "artifact_io.hpp"
@@ -16,19 +17,6 @@
 namespace trading {
 namespace {
 
-std::string escape(std::string_view input) {
-    std::string out;
-    for (const auto c : input) {
-        switch (c) {
-        case '&': out += "&amp;"; break;
-        case '<': out += "&lt;"; break;
-        case '>': out += "&gt;"; break;
-        case '"': out += "&quot;"; break;
-        default: out += c;
-        }
-    }
-    return out;
-}
 std::ostringstream stream() {
     std::ostringstream out;
     out.imbue(std::locale::classic());
@@ -38,9 +26,9 @@ std::ostringstream stream() {
 
 } // namespace
 
-std::filesystem::path save_risk_preflight_report(const RiskPreflightResult& result,
-    std::span<const CorporateActionProbe> probes, const std::string& access_status,
-    const std::filesystem::path& output_root) {
+std::filesystem::path RiskPreflightReport::write(std::span<const CorporateActionProbe> probes,
+    const std::string& access_status, const std::filesystem::path& output_root) const {
+    const auto& result = result_;
     using Json = nlohmann::json;
     if (result.coverage.empty() || result.accounting.checks.empty() || result.blockers.empty()) {
         throw std::invalid_argument("preflight report requires coverage, accounting identities and unresolved prerequisites");
@@ -134,11 +122,11 @@ std::filesystem::path save_risk_preflight_report(const RiskPreflightResult& resu
              << (row.account_references_complete ? "Present" : "Missing") << "</td><td>"
              << (row.rv5_endpoints_complete ? "Present" : "Missing") << "</td><td>";
         if (row.observed_minutes == 0) { html << "No retained session evidence"; }
-        else { for (const auto& time : row.missing_rv5_bar_starts) { html << escape(time) << "<br>"; } }
+        else { for (const auto& time : row.missing_rv5_bar_starts) { html << ReportText{time}.html() << "<br>"; } }
         html << "</td></tr>";
     }
     html << "</table><p class=\"note\">The original exclusions remain unchanged. Excluding a session from an intraday study does not remove overnight economic exposure from a proposed account.</p></section><h2>Corporate-action access</h2><section><p>"
-         << escape(access_status) << "</p><table><tr><th>Process-date year</th><th>HTTP</th><th>JSON object</th><th>More pages</th></tr>";
+         << ReportText{access_status}.html() << "</p><table><tr><th>Process-date year</th><th>HTTP</th><th>JSON object</th><th>More pages</th></tr>";
     summary["corporate_action_probes"] = Json::array();
     std::vector<std::string> files{"coverage.csv", "synthetic_ledger.csv", "accounting_checks.csv", "report.html"};
     for (const auto& probe : probes) {
@@ -158,23 +146,23 @@ std::filesystem::path save_risk_preflight_report(const RiskPreflightResult& resu
 <h2>Constructed accounting identities</h2><section><p>Fractional long/cash USD account, zero cash interest, no borrowing. The constructed trace starts at USD 10,000, buys a 50% post-cost weight at USD 100 with 1 bp cost, accrues a USD 1 dividend at a raw price of USD 99, sells the stock and later receives payment. These values are not market observations.</p><div class="scroll"><table><tr><th>Identity</th><th>Actual</th><th>Expected</th><th>Result</th></tr>)";
     html << std::fixed << std::setprecision(9);
     for (const auto& check : result.accounting.checks) {
-        html << "<tr><td>" << escape(check.name) << "</td><td class=\"num\">" << check.actual
+        html << "<tr><td>" << ReportText{check.name}.html() << "</td><td class=\"num\">" << check.actual
              << "</td><td class=\"num\">" << check.expected << "</td><td>" << (check.passed ? "Pass" : "Fail") << "</td></tr>";
     }
     html << "</table></div><p class=\"note\">Absolute tolerance: 1e-9 in the displayed identity's units. The split identities use a separate constructed account. This verifies the stated arithmetic, not settlement, tax, brokerage or production readiness.</p><div class=\"scroll\"><table><tr><th>UTC date</th><th>Event</th><th>Cash (USD)</th><th>Stock shares</th><th>Receivable (USD)</th><th>Equity (USD)</th></tr>";
     html << std::setprecision(4);
     for (const auto& row : result.accounting.ledger) {
-        html << "<tr><td>" << format_utc_seconds(row.at) << "</td><td>" << escape(row.kind) << "</td>";
+        html << "<tr><td>" << format_utc_seconds(row.at) << "</td><td>" << ReportText{row.kind}.html() << "</td>";
         for (const auto v : {row.value.cash_usd, row.value.shares, row.value.receivable_usd, row.value.equity_usd}) {
             html << "<td class=\"num\">" << v << "</td>";
         }
         html << "</tr>";
     }
     html << "</table></div></section><h2>Required before registration and scoring</h2><section><ul>";
-    for (const auto& blocker : result.blockers) { html << "<li>" << escape(blocker) << "</li>"; }
+    for (const auto& blocker : result.blockers) { html << "<li>" << ReportText{blocker}.html() << "</li>"; }
     html << "</ul></section><h2>Reproduction records</h2><section><p>Verified input manifest SHA-256:</p><p class=\"mono\">"
-         << escape(result.input_manifest_sha256) << "</p><p>Source SHA-256:</p><p class=\"mono\">" << TRADING_SOURCE_SHA256
-         << "</p><p>Compiler: " << escape(TRADING_COMPILER_ID) << " / " << escape(TRADING_BUILD_CONFIGURATION)
+         << ReportText{result.input_manifest_sha256}.html() << "</p><p>Source SHA-256:</p><p class=\"mono\">" << TRADING_SOURCE_SHA256
+         << "</p><p>Compiler: " << ReportText{TRADING_COMPILER_ID}.html() << " / " << ReportText{TRADING_BUILD_CONFIGURATION}.html()
          << "</p><p><a href=\"coverage.csv\">Session coverage</a> · <a href=\"synthetic_ledger.csv\">Constructed ledger</a> · <a href=\"accounting_checks.csv\">Accounting identities</a> · <a href=\"summary.json\">Manifest and provenance</a></p></section></main></body></html>";
     write_new_text_file(directory / "coverage.csv", csv.str());
     write_new_text_file(directory / "synthetic_ledger.csv", ledger.str());

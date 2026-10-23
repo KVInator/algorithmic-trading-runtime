@@ -8,10 +8,10 @@
 int main() {
     try {
         std::cout << "Execution runtime | deterministic synthetic broker-message diagnostic\n" << std::flush;
-        const auto results = trading::execution::run_execution_diagnostic();
+        const auto results = trading::execution::ExecutionDiagnostic{}.run();
         const auto directory = trading::create_unique_directory(
             std::filesystem::path{TRADING_PROJECT_ROOT} / "scratch" / "runs", "execution_diagnostic");
-        trading::execution::write_execution_diagnostic_report(directory, results);
+        trading::execution::ExecutionDiagnosticReport{results}.write(directory);
         std::size_t transitions = 0;
         for (const auto& result : results) { transitions += result.trace.size(); }
         std::cout << "Scenarios passed: " << results.size() << "\nChecked transitions: " << transitions

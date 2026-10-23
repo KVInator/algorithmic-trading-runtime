@@ -120,7 +120,7 @@ OrderRuntime replay(const ExecutionScenario& scenario) {
 
 } // namespace
 
-std::vector<ExecutionDiagnosticResult> run_execution_diagnostic() {
+std::vector<ExecutionDiagnosticResult> ExecutionDiagnostic::run() const {
     std::vector<ExecutionDiagnosticResult> results;
     for (auto scenario : scenarios()) {
         const auto first = replay(scenario);

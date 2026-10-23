@@ -7,7 +7,8 @@
 
 namespace trading::execution {
 
-RecoveryDiagnosticResult run_recovery_diagnostic(const std::filesystem::path& directory) {
+RecoveryDiagnosticResult RecoveryDiagnostic::run() const {
+    const auto& directory = directory_;
     const RuntimeConfiguration config{"SPY", 1000000, {20, 4}};
     const OrderRequest request{"B", "SPY", Side::buy, 10, 10000, 10};
     const BrokerReport fill{"F1", "B", ReportKind::fill, "X1", 4, 10000, 4, 0, ""};

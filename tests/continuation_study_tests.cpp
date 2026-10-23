@@ -197,13 +197,13 @@ void test_statistics_and_report() {
     primary.overall.net.mean = 0;
     require(trading::assess_continuation_variant(screen, ContinuationVariant::price_only).status == "cost_dominated",
         "positive gross with non-positive net is cost-dominated");
-    const auto html = trading::format_continuation_study_html(study, {"synthetic_contract", "fixture", "feature-fixture"});
+    const auto html = trading::ContinuationStudyReport{study}.html({"synthetic_contract", "fixture", "feature-fixture"});
     require(html.find("constructed observations, not market results") != std::string::npos, "synthetic report must be explicit");
     require(html.find("<script") == std::string::npos && html.find("https://") == std::string::npos, "self-contained report has no scripts or external assets");
     require(html.find("Daily-close drawdown") != std::string::npos || html.find("daily-close drawdown") != std::string::npos, "drawdown visualization present");
-    const auto csv = trading::format_continuation_daily_csv(study);
+    const auto csv = trading::ContinuationStudyReport{study}.daily_csv();
     require(std::count(csv.begin(), csv.end(), '\n') == 601, "all thirty days and twenty cases are exported");
-    const auto features = trading::format_continuation_features_csv(study);
+    const auto features = trading::ContinuationStudyReport{study}.features_csv();
     require(std::count(features.begin(), features.end(), '\n') == 721, "all clocks and both forward delays are exported");
     auto incomplete = statistical_days();
     for (auto& day : incomplete) { day.opportunities[0].features.move = 2; }

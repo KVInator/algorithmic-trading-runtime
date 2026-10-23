@@ -150,8 +150,8 @@ void test_attribution_and_stresses() {
     near(d.opportunities.front().prefix_realized_volatility, std::log(1.01), "constant closes imply a single open-to-first-close log change");
     near(*d.opportunities.front().normalized_move, 2, "same-clock historical scale is the normalization denominator");
     near(d.entry_summaries[0].mean_signed_gap, 100.0 / 101 - 1, "entry gaps use the completed decision close");
-    require(trading::format_removed_exposure_csv(d).find("delayed_entry") != std::string::npos, "matched exposure is exported");
-    const auto csv = trading::format_opportunity_diagnostics_csv(d);
+    require(trading::ContinuationDiagnosticsReport{d}.removed_exposure_csv().find("delayed_entry") != std::string::npos, "matched exposure is exported");
+    const auto csv = trading::ContinuationDiagnosticsReport{d}.opportunities_csv();
     require(std::count(csv.begin(), csv.end(), '\n') == 145, "every opportunity exported once, without duplicated delays");
     auto before = d.opportunities.front().prefix_realized_volatility;
     input.sessions.front().bars.back() = trading::MinuteBar{"SPY", input.sessions.front().bars.back().start(), {100, 201, 99, 200}, 1000};

@@ -19,6 +19,9 @@ struct ExecutionDiagnosticResult {
 
 // Scripted delivery schedules, not a market matching or liquidity simulation.
 // Throws if an expected outcome, final balance or independent replay differs.
-[[nodiscard]] std::vector<ExecutionDiagnosticResult> run_execution_diagnostic();
+class ExecutionDiagnostic {
+public:
+    [[nodiscard]] std::vector<ExecutionDiagnosticResult> run() const;
+};
 
 } // namespace trading::execution

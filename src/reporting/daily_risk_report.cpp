@@ -1,3 +1,4 @@
+#include "report_text.hpp"
 #include "daily_risk_report.hpp"
 #include "daily_risk_rules.hpp"
 #include "artifact_io.hpp"
@@ -15,19 +16,6 @@ namespace trading {
 namespace {
 using Json = nlohmann::json;
 std::ostringstream stream() { std::ostringstream s; s.imbue(std::locale::classic()); s << std::setprecision(17); return s; }
-std::string escape(std::string_view text) {
-    std::string out;
-    for (const char c : text) {
-        if (c == '&') { out += "&amp;"; } else if (c == '<') { out += "&lt;"; }
-        else if (c == '>') { out += "&gt;"; } else if (c == '"') { out += "&quot;"; } else { out += c; }
-    }
-    return out;
-}
-std::string csv(std::string_view text) {
-    std::string out = "\"";
-    for (const char c : text) { if (c == '"') { out += '"'; } out += c; }
-    return out + '"';
-}
 std::string number(double value, int precision = 4) { auto s = stream(); s << std::fixed << std::setprecision(precision) << value; return s.str(); }
 std::string percent(double value) { return number(value * 100, 2) + "%"; }
 template<class T> Json nullable(const std::optional<T>& value) { return value ? Json(*value) : Json(nullptr); }
@@ -67,7 +55,7 @@ std::string chart(const DailyRiskResult& result, int metric, const std::string& 
     else if (metric == 1) { low -= margin; high = 0; }
     else { low = 0; high = 1; }
     auto out = stream();
-    out << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1080 330\" role=\"img\"><title>" << escape(title)
+    out << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1080 330\" role=\"img\"><title>" << ReportText{title}.html()
         << "</title><rect width=\"1080\" height=\"330\" fill=\"white\"/>";
     for (int tick = 0; tick <= 4; ++tick) {
         const auto y = 25 + 250.0 * tick / 4;
@@ -89,7 +77,8 @@ std::string chart(const DailyRiskResult& result, int metric, const std::string& 
 }
 } // namespace
 
-std::filesystem::path save_daily_risk_report(const DailyRiskResult& result, const std::filesystem::path& root) {
+std::filesystem::path DailyRiskReport::write(const std::filesystem::path& root) const {
+    const auto& result = result_;
     if (result.accounts.size() != 40 || result.forecasts.size() != 1002 || result.gates.empty() || result.uncertainty.size() != 2) {
         throw std::invalid_argument("daily-risk report requires the complete experiment");
     }
@@ -160,7 +149,7 @@ std::filesystem::path save_daily_risk_report(const DailyRiskResult& result, cons
         }
         for (const auto& e : a.ledger) {
             const auto& v = e.value;
-            ledger << a.account << ',' << a.delay_minutes << ',' << a.cost_bps << ',' << format_utc_seconds(e.at) << ',' << e.kind << ',' << csv(e.action_id) << ','
+            ledger << a.account << ',' << a.delay_minutes << ',' << a.cost_bps << ',' << format_utc_seconds(e.at) << ',' << e.kind << ',' << ReportText{e.action_id}.csv() << ','
                 << e.reference_price_usd << ',' << e.traded_notional_usd << ',' << e.cost_usd << ',' << v.cash_usd << ',' << v.shares << ',' << v.receivable_usd << ','
                 << v.liquid_wealth_usd << ',' << v.equity_usd << '\n';
         }
@@ -224,8 +213,8 @@ std::filesystem::path save_daily_risk_report(const DailyRiskResult& result, cons
         html << "<tr><td>" << f.date << "</td><td>" << history_dates(f.missing_history_dates) << "</td></tr>";
     }}
     html << "</table></section><h2>Reproduction evidence</h2><section><p>Registration commit: <span class=\"mono\">" << risk_rules::registration_commit
-        << "</span></p><p>Source digest: <span class=\"mono\">" << TRADING_SOURCE_SHA256 << "</span></p><p>Compiler: " << escape(TRADING_COMPILER_ID)
-        << " / " << escape(TRADING_BUILD_CONFIGURATION) << "</p><p>Exact protocol and input identities, all case statistics, uncertainty seeds and artifact hashes are retained in <a href=\"summary.json\">summary.json</a>. "
+        << "</span></p><p>Source digest: <span class=\"mono\">" << TRADING_SOURCE_SHA256 << "</span></p><p>Compiler: " << ReportText{TRADING_COMPILER_ID}.html()
+        << " / " << ReportText{TRADING_BUILD_CONFIGURATION}.html() << "</p><p>Exact protocol and input identities, all case statistics, uncertainty seeds and artifact hashes are retained in <a href=\"summary.json\">summary.json</a>. "
         << "<a href=\"measurements.csv\">Measurements</a> · <a href=\"features.csv\">Features and labels</a> · <a href=\"daily_accounts.csv\">Daily accounts</a> · <a href=\"account_ledger.csv\">Event ledger</a>.</p></section></main></body></html>";
     summary["artifacts"] = Json::array();
     auto publish = [&](const std::string& name, const std::string& text) {

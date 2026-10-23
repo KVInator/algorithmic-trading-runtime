@@ -70,7 +70,7 @@ void test_probes_and_report(const std::filesystem::path& root) {
     result.coverage = trading::audit_risk_session_coverage(calendar, {});
     result.accounting = trading::demonstrate_long_cash_account();
     result.blockers = {"Constructed coverage only; unverified inputs cannot authorize scoring."};
-    const auto directory = trading::save_risk_preflight_report(result, std::vector{response, denied, malformed}, "Constructed HTTP fixtures <only>", root);
+    const auto directory = trading::RiskPreflightReport{result}.write(std::vector{response, denied, malformed}, "Constructed HTTP fixtures <only>", root);
     const auto html = trading::read_text_file(directory / "report.html");
     require(html.find("<script") == std::string::npos && html.find("<svg") != std::string::npos &&
             html.find("&lt;only&gt;") != std::string::npos, "static report has a chart and escapes external status text");
@@ -83,7 +83,7 @@ void test_probes_and_report(const std::filesystem::path& root) {
     }
     auto altered = response;
     altered.body += ' ';
-    rejects([&] { static_cast<void>(trading::save_risk_preflight_report(result, std::vector{altered}, "", root)); });
+    rejects([&] { static_cast<void>(trading::RiskPreflightReport{result}.write(std::vector{altered}, "", root)); });
 }
 } // namespace
 

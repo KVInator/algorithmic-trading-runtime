@@ -33,7 +33,7 @@ int main() {
 #endif
         progress("Verifying frozen development inputs and supplemental coverage");
         const auto preflight = trading::RiskPreflight{root}.run(progress);
-        const auto directory = trading::save_risk_input_report(inputs, preflight, root / "scratch/runs");
+        const auto directory = trading::RiskInputReport{inputs}.write(preflight, root / "scratch/runs");
         std::cout << "Price input windows: " << inputs.prices.size() << '\n'
                   << "Retained cash-distribution records: " << inputs.actions.distributions().size() << '\n'
                   << "Study status: blocked_before_registration\n"

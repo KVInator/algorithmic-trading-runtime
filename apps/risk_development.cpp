@@ -13,7 +13,7 @@ int main() {
         const auto inputs = trading::DailyRiskDataset{root}.load(progress);
         const auto result = trading::DailyRiskStudy{}.run(inputs, progress);
         progress("Writing forty account paths, forecasts, gates and reproduction evidence");
-        const auto directory = trading::save_daily_risk_report(result, root / "scratch/runs");
+        const auto directory = trading::DailyRiskReport{result}.write(root / "scratch/runs");
         const bool passes = std::all_of(result.gates.begin(), result.gates.end(), [](const auto& g) { return g.passed; });
         std::cout << "Calendar sessions: 501\nComparison account cases: " << result.accounts.size()
             << "\nEligible primary forecast dates: " << result.primary.forecast_records

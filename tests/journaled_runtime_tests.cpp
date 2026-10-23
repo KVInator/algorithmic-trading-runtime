@@ -138,7 +138,7 @@ void test_uncertain_order_intent(const std::filesystem::path& root) {
 
 void test_all_delivery_schedules(const std::filesystem::path& root) {
     std::size_t index = 0;
-    for (const auto& result : run_execution_diagnostic()) {
+    for (const auto& result : ExecutionDiagnostic{}.run()) {
         const auto file = root / ("schedule-" + std::to_string(index++) + ".journal");
         std::vector<TraceEntry> original;
         {

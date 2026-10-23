@@ -1,3 +1,4 @@
+#include "report_text.hpp"
 #include "risk_input_report.hpp"
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
@@ -10,24 +11,9 @@
 #include <stdexcept>
 
 namespace trading {
-namespace {
-std::string escape(std::string_view value) {
-    std::string out;
-    for (const auto c : value) {
-        if (c == '&') { out += "&amp;"; } else if (c == '<') { out += "&lt;"; }
-        else if (c == '>') { out += "&gt;"; } else if (c == '"') { out += "&quot;"; } else { out += c; }
-    }
-    return out;
-}
-std::string csv_cell(const std::string& value) {
-    std::string result = "\"";
-    for (const auto c : value) { if (c == '"') { result += '"'; } result += c; }
-    return result + '"';
-}
-} // namespace
-
-std::filesystem::path save_risk_input_report(const RiskInputInventory& inputs,
-    const RiskPreflightResult& preflight, const std::filesystem::path& output_root) {
+std::filesystem::path RiskInputReport::write(const RiskPreflightResult& preflight,
+    const std::filesystem::path& output_root) const {
+    const auto& inputs = result_;
     using Json = nlohmann::json;
     if (inputs.prices.empty() || preflight.coverage.empty()) { throw std::invalid_argument("risk input report requires audited inputs"); }
     const auto directory = create_unique_directory(output_root, "SPY_RISK_01_inputs");
@@ -57,7 +43,7 @@ std::filesystem::path save_risk_input_report(const RiskInputInventory& inputs,
     for (const auto& [file, digest] : inputs.evidence_hashes) { summary["evidence"].push_back({{"file", file}, {"sha256", digest}}); }
     dividends << "id,ex_date,record_date,payable_date,process_date,usd_per_share,in_2021_2023_ex_date_horizon\n";
     for (const auto& row : inputs.actions.distributions()) {
-        dividends << csv_cell(row.id) << ',' << row.ex_date << ',' << row.record_date << ',' << row.payable_date << ','
+        dividends << ReportText{row.id}.csv() << ',' << row.ex_date << ',' << row.record_date << ',' << row.payable_date << ','
             << row.process_date << ',' << row.usd_per_share << ',' << (row.ex_date >= "2021-01-01" && row.ex_date <= "2023-12-31") << '\n';
         summary["cash_distributions"].push_back({{"id", row.id}, {"ex_date", row.ex_date}, {"record_date", row.record_date},
             {"payable_date", row.payable_date}, {"process_date", row.process_date}, {"usd_per_share", row.usd_per_share}});
@@ -84,7 +70,7 @@ std::filesystem::path save_risk_input_report(const RiskInputInventory& inputs,
          << ". Matching ex-dates, payment dates and amounts does not establish point-in-time announcement availability.</p><table><tr><th>Ex-date</th><th>Payable date</th><th>Process date</th><th>USD/share</th></tr>";
     for (const auto& row : inputs.actions.distributions()) { html << "<tr><td>" << row.ex_date << "</td><td>" << row.payable_date << "</td><td>" << row.process_date << "</td><td>" << row.usd_per_share << "</td></tr>"; }
     html << "</table></section><section><h2>Required before registration</h2><ul>";
-    for (const auto& blocker : inputs.blockers) { html << "<li>" << escape(blocker) << "</li>"; }
+    for (const auto& blocker : inputs.blockers) { html << "<li>" << ReportText{blocker}.html() << "</li>"; }
     html << "</ul><p>Earlier preflight prerequisites remain separately recorded in the JSON. Verified calibration acquisition does not itself resolve action reconciliation or the missing-risk policy.</p></section><section><h2>Evidence</h2><p><a href=\"price_inputs.csv\">Price inventory</a> · <a href=\"cash_distributions.csv\">Cash distributions</a> · <a href=\"coverage.csv\">Development coverage</a> · <a href=\"summary.json\">Manifest</a></p></section></main></html>";
     write_new_text_file(directory / "price_inputs.csv", prices.str());
     write_new_text_file(directory / "cash_distributions.csv", dividends.str());

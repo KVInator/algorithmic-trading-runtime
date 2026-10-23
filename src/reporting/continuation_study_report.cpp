@@ -1,3 +1,4 @@
+#include "report_text.hpp"
 #include "continuation_study_report.hpp"
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
@@ -39,19 +40,6 @@ std::string optional(const std::optional<double>& value, double scale = 1) {
     return value ? number(*value * scale) : "undefined";
 }
 
-std::string escape(std::string_view value) {
-    std::string result;
-    for (const char character : value) {
-        switch (character) {
-        case '&': result += "&amp;"; break;
-        case '<': result += "&lt;"; break;
-        case '>': result += "&gt;"; break;
-        case '"': result += "&quot;"; break;
-        default: result += character;
-        }
-    }
-    return result;
-}
 
 void validate_report(const ContinuationStudyResult& study) {
     if (study.days.empty() || study.statistics.size() != continuation_case_count || study.bootstrap.size() != 2) {
@@ -92,23 +80,23 @@ std::string plot(std::string_view id, std::string_view title, std::string_view u
     const auto vertical = [&](double value) { return 268 - 220 * (value - low) / (high - low); };
     auto out = stream();
     out << "<svg viewBox=\"0 0 1000 330\" role=\"img\" aria-labelledby=\"" << id
-        << "\"><title id=\"" << id << "\">" << escape(title) << "</title>";
+        << "\"><title id=\"" << id << "\">" << ReportText{title}.html() << "</title>";
     for (double tick = low; tick <= high + step * 0.1; tick += step) {
         out << "<line x1=\"82\" x2=\"932\" y1=\"" << vertical(tick) << "\" y2=\"" << vertical(tick)
             << "\" stroke=\"#dce4ee\"/><text x=\"72\" y=\"" << vertical(tick) + 4
             << "\" text-anchor=\"end\">" << number(tick, 2) << "</text>";
     }
     for (const auto& [position, label] : labels) {
-        out << "<text x=\"" << horizontal(position) << "\" y=\"292\" text-anchor=\"middle\">" << escape(label) << "</text>";
+        out << "<text x=\"" << horizontal(position) << "\" y=\"292\" text-anchor=\"middle\">" << ReportText{label}.html() << "</text>";
     }
-    out << "<text x=\"82\" y=\"24\">" << escape(unit) << "</text>";
+    out << "<text x=\"82\" y=\"24\">" << ReportText{unit}.html() << "</text>";
     for (const auto& item : series) {
         out << "<polyline fill=\"none\" stroke=\"" << item.color << "\" stroke-width=\"2.2\" points=\"";
         for (std::size_t i = 0; i < x.size(); ++i) { out << horizontal(x[i]) << ',' << vertical(item.values[i]) << ' '; }
         out << "\"/>";
     }
     out << "</svg><div class=\"legend\">";
-    for (const auto& item : series) { out << "<span style=\"color:" << item.color << "\">" << escape(item.name) << "</span> "; }
+    for (const auto& item : series) { out << "<span style=\"color:" << item.color << "\">" << ReportText{item.name}.html() << "</span> "; }
     return out.str() + "</div>";
 }
 
@@ -170,7 +158,7 @@ std::string gate_table(const ContinuationAssessment& assessment) {
         for (const auto& gate : *gates) {
             auto label = gate.name;
             std::replace(label.begin(), label.end(), '_', ' ');
-            result += "<tr><td>" + escape(label) + "</td><td>" + (gate.passed ? "pass" : "fail") + "</td></tr>";
+            result += "<tr><td>" + ReportText{label}.html() + "</td><td>" + (gate.passed ? "pass" : "fail") + "</td></tr>";
         }
     }
     return result + "</tbody></table>";
@@ -217,7 +205,7 @@ Json diagnostics_json(const ContinuationDiagnosticsResult& d) {
         {"exposure_matches", matches}, {"release_groups", diagnostic_periods_json(d.release_groups)},
         {"common_winner_removal", diagnostic_periods_json(d.common_winner_removal)},
         {"leave_one_month_out", diagnostic_periods_json(d.leave_one_month_out)}, {"clock_covariates", clocks}, {"entry_timing", entries},
-        {"release_calendar_sha256", continuation_release_calendar_sha256()}, {"release_calendar_records", 64}};
+        {"release_calendar_sha256", ContinuationStudyReport::release_calendar_sha256()}, {"release_calendar_records", 64}};
 }
 
 std::string diagnostic_period_table(std::span<const PairedDiagnosticPeriod> periods) {
@@ -226,7 +214,7 @@ std::string diagnostic_period_table(std::span<const PairedDiagnosticPeriod> peri
         "<th>Gross mean price / volume, bp</th><th>Net mean price / volume, bp</th>"
         "<th>Net compounded price / volume, %</th><th>Paired net, bp/day</th></tr></thead><tbody>";
     for (const auto& p : periods) {
-        out << "<tr><td>" << escape(p.label) << "</td><td>" << p.sessions << "</td><td>" << p.active_days[0] << " / " << p.active_days[1]
+        out << "<tr><td>" << ReportText{p.label}.html() << "</td><td>" << p.sessions << "</td><td>" << p.active_days[0] << " / " << p.active_days[1]
             << "</td><td>" << number(p.gross[0].mean * 10000) << " / " << number(p.gross[1].mean * 10000)
             << "</td><td>" << number(p.net[0].mean * 10000) << " / " << number(p.net[1].mean * 10000)
             << "</td><td>" << number(p.net[0].compounded * 100) << " / " << number(p.net[1].compounded * 100)
@@ -329,7 +317,8 @@ std::string diagnostic_html(const ContinuationStudyResult& study, const Continua
 
 } // namespace
 
-std::string format_continuation_daily_csv(const ContinuationStudyResult& study) {
+std::string ContinuationStudyReport::daily_csv() const {
+    const auto& study = study_;
     auto out = stream();
     out << "date,variant,delay_minutes,cost_bps_per_side,gross_return,net_return,control_gross_return,control_net_return,round_trips,minutes_in_market,turnover\n";
     for (const auto& day : study.days) {
@@ -345,7 +334,8 @@ std::string format_continuation_daily_csv(const ContinuationStudyResult& study) 
     return out.str();
 }
 
-std::string format_continuation_features_csv(const ContinuationStudyResult& study) {
+std::string ContinuationStudyReport::features_csv() const {
+    const auto& study = study_;
     auto out = stream();
     out << "date,decision_utc,oldest_history_start,latest_history_start,move,typical_absolute_move,cumulative_volume_shares,historical_median_volume_shares,relative_volume,price_condition,volume_condition,price_action,volume_action,delay_minutes,forward_entry_utc,forward_exit_utc,forward_entry_price,forward_exit_price,forward_gross_return\n";
     for (const auto& day : study.days) {
@@ -368,7 +358,8 @@ std::string format_continuation_features_csv(const ContinuationStudyResult& stud
     return out.str();
 }
 
-std::string format_continuation_trades_csv(const ContinuationStudyResult& study) {
+std::string ContinuationStudyReport::trades_csv() const {
+    const auto& study = study_;
     auto out = stream();
     out << "date,variant,delay_minutes,cost_bps_per_side,entry_decision_utc,entry_reference_utc,exit_decision_utc,exit_reference_utc,entry_reference_price,exit_reference_price,gross_return,net_return\n";
     for (const auto& day : study.days) {
@@ -386,9 +377,10 @@ std::string format_continuation_trades_csv(const ContinuationStudyResult& study)
     return out.str();
 }
 
-std::string_view continuation_release_calendar_sha256() noexcept { return TRADING_RELEASE_CALENDAR_SHA256; }
+std::string_view ContinuationStudyReport::release_calendar_sha256() noexcept { return TRADING_RELEASE_CALENDAR_SHA256; }
 
-std::string format_removed_exposure_csv(const ContinuationDiagnosticsResult& d) {
+std::string ContinuationDiagnosticsReport::removed_exposure_csv() const {
+    const auto& d = diagnostics_;
     auto out = stream();
     out << "date,match,price_entry_utc,exit_utc,price_entry_price,exit_price,volume_entry_utc,volume_entry_price,removed_gross_log_return,saved_cost_log_drag,net_log_increment\n";
     for (const auto& row : d.exposure) {
@@ -403,7 +395,8 @@ std::string format_removed_exposure_csv(const ContinuationDiagnosticsResult& d) 
     return out.str();
 }
 
-std::string format_opportunity_diagnostics_csv(const ContinuationDiagnosticsResult& d) {
+std::string ContinuationDiagnosticsReport::opportunities_csv() const {
+    const auto& d = diagnostics_;
     auto out = stream();
     out << "date,elapsed_minute,release_flags,release_group,price_condition,high_volume,move,normalized_move,prefix_realized_volatility,forward_gross_return\n";
     for (const auto& row : d.opportunities) {
@@ -415,7 +408,8 @@ std::string format_opportunity_diagnostics_csv(const ContinuationDiagnosticsResu
     return out.str();
 }
 
-std::string format_entry_timing_csv(const ContinuationDiagnosticsResult& d) {
+std::string ContinuationDiagnosticsReport::entry_timing_csv() const {
+    const auto& d = diagnostics_;
     auto out = stream();
     out << "date,variant,entry_decision_utc,entry_reference_utc,entry_gap,ex_post_entry_minute_range,ex_post_entry_minute_volume\n";
     for (const auto& row : d.entries) {
@@ -425,8 +419,9 @@ std::string format_entry_timing_csv(const ContinuationDiagnosticsResult& d) {
     return out.str();
 }
 
-std::string format_continuation_study_html(const ContinuationStudyResult& study, const ContinuationReportContext& context,
-                                          const ContinuationDiagnosticsResult* diagnostics) {
+std::string ContinuationStudyReport::html(const ContinuationReportContext& context,
+    const ContinuationDiagnosticsResult* diagnostics) const {
+    const auto& study = study_;
     validate_report(study);
     if (context.data_kind != "development" && context.data_kind != "synthetic_contract") {
         throw std::invalid_argument("report requires an explicit data kind");
@@ -451,7 +446,7 @@ body{margin:0;background:#eef2f7;color:#16273e;font:15px/1.55 system-ui,Segoe UI
             << number(stats.net.compounded * 100) << "%</strong> compounded | " << number(stats.net.mean * 10000)
             << " bp mean daily net</p><p>" << stats.active_days << " active days | " << stats.round_trips
             << " round trips | " << number(100 * stats.fraction_of_session_in_market) << "% of full-session minutes</p><p>"
-            << escape(study.variants[variant].status) << "</p></section>";
+            << ReportText{study.variants[variant].status}.html() << "</p></section>";
     }
     out << "</div><section class=\"card\"><h2>Primary equity and daily-close drawdown</h2>"
         "<p>All scored days, including cash days. Initial equity is 100. The always-long control uses the same "
@@ -571,38 +566,40 @@ body{margin:0;background:#eef2f7;color:#16273e;font:15px/1.55 system-ui,Segoe UI
     if (diagnostics) { out << diagnostic_html(study, *diagnostics); }
     out << "<section class=\"card\" id=\"gates\"><h2>Registered continuation gates</h2><div class=\"grid\">";
     for (std::size_t variant = 0; variant < 2; ++variant) {
-        out << "<div><h3>" << names[variant] << ": " << escape(study.variants[variant].status) << "</h3>" << gate_table(study.variants[variant]) << "</div>";
+        out << "<div><h3>" << names[variant] << ": " << ReportText{study.variants[variant].status}.html() << "</h3>" << gate_table(study.variants[variant]) << "</div>";
     }
-    out << "</div><h3>Incremental volume: " << escape(study.volume_increment.status) << "</h3>" << gate_table(study.volume_increment)
+    out << "</div><h3>Incremental volume: " << ReportText{study.volume_increment.status}.html() << "</h3>" << gate_table(study.volume_increment)
         << "<p>Passing a screen permits a separately declared later test; it does not establish tradability. No later-period evaluation or broker orders occur in this run.</p></section>";
     out << "<section class=\"card\"><h2>Inputs and reproducibility</h2><p>Complete SPY SIP minute sessions, raw prices and share volume. "
         "Exclusions: 2022-11-25, 2023-01-03, 2023-06-05, 2023-07-03 and 2023-11-24. The first 20 eligible sessions are warm-up, not cash observations. "
         "The literature-informed design has external 2024-2026 exposure; local later-period candidate results remain unopened.</p><p>Input manifest SHA-256: <code>"
-        << escape(context.input_manifest_sha256) << "</code></p><p>Protocol SHA-256 at build: <code>" << continuation_protocol_sha256()
-        << "</code></p><p>Derived feature CSV SHA-256: <code>" << escape(context.features_sha256)
+        << ReportText{context.input_manifest_sha256}.html() << "</code></p><p>Protocol SHA-256 at build: <code>" << continuation_protocol_sha256()
+        << "</code></p><p>Derived feature CSV SHA-256: <code>" << ReportText{context.features_sha256}.html()
         << "</code></p><p>Source-file digest at build: <code>" << TRADING_SOURCE_SHA256 << "</code></p><p>"
-        << escape(TRADING_BUILD_COMPILER) << " | " << escape(TRADING_BUILD_CONFIGURATION)
+        << ReportText{TRADING_BUILD_COMPILER}.html() << " | " << ReportText{TRADING_BUILD_CONFIGURATION}.html()
         << "</p><p><a href=\"daily_returns.csv\">Daily case table</a> | <a href=\"features.csv\">Features and forward windows</a> | "
         "<a href=\"trades.csv\">Completed trades</a> | <a href=\"summary.json\">Statistics and provenance</a></p></section></main></body></html>";
     return out.str();
 }
 
-std::filesystem::path save_continuation_report(const FrozenDevelopmentDataset& dataset, const ContinuationStudyResult& study,
-                                              const ContinuationDiagnosticsResult& diagnostics, std::string_view release_calendar_csv,
-                                              const std::filesystem::path& output_root) {
+std::filesystem::path ContinuationStudyReport::write(const FrozenDevelopmentDataset& dataset,
+    const ContinuationDiagnosticsResult& diagnostics, std::string_view release_calendar_csv,
+    const std::filesystem::path& output_root) const {
+    const auto& study = study_;
     validate_report(study);
     if (dataset.manifest_sha256 != continuation_development_manifest_sha256 || dataset.sessions.size() != 496 ||
         study.days.size() != 476 || sha256_file(contained_path(dataset.directory, dataset.manifest_file)) != dataset.manifest_sha256 ||
-        sha256(release_calendar_csv) != continuation_release_calendar_sha256()) {
+        sha256(release_calendar_csv) != ContinuationStudyReport::release_calendar_sha256()) {
         throw std::invalid_argument("development report requires the unchanged frozen snapshot and 476 scored days");
     }
-    const auto daily = format_continuation_daily_csv(study);
-    const auto features = format_continuation_features_csv(study);
-    const auto trades = format_continuation_trades_csv(study);
-    const auto removed = format_removed_exposure_csv(diagnostics);
-    const auto covariates = format_opportunity_diagnostics_csv(diagnostics);
-    const auto entries = format_entry_timing_csv(diagnostics);
-    const auto html = format_continuation_study_html(study, {"development", dataset.manifest_sha256, sha256(features)}, &diagnostics);
+    const auto daily = daily_csv();
+    const auto features = features_csv();
+    const auto trades = trades_csv();
+    const ContinuationDiagnosticsReport diagnostic_report{diagnostics};
+    const auto removed = diagnostic_report.removed_exposure_csv();
+    const auto covariates = diagnostic_report.opportunities_csv();
+    const auto entries = diagnostic_report.entry_timing_csv();
+    const auto html = this->html({"development", dataset.manifest_sha256, sha256(features)}, &diagnostics);
     Json cases = Json::array(), boots = Json::array(), excluded = Json::array();
     for (std::size_t i = 0; i < continuation_cases().size(); ++i) {
         const auto& spec = continuation_cases()[i];

@@ -72,7 +72,7 @@ void measurement_contracts() {
     require(measurement.decision_time(summer) == summer.start() + std::chrono::minutes{150},
         "decision clock follows the independently verified daylight-saving session");
 }
-void estimator_contracts(const ReversionPreflight& result) {
+void estimator_contracts(const ReversionPreflightResult& result) {
     const PooledReversionEstimator estimator;
     auto pairs = result.controls.front().sequences;
     std::reverse(pairs.begin(), pairs.end());
@@ -99,7 +99,7 @@ void estimator_contracts(const ReversionPreflight& result) {
     require(estimator.expected_log_move(result.controls[0].fitted, *result.controls[0].fitted.equilibrium, 1, 30) == 0,
         "equilibrium has zero expected log move");
 }
-void coverage_and_reporting(const std::filesystem::path& root, ReversionPreflight result) {
+void coverage_and_reporting(const std::filesystem::path& root, ReversionPreflightResult result) {
     auto calendar = development_calendar(CalendarRange{"2022-01-01", "2022-01-31"});
     const auto february = development_calendar(CalendarRange{"2022-02-01", "2022-02-28"});
     calendar.insert(calendar.end(), february.begin(), february.end());
@@ -110,19 +110,19 @@ void coverage_and_reporting(const std::filesystem::path& root, ReversionPrefligh
         const auto audit = audit_session(request, bars);
         sessions.push_back({request, std::move(bars), {}, audit, request.start(), request.end_exclusive()});
     }
-    result.coverage = audit_reversion_coverage(sessions);
+    result.coverage = ReversionPreflight{}.audit_coverage(sessions);
     require(result.coverage.size() == 22 && !result.coverage[19].input_ready && result.coverage[20].input_ready &&
         result.coverage[20].earlier_training_sessions == 20, "twenty strictly earlier complete sessions precede availability");
     auto gap = sessions;
     gap[20].bars.erase(gap[20].bars.begin() + 151);
-    require(!audit_reversion_coverage(gap)[20].reference_clocks_present, "missing reference clock is visible without computing a return");
+    require(!ReversionPreflight{}.audit_coverage(gap)[20].reference_clocks_present, "missing reference clock is visible without computing a return");
     std::reverse(sessions.begin(), sessions.end());
-    rejects([&] { static_cast<void>(audit_reversion_coverage(sessions)); });
+    rejects([&] { static_cast<void>(ReversionPreflight{}.audit_coverage(sessions)); });
     sessions.erase(sessions.begin() + 1, sessions.end());
     sessions[0].request = CalendarSession{"2024-01-02", "09:30", "16:00"}.bar_request();
-    rejects([&] { static_cast<void>(audit_reversion_coverage(sessions)); });
+    rejects([&] { static_cast<void>(ReversionPreflight{}.audit_coverage(sessions)); });
     const auto directory = create_unique_directory(root, "report");
-    write_reversion_preflight_report(directory, result);
+    ReversionPreflightReport{result}.write(directory);
     const auto summary = nlohmann::json::parse(read_text_file(directory / "summary.json"));
     require(summary.at("historical_model_fits").get<int>() == 0 && summary.at("historical_strategy_scores").get<int>() == 0 &&
         summary.at("study_status").get<std::string>() == "unregistered_unscored", "preflight report cannot imply registration or performance");
@@ -139,7 +139,7 @@ void coverage_and_reporting(const std::filesystem::path& root, ReversionPrefligh
 int main(int argc, char** argv) {
     try {
         if (argc != 2) { throw std::invalid_argument("reversion contracts require an output root"); }
-        const auto result = trading::run_reversion_controls();
+        const auto result = trading::ReversionPreflight{}.controls();
         measurement_contracts();
         estimator_contracts(result);
         coverage_and_reporting(trading::create_unique_directory(argv[1], "reversion-contracts"), result);

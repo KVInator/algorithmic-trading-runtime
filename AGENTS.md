@@ -43,65 +43,31 @@ published commit history; improve wording in subsequent work.
   results have different roles. Record external-literature exposure as specified
   in the protocol. Do not access later performance casually during a code fix.
 
-## Build and verification
+## Architecture and verification
 
-Windows uses the existing Visual Studio `windows-x64` configure preset and
-`windows-debug` build/test presets. The routine test preset excludes the labelled
-full-period integration test. `continuation_diagnostic` runs offline and writes
-HTML/CSV under `scratch/runs/`. `continuation_development` verifies the frozen
-snapshot and generates the paired historical study with HTML/SVG, CSV and JSON.
-The routine presets run twenty contract groups; full-period disk integration stays
-optional.
+Substantive domain, diagnostic and reporting workflows use cohesive classes and
+explicit composition. Results are value records; report objects borrow const
+results and must not outlive them. Keep entry points thin and numerical engines
+authoritative. Shared report text encoding belongs to `ReportText`.
+The responsibility and ownership map is in `docs/architecture.md`.
 
-`risk_preflight` audits the full 2022-2023 exchange calendar and synthetic
-long/cash accounting. Its Windows corporate-action requests are access probes,
-not a reconciled ledger. Preserve the distinction between observed coverage,
-constructed account traces and strategy results. Its preflight does not itself
-authorize scoring or later-period access; the registered protocol governs the study.
+Build/test presets and target prerequisites are documented in `docs/running.md`.
+Windows uses `windows-x64` and `windows-debug`; Linux uses `linux-debug` for
+configure/build/test. The routine preset runs twenty groups and excludes the
+optional full-period disk integration. Keep warnings as errors. Run relevant
+contracts during editing and the complete routine preset at a milestone.
 
-`risk_acquire` collects the isolated 2020 closing boundary, 2021 calibration,
-twenty full warm-up sessions and three shortened-session supplements. Corporate-
-action process dates extend through March 2024 solely for earlier entitlements.
-Its issuer reference and acquisition inventory do not authorize strategy scoring.
+Execution changes must conserve reservations, deduplicate events/executions and
+require exact reconciliation after contradictions or restart. Journal before
+dispatch eligibility, preserve exclusive writer ownership, reject complete-frame
+corruption and recover incomplete tails into a separate verified-prefix file.
+Never truncate damaged evidence or automatically resend uncertain durable orders.
+Legacy schema-1 journals remain readable; target inputs require schema 2.
+The runtime, journal and pipeline contracts in `docs/` define these invariants.
 
-`risk_development` is the offline SPY-RISK-01 experiment. It verifies registered
-identities before measurement and retains every development account date. Its
-routine contracts use explicitly synthetic full-calendar fixtures; successful
-contracts do not establish historical scores. Run the historical entry point on
-the machine retaining the completed isolated acquisition dataset.
-
-`execution_diagnostic` exercises the single-symbol whole-share limit-order core
-with synthetic broker messages. Its integer-cent cash/inventory model is separate
-from historical fractional target-weight accounting. Preserve reservations until
-terminal quantities reconcile, deduplicate both events and executions, and gate
-new orders on contradictory reports or reconnect until an exact snapshot matches.
-Keep this diagnostic offline; it requires neither datasets nor credentials.
-The per-file source inventory is embedded with the configure-time aggregate.
-
-`recovery_diagnostic` exercises the journaled wrapper with real synchronized
-files, partial-fill restart, separate verified-prefix recovery and complete-frame
-corruption rejection. Journal before dispatch eligibility, retain exclusive writer
-ownership, replay through the existing order core and persist a disconnect barrier
-on writer creation/recovery. Never truncate a damaged source or automatically resend uncertain
-intents. The journal contract group also launches four abrupt-exit child processes.
-
-`pipeline_diagnostic` connects the unchanged momentum signal to durable share
-targets and a deterministic top-of-book simulator. It uses only constructed
-bars and quotes. Pipeline journals use schema 2; legacy schema-1 journals remain
-readable and cannot accept target inputs. Reconstruct a fresh client against the
-same independent broker state, replay reports, and reconcile before routing.
-Never resend an already durable order automatically, even if the broker snapshot
-does not contain it. Keep these engineering fixtures separate from study scores.
-
-`reversion_preflight` follows the proposed SPY-MR-01 brief. It fits constructed
-controls and audits the frozen development input coverage without historical
-residuals, model fits, forecasts or returns. Keep it unregistered/unscored until
-the final protocol and instability/resampling conventions are fixed. The exact
-synthetic fits do not establish statistical stationarity or SPY reversion.
-
-On Linux, use `cmake --preset linux-debug`, `cmake --build --preset linux-debug`
-and `ctest --preset linux-debug`. Keep warnings as errors. For a targeted change,
-run its contracts and relevant existing regression checks.
+`reversion_preflight` remains unregistered/unscored. Constructed fits and historical
+input coverage do not authorize historical residuals, model fits, forecasts or
+returns. Preserve the frozen protocol/data boundaries above throughout cleanup.
 
 ## Source and runtime artifacts
 

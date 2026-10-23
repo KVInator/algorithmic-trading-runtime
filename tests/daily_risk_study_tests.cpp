@@ -203,7 +203,7 @@ void check_prior_action_history(RiskStudyInputs& inputs, const DailyRiskResult& 
     inputs.distributions.front() = prior;
 }
 void check_report(const DailyRiskResult& result, const std::filesystem::path& output) {
-    const auto directory = save_daily_risk_report(result, output);
+    const auto directory = DailyRiskReport{result}.write(output);
     const auto j = nlohmann::json::parse(read_text_file(directory / "summary.json"));
     require(j.at("historical_strategy_scored") == false && j.at("status") == "synthetic_contract_fixture", "synthetic fixtures cannot appear as historical results");
     require(j.at("fallbacks").size() == 20 && j.at("statistics").size() == 120, "manifest includes fallback evidence and all statistics");

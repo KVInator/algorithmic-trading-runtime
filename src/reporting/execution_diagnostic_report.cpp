@@ -1,3 +1,4 @@
+#include "report_text.hpp"
 #include "execution_diagnostic_report.hpp"
 
 #include "artifact_io.hpp"
@@ -14,29 +15,11 @@ namespace trading::execution {
 namespace {
 
 using Json = nlohmann::json;
-std::string html_escape(std::string_view text) {
-    std::string result;
-    for (const char c : text) {
-        switch (c) {
-        case '&': result += "&amp;"; break;
-        case '<': result += "&lt;"; break;
-        case '>': result += "&gt;"; break;
-        case '"': result += "&quot;"; break;
-        default: result += c;
-        }
-    }
-    return result;
-}
-std::string csv_quote(std::string_view text) {
-    std::string result{"\""};
-    for (const char c : text) { if (c == '"') { result += '"'; } result += c; }
-    return result + '"';
-}
 
 } // namespace
 
-void write_execution_diagnostic_report(const std::filesystem::path& directory,
-                                       const std::vector<ExecutionDiagnosticResult>& results) {
+void ExecutionDiagnosticReport::write(const std::filesystem::path& directory) const {
+    const auto& results = result_;
     Json inputs = Json::array();
     Json cases = Json::array();
     std::size_t transitions = 0;
@@ -70,7 +53,7 @@ void write_execution_diagnostic_report(const std::filesystem::path& directory,
                          {"expected_cash_cents", result.scenario.expected_cash_cents},
                          {"expected_position_shares", result.scenario.expected_position_shares},
                          {"final_account", account_json(result.final_account)}, {"deterministic_replay", true}});
-        html << "<section><h2>" << html_escape(result.scenario.name) << "</h2><p>Final cash: "
+        html << "<section><h2>" << ReportText{result.scenario.name}.html() << "</h2><p>Final cash: "
              << result.final_account.cash_cents << " cents; position: " << result.final_account.position_shares
              << " shares; no outstanding reservations.</p><div class=\"scroll\"><table><thead><tr>"
                 "<th>Step</th><th>Input</th><th>Order / event</th><th>Outcome</th><th>State</th><th>Cash (cents)</th>"
@@ -78,18 +61,18 @@ void write_execution_diagnostic_report(const std::filesystem::path& directory,
                 "</tr></thead><tbody>";
         for (const auto& row : result.trace) {
             const auto& a = row.account;
-            csv << csv_quote(result.scenario.name) << ',' << row.sequence << ',' << row.input << ','
-                << csv_quote(row.order_id) << ',' << csv_quote(row.event_id) << ',' << name(row.outcome) << ','
-                << csv_quote(row.reason) << ',' << row.order_status << ',' << a.cash_cents << ',' << a.position_shares
+            csv << ReportText{result.scenario.name}.csv() << ',' << row.sequence << ',' << row.input << ','
+                << ReportText{row.order_id}.csv() << ',' << ReportText{row.event_id}.csv() << ',' << name(row.outcome) << ','
+                << ReportText{row.reason}.csv() << ',' << row.order_status << ',' << a.cash_cents << ',' << a.position_shares
                 << ',' << a.reserved_cash_cents << ',' << a.reserved_sell_shares << ',' << a.outstanding_buy_shares
                 << ',' << a.open_orders << ',' << a.connected << ',' << a.reconciliation_required << '\n';
             html << "<tr class=\"" << name(row.outcome) << "\"><td>" << row.sequence << "</td><td>" << row.input
-                 << "</td><td>" << html_escape(row.order_id) << " / " << html_escape(row.event_id)
+                 << "</td><td>" << ReportText{row.order_id}.html() << " / " << ReportText{row.event_id}.html()
                  << "</td><td>" << name(row.outcome) << "</td><td>" << row.order_status
                  << "</td><td class=\"num\">" << a.cash_cents << "</td><td class=\"num\">" << a.position_shares
                  << "</td><td class=\"num\">" << a.reserved_cash_cents << "</td><td class=\"num\">" << a.reserved_sell_shares
                  << "</td><td>" << (a.connected && !a.reconciliation_required ? "open" : "closed")
-                 << "</td><td>" << html_escape(row.reason) << "</td></tr>";
+                 << "</td><td>" << ReportText{row.reason}.html() << "</td></tr>";
         }
         html << "</tbody></table></div></section>";
     }

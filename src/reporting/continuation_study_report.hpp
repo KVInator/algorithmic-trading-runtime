@@ -14,19 +14,33 @@ struct ContinuationReportContext {
     std::string features_sha256;
 };
 
-[[nodiscard]] std::string format_continuation_daily_csv(const ContinuationStudyResult& study);
-[[nodiscard]] std::string format_continuation_features_csv(const ContinuationStudyResult& study);
-[[nodiscard]] std::string format_continuation_trades_csv(const ContinuationStudyResult& study);
-[[nodiscard]] std::string format_removed_exposure_csv(const ContinuationDiagnosticsResult& diagnostics);
-[[nodiscard]] std::string format_opportunity_diagnostics_csv(const ContinuationDiagnosticsResult& diagnostics);
-[[nodiscard]] std::string format_entry_timing_csv(const ContinuationDiagnosticsResult& diagnostics);
-[[nodiscard]] std::string_view continuation_release_calendar_sha256() noexcept;
-[[nodiscard]] std::string format_continuation_study_html(
-    const ContinuationStudyResult& study, const ContinuationReportContext& context,
-    const ContinuationDiagnosticsResult* diagnostics = nullptr);
-[[nodiscard]] std::filesystem::path save_continuation_report(
-    const FrozenDevelopmentDataset& dataset, const ContinuationStudyResult& study,
-    const ContinuationDiagnosticsResult& diagnostics, std::string_view release_calendar_csv,
-    const std::filesystem::path& output_root);
+// Bound results must outlive their report. Rendering never changes study values.
+class ContinuationStudyReport {
+public:
+    explicit ContinuationStudyReport(const ContinuationStudyResult& study) : study_{study} {}
+    [[nodiscard]] std::string daily_csv() const;
+    [[nodiscard]] std::string features_csv() const;
+    [[nodiscard]] std::string trades_csv() const;
+    [[nodiscard]] std::string html(const ContinuationReportContext& context,
+        const ContinuationDiagnosticsResult* diagnostics = nullptr) const;
+    [[nodiscard]] std::filesystem::path write(const FrozenDevelopmentDataset& dataset,
+        const ContinuationDiagnosticsResult& diagnostics, std::string_view release_calendar_csv,
+        const std::filesystem::path& output_root) const;
+    [[nodiscard]] static std::string_view release_calendar_sha256() noexcept;
+
+private:
+    const ContinuationStudyResult& study_;
+};
+
+class ContinuationDiagnosticsReport {
+public:
+    explicit ContinuationDiagnosticsReport(const ContinuationDiagnosticsResult& diagnostics) : diagnostics_{diagnostics} {}
+    [[nodiscard]] std::string removed_exposure_csv() const;
+    [[nodiscard]] std::string opportunities_csv() const;
+    [[nodiscard]] std::string entry_timing_csv() const;
+
+private:
+    const ContinuationDiagnosticsResult& diagnostics_;
+};
 
 } // namespace trading

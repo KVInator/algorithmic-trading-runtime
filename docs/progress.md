@@ -7,7 +7,7 @@ evidence rather than a completion percentage.
 
 | Milestone | Status | Evidence and remaining acceptance |
 | --- | --- | --- |
-| 1. Native integration checkpoint | Open: pipeline diagnostic artifacts pending | The current twenty-group Windows test log and reversion preflight are verified. The combined pipeline diagnostic still needs its native report/journals; passing its contract group does not supply those artifacts. |
+| 1. Native integration checkpoint | Open: cleanup build and pipeline artifacts pending | The preceding twenty-group Windows log and reversion preflight are verified. The class-interface cleanup needs a native rebuild; the combined pipeline diagnostic still needs its native report/journals. |
 | 2. Strategy research | In progress: reversion specification/preflight | Two trend-oriented designs and the separate daily-risk study are retained. The new reversion brief, numerical kernel and structural coverage audit are implemented. Final registration, uncertainty/stability experiments, prior-only history, decisions, controls and scored study remain. |
 | 3. Shared execution path | Partially implemented | The original momentum adapter has synthetic fill/restart evidence. Continuation/reversion adapters, historical reference replay and account-convention comparisons remain. |
 | 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
@@ -68,6 +68,40 @@ The preflight's frozen-input verification completes at 188.2 seconds; the
 log does not isolate disk, decoder, hashing or other system costs. Build timings
 were not supplied, so the cause of the reported slow build is not established.
 No performance improvement is inferred from successful correctness checks.
+
+## Maintenance checkpoint: class interfaces and documentation
+
+Cleanup follows baseline `001b1d4`. Diagnostic services now compose existing
+engines through class interfaces. Report objects bind const results for their
+related exports, and `ReportText` replaces eight local HTML encoders and three
+quoted-CSV encoders. The independent Python report verifier binds one report
+directory; its arithmetic syntax tree and command-line behavior are unchanged.
+
+The root README is reduced from 340 to 96 lines. The [runbook](running.md)
+contains detailed commands/prerequisites, the [architecture note](architecture.md)
+describes ownership, and the [research index](../research/README.md) separates
+active specifications from retained selection history. Existing protocols,
+briefs, policies, references and published result records retain their bytes.
+
+The GCC Debug build with warnings as errors and all twenty routine groups pass.
+Ten affected contract groups and five diagnostic entry points also pass
+AddressSanitizer/UndefinedBehaviorSanitizer with leak detection disabled.
+The shared encoder checks cover owned input, markup characters, CSV quotes,
+commas/newlines, empty fields and preservation of UTF-8 bytes.
+
+Baseline comparisons reproduce 22 diagnostic artifacts across five entry points.
+Input schedules, traces, journals, CSVs and JSON payloads are byte-identical;
+HTML matches after source-fingerprint substitution. The four synthetic risk
+CSV exports and summary calculation fields also match; generated timestamps,
+source identities and report artifact hashes are expected to change.
+The fresh full-input reversion audit verifies 496 sessions and 476 input-ready
+dates, with zero historical model fits or scores. Its controls, coverage and
+synthetic prefix remain byte-identical to the earlier implementation.
+
+This checkpoint changes internal C++ interfaces and documentation, retaining
+executable options, artifact schemas and journal compatibility. Native MSVC
+verification of the cleanup remains open. It does not close a research or
+paper-execution milestone.
 
 ## Next dependency
 

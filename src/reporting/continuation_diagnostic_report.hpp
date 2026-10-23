@@ -6,14 +6,17 @@
 
 namespace trading {
 
-// These renderers are explicitly for the prescribed synthetic contract fixture.
-[[nodiscard]] std::string format_continuation_diagnostic_html(
-    const HistoricalBarRequest& session,
-    const IntradayContinuationReplay& price_only,
-    const IntradayContinuationReplay& volume_conditioned);
+// The two synthetic replays must outlive the report.
+class ContinuationDiagnosticReport {
+public:
+    ContinuationDiagnosticReport(const IntradayContinuationReplay& price,
+        const IntradayContinuationReplay& volume) : price_{price}, volume_{volume} {}
+    [[nodiscard]] std::string html(const HistoricalBarRequest& session) const;
+    [[nodiscard]] std::string csv() const;
 
-[[nodiscard]] std::string format_continuation_diagnostic_csv(
-    const IntradayContinuationReplay& price_only,
-    const IntradayContinuationReplay& volume_conditioned);
+private:
+    const IntradayContinuationReplay& price_;
+    const IntradayContinuationReplay& volume_;
+};
 
 } // namespace trading

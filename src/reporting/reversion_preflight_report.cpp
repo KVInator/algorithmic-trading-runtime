@@ -1,3 +1,4 @@
+#include "report_text.hpp"
 #include "reversion_preflight_report.hpp"
 
 #include "artifact_io.hpp"
@@ -14,17 +15,10 @@ namespace trading {
 namespace {
 using Json = nlohmann::json;
 Json number(const std::optional<double>& value) { return value ? Json(*value) : Json(nullptr); }
-std::string escape(std::string_view value) {
-    std::string result;
-    for (const auto c : value) {
-        if (c == '&') { result += "&amp;"; } else if (c == '<') { result += "&lt;"; }
-        else if (c == '>') { result += "&gt;"; } else if (c == '"') { result += "&quot;"; } else { result += c; }
-    }
-    return result;
-}
 } // namespace
 
-void write_reversion_preflight_report(const std::filesystem::path& directory, const ReversionPreflight& result) {
+void ReversionPreflightReport::write(const std::filesystem::path& directory) const {
+    const auto& result = result_;
     Json controls = Json::array(), checks = Json::array();
     std::ostringstream coverage, html;
     coverage << "date,earlier_training_sessions,complete_session,complete_prefix,positive_anchor_volume,reference_clocks_present,input_ready\n";
@@ -51,7 +45,7 @@ void write_reversion_preflight_report(const std::filesystem::path& directory, co
             {"sequences", item.sequences}, {"pairs", f.pairs}, {"status", name(f.status)}, {"intercept", number(f.intercept)},
             {"slope", number(f.slope)}, {"innovation_variance", number(f.innovation_variance)}, {"equilibrium", number(f.equilibrium)},
             {"speed_per_minute", number(f.speed_per_minute)}, {"half_life_minutes", number(f.half_life_minutes)}});
-        html << "<tr><td>" << escape(item.label) << "</td><td>" << item.declared_slope << "</td><td>"
+        html << "<tr><td>" << ReportText{item.label}.html() << "</td><td>" << item.declared_slope << "</td><td>"
             << (f.slope ? std::to_string(*f.slope) : "undefined") << "</td><td>" << name(f.status) << "</td><td>"
             << (f.half_life_minutes ? std::to_string(*f.half_life_minutes) : "undefined") << "</td></tr>";
     }
@@ -71,7 +65,7 @@ void write_reversion_preflight_report(const std::filesystem::path& directory, co
         "stability, live information timing or economic value.</p><h2>Constructed checks</h2><ul>";
     for (const auto& check : result.checks) {
         checks.push_back({{"label", check.label}, {"passed", check.passed}});
-        html << "<li>" << escape(check.label) << ": " << (check.passed ? "passed" : "failed") << "</li>";
+        html << "<li>" << ReportText{check.label}.html() << ": " << (check.passed ? "passed" : "failed") << "</li>";
     }
     html << "</ul><p><a href=\"controls.json\">Constructed inputs and fitted parameters</a> | "
         "<a href=\"synthetic_prefix.csv\">Exact synthetic minute prefix</a> | <a href=\"summary.json\">Manifest</a></p>"
