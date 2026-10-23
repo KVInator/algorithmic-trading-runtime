@@ -8,6 +8,11 @@ under `src/`, built by the root CMake configuration.
 Application and reporting layers call that implementation; do not duplicate
 signal or financial calculations in presentation code.
 
+The remaining project scope and milestone dependencies are defined in
+`docs/completion_plan.md`. Preserve dated candidate briefs as research history;
+they do not supersede this completion plan. Its broker work is paper-only and
+does not authorize later-period strategy access or changes to frozen results.
+
 ## Technical language
 
 Commit messages describe the concrete change in concise, conventional language.

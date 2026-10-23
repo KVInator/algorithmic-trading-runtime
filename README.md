@@ -1,6 +1,8 @@
 # Algorithmic Trading Runtime
 
 C++20 market-data ingestion, SPY strategy research and a deterministic execution runtime.
+The [completion plan](docs/completion_plan.md) defines the remaining strategy,
+paper-broker, execution-measurement, performance and reporting milestones.
 The implemented workflow acquires Alpaca SIP minute bars, preserves the original
 responses, verifies saved inputs and evaluates fixed intraday trading rules
 with delayed price references, explicit costs and block-bootstrap uncertainty.
