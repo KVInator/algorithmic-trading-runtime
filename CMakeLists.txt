@@ -105,8 +105,9 @@ endif()
 configure_trading_target(execution_persistence)
 
 add_library(offline_execution src/execution/simulated_broker.cpp src/execution/offline_pipeline.cpp
-    src/execution/momentum_order_adapter.cpp src/execution/pipeline_diagnostic.cpp)
-target_link_libraries(offline_execution PUBLIC execution_persistence momentum_research)
+    src/execution/momentum_order_adapter.cpp src/execution/pipeline_diagnostic.cpp
+    src/execution/strategy_order_adapters.cpp src/execution/strategy_execution_diagnostic.cpp)
+target_link_libraries(offline_execution PUBLIC execution_persistence momentum_research accounting)
 configure_trading_target(offline_execution)
 
 add_library(risk_inputs src/storage/risk_input_dataset.cpp src/accounting/corporate_action_history.cpp)
@@ -153,7 +154,7 @@ target_compile_definitions(execution_reporting PRIVATE
     TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
     TRADING_BUILD_CONFIGURATION="$<CONFIG>")
 configure_trading_target(execution_reporting)
-add_library(pipeline_reporting src/reporting/pipeline_diagnostic_report.cpp)
+add_library(pipeline_reporting src/reporting/pipeline_diagnostic_report.cpp src/reporting/strategy_execution_report.cpp)
 target_include_directories(pipeline_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting"
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_link_libraries(pipeline_reporting PUBLIC offline_execution)
@@ -214,6 +215,8 @@ add_trading_app(risk_development daily_risk_reporting)
 add_trading_app(execution_diagnostic execution_reporting)
 add_trading_app(recovery_diagnostic execution_reporting)
 add_trading_app(pipeline_diagnostic pipeline_reporting)
+add_trading_app(strategy_execution_diagnostic pipeline_reporting)
+add_trading_app(strategy_reference_replay pipeline_reporting)
 add_trading_app(reversion_preflight reversion_reporting)
 add_trading_app(reversion_validation reversion_reporting)
 add_trading_app(reversion_development reversion_reporting)
@@ -281,6 +284,7 @@ if(BUILD_TESTING)
     add_trading_contract(daily_risk_study_tests daily_risk_study_contracts "daily_risk_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(order_runtime_tests order_runtime_contracts "execution_reporting;artifact_integrity;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(offline_pipeline_tests offline_pipeline_contracts offline_execution OUTPUT)
+    add_trading_contract(strategy_execution_tests strategy_execution_contracts "pipeline_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_executable(journaled_runtime_tests tests/journaled_runtime_tests.cpp)
     target_link_libraries(journaled_runtime_tests PRIVATE execution_persistence)
     configure_trading_target(journaled_runtime_tests)

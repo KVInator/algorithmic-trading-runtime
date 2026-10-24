@@ -2,7 +2,7 @@
 
 C++20 research and execution software for single-symbol SPY strategies. The
 system preserves market-data evidence, evaluates specified trading rules and
-connects causal momentum decisions to a journaled order runtime and deterministic
+connects causal strategy decisions to a journaled order runtime and deterministic
 broker simulator.
 
 The project is in progress. Actual paper-broker transport, observed execution
@@ -31,12 +31,14 @@ routing after contradictions, disconnects and restart. A synchronized journal
 records accepted inputs before dispatch eligibility; uncertain durable orders
 are never automatically resent.
 
-The offline pipeline uses the existing momentum signal and finite displayed
-quote sizes. Three constructed cases verify identical interrupted/uninterrupted
-fills, partial liquidation and a cash signal. Historical minute-open references,
-simulated quotes and future paper fills have different accounting and execution
-meanings. The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
-and [pipeline](docs/offline_pipeline.md) contracts state those boundaries.
+The shared pipeline connects momentum, both continuation variants and reversion.
+Eighteen constructed cases cover cash/positive decisions, partial fills,
+cancellation races, restart and fractional/whole-share comparisons. A bounded
+historical replay uses explicitly constructed bar-price quotes. Its outcomes
+remain separate from frozen research performance. The [interactive event replay](docs/strategy_execution.md)
+exposes saved client/broker state, reservations, fills and routing gates.
+The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
+and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
 
 ## Build and run
 
@@ -47,8 +49,8 @@ requires access to that dependency. Project warnings are treated as errors.
 1. Open the repository with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Run **Test > Run Test Preset > windows-debug** for twenty-two routine groups.
-5. Select **pipeline_diagnostic.exe** and press **Ctrl+F5** for an offline example
+4. Run **Test > Run Test Preset > windows-debug** for twenty-three routine groups.
+5. Select **strategy_execution_diagnostic.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.
 6. Open the printed `report.html` and retain its evidence directory.
 

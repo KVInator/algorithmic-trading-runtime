@@ -9,7 +9,7 @@ evidence rather than a completion percentage.
 | --- | --- | --- |
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
 | 2. Strategy research | Complete for `05aec9d` | Three strategy specifications have reproducible historical comparisons. Native MSVC build and all twenty-two groups are reported successful. SPY-MR-01 retains 476 dates, forty market cases and its cost-dominated finding; all ten artifacts and 171 source records verify, with identical native/Linux account paths. |
-| 3. Shared execution path | Partially implemented | The original momentum adapter has synthetic fill/restart evidence. Continuation/reversion adapters, historical reference replay, account-convention comparisons and interactive event/account/recovery views remain. |
+| 3. Shared execution path | Implemented; native acceptance pending | Four variants share the journaled pipeline. Linux constructed and first-date reference replays, account comparisons and interactive event/account/recovery views are recorded below. MSVC build, twenty-three routine groups and both new executable outputs remain. |
 | 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
@@ -317,12 +317,54 @@ complete. Failed economic/forecast screens remain findings. The daily-risk
 experiment retains its separate objective. No research rule changes or new
 historical scores are introduced by this documentation-only acceptance update.
 
+## Shared execution integration checkpoint
+
+The [execution integration contract](strategy_execution.md) records the new
+continuation/reversion adapters, shared whole-share target policy, eighteen
+constructed cases, four bounded historical reference cases and saved-event
+viewer. The original momentum target identities and journal schema are preserved.
+The fixed first eligible historical date produces no fills under the constructed
+quotes and limit rules; no alternative date is selected. Fractional and integer
+accounts agree when conventions align; an explicit rounding case retains its
+USD -0.005 difference. Research rules and findings remain unchanged.
+
+GCC 13.3 Debug Build All passes with warnings as errors. All twenty-three routine
+groups pass in 24.43 seconds. The new strategy-execution group and the existing
+offline-pipeline group pass ASan/UBSan with leak detection disabled. The original
+pipeline's six numerical/input/journal artifacts remain byte-identical to its
+retained baseline. Repository hygiene and diff checks pass.
+
+Constructed Debug evidence is retained at `scratch/runs/strategy_execution_4`;
+Release at `strategy_execution_5`. All twenty-two exported artifacts, including
+the HTML, eighteen journals, inputs, evidence and 181-file source inventory, are
+byte-identical between builds. The manifest identifies compiler/configuration
+separately. The independent Python checker verifies eighteen cases, 216 saved
+frames and 398 chained journal inputs, reconstructing account reservations and
+broker balances and checking target directions and Decimal account comparisons.
+
+The Release reference replay at `scratch/runs/strategy_execution_6` verifies all
+496 input sessions and then replays 1 February 2022 using only the preceding
+twenty sessions for history. Its twenty-two cases and 296 assertions pass. The
+independent checker verifies 408 saved frames and 454 journal inputs, all artifact
+hashes and the same source inventory. The first eighteen case records equal the
+constructed run. All four reference cases have zero fills, with tracked orders
+resolved and no remaining inventory; these are integration outcomes, not new
+strategy performance results.
+
+All event selectors, label targets and artifact links are checked structurally.
+Selected entry/restart layouts are rendered and visually inspected; they expose
+the different broker/client balances before report delivery and the closed restart
+gate. Actual browser clicking remains unverified because a browser renderer was
+unavailable. Native MSVC build, twenty-three routine groups and both new executable
+outputs remain open. A successful synthetic replay does not establish paper
+execution quality.
+
 ## Next dependency
 
-Begin milestone 3 with continuation/reversion execution adapters and explicit
-fractional/whole-share account parity. Develop the trace-backed interactive event
-replay and account/recovery view alongside those adapters, using the authoritative
-runtime and saved evidence. Cover positive, cash, incomplete-fill and restart
-paths, then historical reference-price replay. Actual paper capture, execution
-measurements, Release benchmarks/CI and the unified report remain open under
-milestones 4-7. No additional build is required for this acceptance record.
+Complete native milestone 3 acceptance with MSVC Build All, twenty-three routine
+groups, `strategy_execution_diagnostic` and `strategy_reference_replay`. Retain
+the printed report directories for comparison. Milestones 1 and 2 are closed;
+3 awaits native acceptance; 4-7 remain substantial work: paper transport and
+observed reconciliation, execution measurement, Release benchmarks/portable CI,
+and the unified analytical report and showcase. Test counts do not define a
+completion percentage.

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "intraday_momentum.hpp"
-#include "simulated_broker.hpp"
+#include "strategy_order_adapters.hpp"
 
 namespace trading::execution {
 
@@ -15,13 +15,12 @@ public:
     [[nodiscard]] TargetIntent entry(std::span<const MinuteBar> completed, const TopOfBook& quote) const;
     [[nodiscard]] TargetIntent liquidation(const TopOfBook& quote) const;
     [[nodiscard]] const IntradayMomentumStrategy& strategy() const noexcept;
+
 private:
-    [[nodiscard]] TargetIntent target(std::chrono::sys_seconds at, Shares shares, const TopOfBook& quote) const;
+    [[nodiscard]] TargetIntent target(std::chrono::sys_seconds at, bool enter_long,
+                                      const TopOfBook& quote) const;
     IntradayMomentumStrategy strategy_;
-    Shares long_target_;
-    Cents fee_ceiling_;
-    std::int64_t quote_age_;
-    std::int64_t dispatch_window_;
+    WholeShareTargetPolicy policy_;
 };
 
 } // namespace trading::execution

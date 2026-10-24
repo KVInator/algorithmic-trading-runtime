@@ -53,6 +53,15 @@ records reproduction, gates and native verification status. Parameter ranges are
 entries or establish stationarity. The [original brief](intraday_reversion_brief.md)
 remains unchanged as selection history.
 
+## Execution integration
+
+The [strategy execution contract](../docs/strategy_execution.md) connects these
+fixed research engines to whole-share orders, journals, reconciliation and a
+saved-event viewer. Its constructed account comparisons and first-date reference
+replay are separate from the registered historical strategy findings.
+`verify_strategy_execution.py` checks the exported accounting, signals and
+journal/frame evidence independently of the C++ engines.
+
 ## Selection and prerequisite history
 
 - [Candidate comparison](strategy_candidates.md): dated opening-range/daily-risk comparison.

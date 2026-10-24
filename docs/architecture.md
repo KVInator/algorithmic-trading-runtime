@@ -42,8 +42,11 @@ journals remain retained with their original identities.
 
 Historical studies retain registered delayed minute-open references, fractional
 sizing and corporate-action rules. Execution uses whole shares, integer money
-and independently reported fills. Future parity work must align sizing, costs,
-rounding and actions explicitly.
+and independently reported fills. The [execution integration cases](strategy_execution.md) align sizing and costs
+explicitly for simple comparisons and retain an expected whole-share rounding
+difference. No general equivalence is inferred. Strategy adapters share target
+construction while delegating decisions to their research engines. The saved
+frame viewer reads runtime and broker snapshots without recalculating balances.
 
 The journaled runtime records an accepted input before external dispatch
 eligibility. Recovery creates a fresh client with routing closed. Reports can

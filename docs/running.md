@@ -9,10 +9,10 @@ working directory. Each diagnostic or study writes a new directory under
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
 **Test > Run Test Preset > windows-debug**. Select an executable and use
-**Ctrl+F5**. The routine preset runs twenty-two contract groups.
+**Ctrl+F5**. The routine preset runs twenty-three contract groups.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
-has a matching twenty-two-group test preset. Financial/artifact validation stays
+has a matching twenty-three-group test preset. Financial/artifact validation stays
 enabled. `windows-debug-full` additionally runs the optional 497-session
 synthetic disk integration test.
 
@@ -49,6 +49,7 @@ branches. Local datasets remain in place.
 | `continuation_diagnostic` | `trace.html` and `decisions.csv`; constructed completed-prefix price/volume decisions |
 | `execution_diagnostic` | Six scenarios, 69 transitions, identical repeated replay and retained input/trace files |
 | `recovery_diagnostic` | 33 checks, seven checkpoints and valid/torn/recovered/corrupt journals |
+| `strategy_execution_diagnostic` | 224 checks, eighteen cases, account-convention comparisons and interactive event/account/recovery replay |
 | `pipeline_diagnostic` | 58 checks, three cases, paired interrupted/uninterrupted paths and journals |
 | `reversion_validation` | Thirteen cases, 1,000 trials each, whole-session coverage/noise evidence and retained first-trial observations |
 | `reversion_preflight --synthetic-only` | 22 checks, four estimator controls, exact synthetic prefix and hashed report |
@@ -74,8 +75,15 @@ establish physical power-loss behavior or historical strategy performance.
 | `risk_preflight` | Frozen development data; all-calendar coverage and constructed accounting. Windows adds three read-only corporate-action access probes. |
 | `risk_acquire` | Windows credentials; isolated calibration/warm-up/shortened-session acquisition and action reconciliation |
 | `risk_development` | Completed risk acquisition and frozen development data; registered SPY-RISK-01 forty-case study |
+| `strategy_reference_replay` | Registered protocols and frozen snapshot; synthetic cases plus four first-date bar-reference cases, 296 checks and the interactive replay |
 | `reversion_development` | Registered SPY-MR-01 protocol/settings and frozen snapshot; twenty prior sessions, 476 scored dates and forty fixed account cases |
 | `reversion_preflight` | Frozen snapshot; constructed checks and read-only prefix/reference availability |
+
+Both new strategy execution targets run directly with **Ctrl+F5**, without IDE
+argument changes. The reference replay performs the full frozen-input audit and
+can take several minutes. It constructs price-reference quotes; it does not
+measure execution quality or revise research outcomes. See the
+[strategy execution contract](strategy_execution.md) for conventions and exports.
 
 Completed acquisition need not repeat for replay. Finalization verifies an
 existing frozen study rather than overwriting it. Risk acquisition uses a separate
