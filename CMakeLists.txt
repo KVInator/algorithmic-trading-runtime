@@ -309,5 +309,9 @@ if(BUILD_TESTING)
         -P "${CMAKE_CURRENT_SOURCE_DIR}/tests/journal_recovery_contracts.cmake")
     add_test(NAME development_full_period_integration COMMAND development_dataset_tests
         "${CMAKE_CURRENT_BINARY_DIR}/development-full-test-output" --full)
+    # Keep complete study/disk regressions in the full preset; quick presets
+    # retain the other contracts without changing any test workload.
+    set_tests_properties(batch_pipeline_contracts development_dataset_contracts
+        risk_input_contracts daily_risk_study_contracts PROPERTIES LABELS extended)
     set_tests_properties(development_full_period_integration PROPERTIES LABELS integration)
 endif()

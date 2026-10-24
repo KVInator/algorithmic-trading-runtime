@@ -429,14 +429,45 @@ between configurations. All three artifact hashes, all 190 configure-time source
 records, exact Decimal examples, request scope, incremental/cumulative examples
 and report links verify. The report is statically rendered and visually inspected;
 actual browser interaction remains unverified. Repository hygiene and diff checks
-pass. Native MSVC verification for this new substep remains open.
+pass. Native MSVC acceptance is recorded below.
+
+## Native paper contract acceptance and test selection
+
+For `7f218b0`, the MSVC 19.51.36260.0 Debug build is reported successful and the
+supplied transcript records all twenty-four groups passing in 342.68 seconds.
+`alpaca_paper_contracts` takes 0.40 seconds. The application passes 56 checks
+across forty cases, sends zero requests and observes zero broker events.
+
+All three uploaded artifact hashes verify. Constructed evidence and HTML are
+byte-identical to Linux. The 190-file source inventory has 185 exact matches and
+five exact CRLF variants: `CMakePresets.json`, the continuation protocol,
+`alpaca_console_credentials.cpp`, and the continuation engine/header. There are
+no unexplained differences. The native inventory aggregate is
+`5e3832f4062fabfd7dd21a25c19eaa765ba1a04f5c48fdf4980f981e93c0471b`;
+the summary hash is
+`af54242dbdf39676e33cf5b61f19b6aa37c190f29a0f262698b79778257c0a79`.
+Original uploads remain unchanged; verification copies and audit results are
+retained under `scratch/verification/paper-contract-native`. This accepts the
+message-contract substep, not the entire paper-broker milestone.
+
+Four existing groups account for 333.21 seconds, or about 97.2% of the supplied
+full-suite time. New quick presets exclude those `extended` groups and optional
+`integration`, retaining twenty groups including paper-message, order, journal,
+pipeline and recovery checks. The existing full presets remain unchanged in
+coverage at twenty-four groups. No assertions or numerical workloads are reduced.
+The [runbook](running.md) records the exact groups and when full/affected checks
+are required. CTest selection checks confirm full=24, quick=20 and all=25
+including optional integration, with exactly the four declared groups excluded.
+The Linux quick run passes all twenty groups in 2.66 seconds. Windows quick-preset
+timing remains unmeasured. CMake configuration, preset inheritance, diff and
+repository hygiene checks pass; no C++ implementation changes require rebuilding
+the diagnostic for this selection update.
 
 ## Next dependency
 
-Verify the new contract on MSVC with Build All, the twenty-four-group routine
-preset and `paper_contract_diagnostic`. Implement a versioned exact accounting
-and durable broker-identity/event bridge, then connect the paper transport,
-TIF/expiry and controlled-stop paths. Declare the five-session capture plan before
-an observed operational run. Milestones 1-3 remain closed; 4 is in progress;
-execution measurements, Release benchmarks/portable CI and the final report
-remain milestones 5-7. Test counts do not define a completion percentage.
+Implement the versioned exact accounting and durable broker-identity/event
+bridge, then connect paper transport, TIF/expiry and controlled-stop paths.
+Declare the five-session capture plan before an observed operational run.
+Milestones 1-3 remain closed; 4 is in progress; execution measurements, Release
+benchmarks/portable CI and the final report remain milestones 5-7. Test counts
+do not define a completion percentage.

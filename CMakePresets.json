@@ -100,6 +100,36 @@
           "label": "integration"
         }
       }
+    },
+    {
+      "name": "windows-debug-quick",
+      "displayName": "Windows Debug: quick contracts",
+      "inherits": "windows-debug",
+      "filter": {
+        "exclude": {
+          "label": "integration|extended"
+        }
+      }
+    },
+    {
+      "name": "windows-release-quick",
+      "displayName": "Windows Release: quick contracts",
+      "inherits": "windows-release",
+      "filter": {
+        "exclude": {
+          "label": "integration|extended"
+        }
+      }
+    },
+    {
+      "name": "linux-debug-quick",
+      "displayName": "Linux Debug: quick contracts",
+      "inherits": "linux-debug",
+      "filter": {
+        "exclude": {
+          "label": "integration|extended"
+        }
+      }
     }
   ]
 }

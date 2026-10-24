@@ -51,7 +51,9 @@ requires access to that dependency. Project warnings are treated as errors.
 1. Open the repository with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Run **Test > Run Test Preset > windows-debug** for twenty-four routine groups.
+4. For everyday edits, run **Test > Run Test Preset > windows-debug-quick**
+   (twenty groups). Use **windows-debug** for all twenty-four groups at milestones
+   and affected extended groups when changing study/storage code.
 5. Select **strategy_execution_diagnostic.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.
 6. Open the printed `report.html` and retain its evidence directory.

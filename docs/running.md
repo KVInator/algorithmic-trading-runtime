@@ -8,8 +8,9 @@ working directory. Each diagnostic or study writes a new directory under
 
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
-**Test > Run Test Preset > windows-debug**. Select an executable and use
-**Ctrl+F5**. The routine preset runs twenty-four contract groups.
+**Test > Run Test Preset > windows-debug-quick** for everyday edits. Select an
+executable and use **Ctrl+F5**. The quick preset runs twenty groups. Use
+**windows-debug** for the complete twenty-four-group routine suite at milestones.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
 has a matching twenty-four-group test preset. Financial/artifact validation stays
@@ -23,7 +24,7 @@ pinned archive digest.
 ```sh
 cmake --preset linux-debug
 cmake --build --preset linux-debug
-ctest --preset linux-debug --output-on-failure
+ctest --preset linux-debug-quick --output-on-failure
 scratch/build-linux/pipeline_diagnostic
 ```
 
@@ -33,8 +34,36 @@ A focused check can select existing groups without changing the full preset:
 ctest --preset linux-debug -R '(intraday_reversion|offline_pipeline)_contracts' --output-on-failure
 ```
 
-Use relevant contracts during focused edits and the full routine preset at a
-verified milestone. The routine suite includes substantial synthetic accounting
+Quick presets exist for `windows-debug`, `windows-release` and `linux-debug` as
+`windows-debug-quick`, `windows-release-quick` and `linux-debug-quick`. Each inherits
+its existing full preset and excludes `integration` and `extended` labels. Full
+presets retain all twenty-four routine groups; no test is shortened or removed.
+
+| Extended group excluded from quick runs | MSVC Debug time supplied on 24 October 2026 |
+| --- | ---: |
+| `batch_pipeline_contracts` | 15.48 s |
+| `development_dataset_contracts` | 9.58 s |
+| `risk_input_contracts` | 129.26 s |
+| `daily_risk_study_contracts` | 178.89 s |
+
+These four groups account for 333.21 of the reported 342.68 seconds. Remaining
+elapsed time projects to about 9.47 seconds on that run; this is an estimate,
+not a measured Windows quick-preset time. Disk/cache/build conditions can differ.
+The excluded groups exercise synthetic study/accounting and disk/reload work;
+these timings do not isolate a particular implementation bottleneck.
+
+Use quick and affected contracts during edits. Changes to dataset acquisition,
+loading, batch studies or daily-risk accounting also require the corresponding
+extended group. Run the complete routine preset at verified milestones:
+
+```sh
+ctest --preset linux-debug --output-on-failure
+```
+
+In Visual Studio choose **Test > Run Test Preset > windows-debug** for that full
+checkpoint. **Run All Tests** may still select the entire suite; choose the named
+quick preset explicitly for short feedback. The routine suite includes substantial
+synthetic accounting
 and file/reload workloads; its elapsed time is not a core-event latency benchmark.
 Windows HTTP and Credential Manager adapters are not built on Linux.
 
