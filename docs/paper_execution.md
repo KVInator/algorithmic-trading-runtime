@@ -116,7 +116,9 @@ position and reservations from the recorded commands/outcomes, checks duplicate
 execution economics and verifies journal chains, saved state digests and artifact
 identities. It does not claim an independent classifier for every broker event.
 
-Native acceptance for this substep remains pending. Paper transport, consistent
+Native acceptance for `484e2de` is recorded in the [milestone ledger](progress.md).
+The uploaded journal bodies and saved evidence reproduce Linux exactly.
+Paper transport, consistent
 multi-response snapshot collection, fee/cash-precision observation, explicit
 expiry/stop control and the declared five-session operational capture remain
 before milestone 4 can close. Minute-bar study inputs and registered results

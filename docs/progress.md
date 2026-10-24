@@ -10,7 +10,7 @@ evidence rather than a completion percentage.
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
 | 2. Strategy research | Complete for `05aec9d` | Three strategy specifications have reproducible historical comparisons. Native MSVC build and all twenty-two groups are reported successful. SPY-MR-01 retains 476 dates, forty market cases and its cost-dominated finding; all ten artifacts and 171 source records verify, with identical native/Linux account paths. |
 | 3. Shared execution path | Complete for `9aeffa4` | MSVC build and routine test preset reported successful. Native eighteen-/twenty-two-case runs pass 224/296 checks; saved evidence, inputs and HTML match Linux byte-for-byte. Source differences are five explained CRLF variants. Journal manifest digests match the checked Linux bodies; native bodies were not supplied. |
-| 4. Paper broker | In progress: message/precision boundary | Exact decimal/time decoding, a bounded SPY/DAY-limit contract and paper-only request descriptions are implemented. A schema-3 exact accounting/identity bridge now reuses the core; native verification, transport, TIF/expiry, stop/capture and observed reconciliation remain. |
+| 4. Paper broker | In progress: native bridge accepted | Exact decimal/time decoding, a bounded SPY/DAY-limit contract and paper-only request descriptions are implemented. A schema-3 exact accounting/identity bridge now reuses the core; native bridge verification is complete; transport, TIF/expiry, stop/capture and observed reconciliation remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
 | 7. Final technical publication | Not complete | Individual reports and research notes exist. The unified analytical HTML/PDF report, offline showcase and final repository presentation remain. |
@@ -490,14 +490,46 @@ at `scratch/runs/paper_execution_2` and Release at `paper_execution_3` retain si
 byte-identical artifacts, including all journals. All 201 source records and
 artifact hashes verify. HTML links and a static render are inspected; browser
 interaction remains unverified. Repository hygiene and diff checks pass.
-Native verification for this substep remains pending. Milestone 4 stays open.
+Native bridge acceptance is recorded below. Milestone 4 stays open.
+
+## Native exact paper bridge acceptance
+
+For implementation `484e2de`, the MSVC 19.51.36260.0 Debug build and tests are
+reported successful on 24 October 2026. A per-group test transcript was not
+supplied for this checkpoint. The application log records 42 passing checks,
+three cases, schema 3, zero network requests, zero observed broker events and
+exit code zero.
+
+All six uploaded artifact hashes verify. The three native journal bodies,
+`bridge_evidence.json` and HTML are byte-identical to the Linux evidence. The
+independent Decimal verifier checks all three native chains, 48 inputs and
+eighteen saved frames: cash, inventory, cash/share reservations, duplicate
+execution economics, sequence/checksums and saved state digests agree. This
+includes retained subcent cash, restart gates and the quarantined precision case.
+
+The 201-entry native source inventory contains 197 exact matches and four exact
+CRLF variants: the continuation protocol, Windows console credential source,
+and continuation engine/header. `CMakePresets.json` now matches exactly. No
+unexplained source differences remain. The native source aggregate is
+`d961f9191d0184fe79ca606af09c967c950715d433825872c4bc15d20841c896`;
+the summary SHA-256 is
+`53fdb709e93668c39b1fc95555c5333e3b308687840d1c32e930462bb3fc396c`.
+Original uploads remain unchanged; verification copies and audit results are
+retained under `scratch/verification/paper-bridge-native-20261024`.
+
+This accepts the exact accounting/journal bridge for the recorded implementation.
+The fee policy remains a declared zero-fee paper convention, not observed fee
+evidence. No new build or diagnostic rerun is required for this documentation-only
+acceptance record. Milestone 4 remains open until observed transport/recovery
+and operational capture meet the completion plan.
 
 ## Next dependency
 
-Verify the new bridge with MSVC, the twenty-one-group quick preset and
-`paper_execution_diagnostic`. Connect paper transport with durable raw archival,
-stable-ID lookup, consistent snapshot collection and explicit expiry/stop control.
-Observe cash precision and fee availability without silently changing the declared
-policy. Fix the five-session capture plan before operational execution.
-Milestones 1-3 remain closed; 4 is in progress; execution measurements,
-benchmarks/portable CI and final publication remain milestones 5-7.
+Connect the Alpaca paper transport to the accepted bridge with durable raw
+archival, stable-ID order lookup, bounded request handling and authenticated
+stream/reconnect management. Add consistent snapshot collection and explicit
+expiry/stop control. Observe cash precision and fee availability without silently
+changing the declared policy, and fix the five-session capture plan before
+operational execution. Milestones 1-3 remain closed; 4 is in progress;
+execution measurements, benchmarks/portable CI and final publication remain
+milestones 5-7.
