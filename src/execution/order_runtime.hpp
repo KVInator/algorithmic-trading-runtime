@@ -10,10 +10,12 @@
 
 namespace trading::execution {
 
-// This broker-message model uses whole shares and integer USD cents. It is
-// distinct from the fractional target-weight account used in historical studies.
+// Integer arithmetic/state engine. The owning journal contract selects the USD
+// unit: cents in legacy schemas 1/2; nanodollars in the paper bridge schema 3.
+// Quantities remain whole shares. Serialized legacy cent keys are preserved.
 using Shares = std::int64_t;
-using Cents = std::int64_t;
+using MoneyUnits = std::int64_t;
+using Cents = MoneyUnits; // Legacy caller convention; new owners declare their scale.
 enum class Side { buy, sell };
 enum class OrderStatus { pending_new, working, partially_filled, pending_cancel, filled, canceled, rejected };
 enum class ReportKind { accepted, fill, canceled, rejected, cancel_rejected };
@@ -24,8 +26,8 @@ struct OrderRequest {
     std::string symbol;
     Side side;
     Shares shares;
-    Cents limit_cents;
-    Cents fee_per_share_ceiling_cents;
+    MoneyUnits limit_units;
+    MoneyUnits fee_per_share_ceiling_units;
     bool operator==(const OrderRequest&) const = default;
 };
 struct OrderView {
@@ -44,8 +46,8 @@ struct BrokerReport {
     // cancel/reject reports use cumulative_filled_shares; unused fields are zero.
     std::string execution_id;
     Shares fill_shares{0};
-    Cents fill_price_cents{0};
-    Cents fee_cents{0};
+    MoneyUnits fill_price_units{0};
+    MoneyUnits fee_units{0};
     Shares cumulative_filled_shares{0};
     std::string cancel_id;
     bool operator==(const BrokerReport&) const = default;
@@ -60,15 +62,15 @@ struct TargetIntent {
     std::int64_t decision_at_seconds;
     std::int64_t expires_at_seconds;
     Shares target_shares;
-    Cents buy_limit_cents;
-    Cents sell_limit_cents;
-    Cents fee_per_share_ceiling_cents;
+    MoneyUnits buy_limit_units;
+    MoneyUnits sell_limit_units;
+    MoneyUnits fee_per_share_ceiling_units;
     bool operator==(const TargetIntent&) const = default;
 };
 struct AccountSnapshot {
-    Cents cash_cents;
+    MoneyUnits cash_units;
     Shares position_shares;
-    Cents reserved_cash_cents;
+    MoneyUnits reserved_cash_units;
     Shares reserved_sell_shares;
     Shares outstanding_buy_shares;
     std::size_t open_orders;
@@ -82,7 +84,7 @@ struct BrokerOpenOrder {
     bool operator==(const BrokerOpenOrder&) const = default;
 };
 struct BrokerSnapshot {
-    Cents cash_cents;
+    MoneyUnits cash_units;
     Shares position_shares;
     std::vector<BrokerOpenOrder> open_orders;
 };
@@ -103,7 +105,7 @@ struct TraceEntry {
 // latch the entry gate and remain visible in the trace. No transport or clock.
 class OrderRuntime {
 public:
-    OrderRuntime(std::string symbol, Cents initial_cash_cents, RuntimeLimits limits);
+    OrderRuntime(std::string symbol, MoneyUnits initial_cash_units, RuntimeLimits limits);
     [[nodiscard]] Outcome submit(const OrderRequest& request);
     [[nodiscard]] Outcome register_target(const TargetIntent& target);
     [[nodiscard]] Outcome request_cancel(const std::string& order_id, const std::string& cancel_id);
@@ -121,7 +123,7 @@ public:
     [[nodiscard]] const std::vector<TraceEntry>& trace() const noexcept;
 private:
     struct State {
-        Cents cash;
+        MoneyUnits cash;
         Shares position{0};
         std::map<std::string, OrderView> orders;
         std::map<std::string, BrokerReport> events;

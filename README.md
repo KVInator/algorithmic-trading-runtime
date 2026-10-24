@@ -38,7 +38,9 @@ historical replay uses explicitly constructed bar-price quotes. Its outcomes
 remain separate from frozen research performance. The [interactive event replay](docs/strategy_execution.md)
 exposes saved client/broker state, reservations, fills and routing gates.
 The [paper API boundary](docs/alpaca_paper_contract.md) adds exact decimal/time
-decoding and paper-only request construction; broker transport remains open.
+decoding and paper-only request construction. The [schema-3 bridge](docs/paper_execution.md)
+adds exact nanodollar accounting and durable broker identities using the same
+order core; broker transport remains open.
 The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
 and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
 
@@ -52,7 +54,7 @@ requires access to that dependency. Project warnings are treated as errors.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
 4. For everyday edits, run **Test > Run Test Preset > windows-debug-quick**
-   (twenty groups). Use **windows-debug** for all twenty-four groups at milestones
+   (twenty-one groups). Use **windows-debug** for all twenty-five groups at milestones
    and affected extended groups when changing study/storage code.
 5. Select **strategy_execution_diagnostic.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.

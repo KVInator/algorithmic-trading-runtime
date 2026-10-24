@@ -84,7 +84,7 @@ void requests() {
     order.symbol = "AAPL";
     rejects([&] { static_cast<void>(api.submit(order)); });
     order.symbol = "SPY";
-    order.limit_cents = 99;
+    order.limit_units = 99;
     rejects([&] { static_cast<void>(api.submit(order)); });
 }
 } // namespace

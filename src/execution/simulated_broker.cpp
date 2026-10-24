@@ -59,12 +59,12 @@ bool SimulatedBroker::submit(const OrderRequest& request, std::int64_t now) {
         return false;
     }
     static_cast<void>(name(request.side));
-    if (request.id.empty() || request.symbol != symbol_ || request.shares <= 0 || request.limit_cents <= 0 ||
-        request.fee_per_share_ceiling_cents < 0) { throw std::invalid_argument("invalid simulated order"); }
-    static_cast<void>(product(request.shares, request.limit_cents));
+    if (request.id.empty() || request.symbol != symbol_ || request.shares <= 0 || request.limit_units <= 0 ||
+        request.fee_per_share_ceiling_units < 0) { throw std::invalid_argument("invalid simulated order"); }
+    static_cast<void>(product(request.shares, request.limit_units));
     auto next = *this;
     next.advance_time(now);
-    const bool accepted = request.fee_per_share_ceiling_cents >= fee_per_share_ && request.limit_cents > fee_per_share_;
+    const bool accepted = request.fee_per_share_ceiling_units >= fee_per_share_ && request.limit_units > fee_per_share_;
     next.orders_.emplace(request.id, Order{request, 0, accepted});
     next.fifo_.push_back(request.id);
     next.report(request.id, accepted ? ReportKind::accepted : ReportKind::rejected);
@@ -105,7 +105,7 @@ void SimulatedBroker::match() {
         if (!order.active) { continue; }
         const bool buy = order.request.side == Side::buy;
         const auto price = buy ? quote_->ask_cents : quote_->bid_cents;
-        if ((buy && price > order.request.limit_cents) || (!buy && price < order.request.limit_cents)) { continue; }
+        if ((buy && price > order.request.limit_units) || (!buy && price < order.request.limit_units)) { continue; }
         auto& remaining = buy ? ask_remaining_ : bid_remaining_;
         const auto quantity = std::min(remaining, order.request.shares - order.filled);
         if (quantity == 0) { continue; }
@@ -124,14 +124,14 @@ BrokerSnapshot SimulatedBroker::snapshot() const {
     for (const auto& fill : fills_) {
         const auto gross = product(fill.shares, fill.price_cents);
         if (fill.side == Side::buy) {
-            const auto debit = sum(gross, fill.fee_cents);
-            if (debit > result.cash_cents) { throw std::invalid_argument("simulated broker has insufficient cash"); }
-            result.cash_cents -= debit;
+            const auto debit = sum(gross, fill.fee_units);
+            if (debit > result.cash_units) { throw std::invalid_argument("simulated broker has insufficient cash"); }
+            result.cash_units -= debit;
             result.position_shares = sum(result.position_shares, fill.shares);
         } else {
-            if (fill.shares > result.position_shares || fill.fee_cents > gross) { throw std::invalid_argument("simulated broker cannot sell unavailable shares"); }
+            if (fill.shares > result.position_shares || fill.fee_units > gross) { throw std::invalid_argument("simulated broker cannot sell unavailable shares"); }
             result.position_shares -= fill.shares;
-            result.cash_cents = sum(result.cash_cents, gross - fill.fee_cents);
+            result.cash_units = sum(result.cash_units, gross - fill.fee_units);
         }
     }
     for (const auto& [id, order] : orders_) {

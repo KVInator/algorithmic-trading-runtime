@@ -14,7 +14,7 @@ application state.
 | Input evidence | `SessionDownloader`, `DevelopmentStudyDataset`, `RiskInputDataset`, `DailyRiskDataset` | Bounded requests, checkpoint identities and immutable-study verification |
 | Research | Strategy/history classes, `OpeningAnchorMeasurement`, `PooledReversionEstimator`, `ReversionUncertainty`, `ReversionHistory`, `ReversionStrategy`, study engines | Completed information, prior-only estimates and explicit failures |
 | Fractional accounting | `LongCashAccount` | Cash, holdings, claims/payments and chronological ledger |
-| Order accounting | `OrderRuntime`, `JournaledRuntime` | Integer units, reservations, deduplication, durability and routing gates |
+| Order accounting | `OrderRuntime`, `JournaledRuntime` | Owner-declared integer units, reservations, deduplication, durability and routing gates |
 | Paper API boundary | `BrokerDecimal`, `BrokerTimestamp`, `AlpacaPaperRequests`, `AlpacaPaperDecoder` | Exact external values and paper-only request descriptions; no cent-ledger mutation or network transport |
 | Broker coordination | `MomentumOrderAdapter`, `OfflinePipeline`, `SimulatedBroker` | Targets, independent quote budgets, events and reconciliation |
 | Diagnostics | `ExecutionDiagnostic`, `RecoveryDiagnostic`, `PipelineDiagnostic`, `ReversionPreflight`, `ReversionValidationStudy` | Constructed scenarios composed from existing engines |
@@ -61,5 +61,9 @@ versions and resource limits. Actual paper transport and observed execution
 measurements remain open.
 
 The [paper-broker contract](alpaca_paper_contract.md) preserves broker precision
-without changing the current cent ledger or journal schemas. A versioned exact
-accounting bridge and observed transport/reconciliation evidence remain open.
+without changing the current cent ledger or journal schemas. The versioned exact
+accounting bridge is described below; observed transport/reconciliation remains open.
+
+The [paper execution owner](paper_execution.md) composes that same order core
+with exact broker conversion, durable identity mapping and a schema-3 journal.
+`JournalFrame` provides one framing/checksum implementation for all schemas.

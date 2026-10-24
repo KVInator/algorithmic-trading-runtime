@@ -98,7 +98,7 @@ add_library(alpaca_paper_contract src/alpaca/broker_value.cpp src/alpaca/alpaca_
 target_link_libraries(alpaca_paper_contract PUBLIC trading_core order_execution PRIVATE alpaca_decoder nlohmann_json::nlohmann_json)
 configure_trading_target(alpaca_paper_contract)
 
-add_library(execution_persistence src/execution/journaled_runtime.cpp src/storage/runtime_json.cpp src/execution/recovery_diagnostic.cpp)
+add_library(execution_persistence src/execution/journaled_runtime.cpp src/storage/runtime_json.cpp src/storage/journal_frame.cpp src/execution/recovery_diagnostic.cpp)
 target_link_libraries(execution_persistence PUBLIC order_execution artifact_integrity nlohmann_json::nlohmann_json
     PRIVATE alpaca_decoder)
 if(WIN32)
@@ -108,6 +108,10 @@ else()
     target_sources(execution_persistence PRIVATE src/platform/posix/journal_storage_posix.cpp)
 endif()
 configure_trading_target(execution_persistence)
+
+add_library(paper_execution src/execution/paper_execution.cpp src/execution/journaled_paper_runtime.cpp src/execution/paper_execution_diagnostic.cpp)
+target_link_libraries(paper_execution PUBLIC execution_persistence alpaca_paper_contract)
+configure_trading_target(paper_execution)
 
 add_library(offline_execution src/execution/simulated_broker.cpp src/execution/offline_pipeline.cpp
     src/execution/momentum_order_adapter.cpp src/execution/pipeline_diagnostic.cpp
@@ -150,6 +154,12 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/generated/trading_source_inventory.hpp"
     "#pragma once\n#include <string_view>\nnamespace trading::build {\n"
     "inline constexpr std::string_view source_sha256{\"${source_sha256}\"};\n"
     "inline constexpr std::string_view source_records{R\"inventory(${source_records})inventory\"};\n}\n")
+
+add_library(paper_execution_reporting src/reporting/paper_execution_report.cpp)
+target_include_directories(paper_execution_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting" PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+target_link_libraries(paper_execution_reporting PUBLIC paper_execution)
+target_compile_definitions(paper_execution_reporting PRIVATE TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}" TRADING_BUILD_CONFIGURATION="$<CONFIG>")
+configure_trading_target(paper_execution_reporting)
 
 add_library(paper_contract_reporting src/reporting/paper_contract_report.cpp)
 target_include_directories(paper_contract_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting"
@@ -226,6 +236,7 @@ add_trading_app(continuation_development continuation_reporting)
 add_trading_app(risk_preflight risk_preflight_reporting)
 add_trading_app(risk_acquire risk_preflight_reporting)
 add_trading_app(risk_development daily_risk_reporting)
+add_trading_app(paper_execution_diagnostic paper_execution_reporting)
 add_trading_app(paper_contract_diagnostic paper_contract_reporting)
 add_trading_app(execution_diagnostic execution_reporting)
 add_trading_app(recovery_diagnostic execution_reporting)
@@ -277,6 +288,7 @@ if(BUILD_TESTING)
         endif()
     endfunction()
     add_trading_contract(minute_bar_tests minute_bar_contracts trading_core)
+    add_trading_contract(paper_execution_tests paper_execution_contracts paper_execution_reporting OUTPUT)
     add_trading_contract(paper_contract_tests alpaca_paper_contracts "paper_contract_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(alpaca_credentials_tests alpaca_credentials_contracts trading_core)
     add_trading_contract(alpaca_bar_page_tests alpaca_bar_page_contracts "alpaca_decoder;nlohmann_json::nlohmann_json")

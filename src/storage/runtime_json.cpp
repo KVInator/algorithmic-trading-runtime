@@ -12,7 +12,7 @@ using Json = nlohmann::json;
 namespace {
 Json order_json(const OrderRequest& order) {
     return {{"id", order.id}, {"symbol", order.symbol}, {"side", name(order.side)}, {"shares", order.shares},
-            {"limit_cents", order.limit_cents}, {"fee_per_share_ceiling_cents", order.fee_per_share_ceiling_cents}};
+            {"limit_cents", order.limit_units}, {"fee_per_share_ceiling_cents", order.fee_per_share_ceiling_units}};
 }
 std::int64_t integer(const Json& value) {
     if (!value.is_number_integer() || (value.is_number_unsigned() &&
@@ -41,28 +41,34 @@ Json input_json(const RuntimeInput& input) {
         } else if constexpr (std::is_same_v<T, TargetIntent>) {
             return {{"kind", "target"}, {"id", item.id}, {"symbol", item.symbol},
                 {"decision_at_seconds", item.decision_at_seconds}, {"expires_at_seconds", item.expires_at_seconds},
-                {"target_shares", item.target_shares}, {"buy_limit_cents", item.buy_limit_cents},
-                {"sell_limit_cents", item.sell_limit_cents}, {"fee_per_share_ceiling_cents", item.fee_per_share_ceiling_cents}};
+                {"target_shares", item.target_shares}, {"buy_limit_cents", item.buy_limit_units},
+                {"sell_limit_cents", item.sell_limit_units}, {"fee_per_share_ceiling_cents", item.fee_per_share_ceiling_units}};
         } else if constexpr (std::is_same_v<T, BrokerSnapshot>) {
             Json orders = Json::array();
             for (const auto& order : item.open_orders) {
                 orders.push_back({{"order", order_json(order.request)}, {"filled_shares", order.filled_shares}});
             }
-            return {{"kind", "reconcile"}, {"cash_cents", item.cash_cents}, {"position_shares", item.position_shares},
+            return {{"kind", "reconcile"}, {"cash_cents", item.cash_units}, {"position_shares", item.position_shares},
                     {"open_orders", std::move(orders)}};
         } else {
             return {{"kind", "report"}, {"report_kind", name(item.kind)}, {"event_id", item.event_id},
                     {"order_id", item.order_id}, {"execution_id", item.execution_id}, {"fill_shares", item.fill_shares},
-                    {"fill_price_cents", item.fill_price_cents}, {"fee_cents", item.fee_cents},
+                    {"fill_price_cents", item.fill_price_units}, {"fee_cents", item.fee_units},
                     {"cumulative_filled_shares", item.cumulative_filled_shares}, {"cancel_id", item.cancel_id}};
         }
     }, input);
 }
+Json account_units_json(const AccountSnapshot& a) {
+    return {{"cash_units", a.cash_units}, {"position_shares", a.position_shares},
+        {"reserved_cash_units", a.reserved_cash_units}, {"reserved_sell_shares", a.reserved_sell_shares},
+        {"outstanding_buy_shares", a.outstanding_buy_shares}, {"open_orders", a.open_orders},
+        {"connected", a.connected}, {"reconciliation_required", a.reconciliation_required}};
+}
 Json account_json(const AccountSnapshot& account) {
-    return {{"cash_cents", account.cash_cents}, {"position_shares", account.position_shares},
-            {"reserved_cash_cents", account.reserved_cash_cents}, {"reserved_sell_shares", account.reserved_sell_shares},
-            {"outstanding_buy_shares", account.outstanding_buy_shares}, {"open_orders", account.open_orders},
-            {"connected", account.connected}, {"reconciliation_required", account.reconciliation_required}};
+    auto value = account_units_json(account);
+    value["cash_cents"] = value.at("cash_units");value.erase("cash_units");
+    value["reserved_cash_cents"] = value.at("reserved_cash_units");value.erase("reserved_cash_units");
+    return value;
 }
 
 RuntimeInput parse_runtime_input(const Json& value) {

@@ -30,10 +30,10 @@ void test_broker_liquidity_and_identity() {
     require(broker.submit(a, 1000) && broker.submit(b, 1000), "two independent broker orders");
     require(broker.fills().size() == 2 && broker.fills()[0].shares == 2 && broker.fills()[1].shares == 1,
             "FIFO orders share one quote's three-share budget");
-    require(broker.snapshot().cash_cents == 969997 && broker.snapshot().position_shares == 3, "independent broker cash identity");
+    require(broker.snapshot().cash_units == 969997 && broker.snapshot().position_shares == 3, "independent broker cash identity");
     require(!broker.on_quote(first) && !broker.submit(a, 1000) && broker.fills().size() == 2, "duplicate quote and command cannot manufacture fills");
     require(broker.on_quote({2, 1001, 9998, 9999, 10, 1}), "fresh quote replenishes one share");
-    require(broker.fills().back().price_cents == 9999 && broker.snapshot().cash_cents == 959997, "execution uses actual improved ask");
+    require(broker.fills().back().price_cents == 9999 && broker.snapshot().cash_units == 959997, "execution uses actual improved ask");
     auto conflict = first; conflict.ask_shares = 9;
     rejects([&] { static_cast<void>(broker.on_quote(conflict)); });
     auto bad_order = a; bad_order.shares = 3;
@@ -46,14 +46,14 @@ void test_broker_liquidity_and_identity() {
     broker.complete_cancels(1002);
     require(broker.reports().back().kind == ReportKind::canceled && broker.reports().back().cumulative_filled_shares == 2,
             "cancel confirms raced execution quantity");
-    require(broker.snapshot().cash_cents == 979997 && broker.snapshot().position_shares == 2 && broker.snapshot().open_orders.empty(),
+    require(broker.snapshot().cash_units == 979997 && broker.snapshot().position_shares == 2 && broker.snapshot().open_orders.empty(),
             "partial sale and cancellation conserve executed inventory");
     require(!broker.cancel("S", "C", 1002), "cancel command idempotence");
     rejects([&] { static_cast<void>(broker.cancel("missing", "C2", 1002)); });
     require(broker.on_quote({4, 1003, 10001, 10002, 3, 0}), "oversell has executable liquidity");
     const auto before = broker.snapshot();
     rejects([&] { static_cast<void>(broker.submit({"oversell", "SPY", Side::sell, 3, 10000, 10}, 1003)); });
-    require(broker.snapshot().cash_cents == before.cash_cents && broker.order_count() == 3, "failed broker transaction leaves its ledger and order set unchanged");
+    require(broker.snapshot().cash_units == before.cash_units && broker.order_count() == 3, "failed broker transaction leaves its ledger and order set unchanged");
 }
 void test_schema_and_target_recovery(const std::filesystem::path& root) {
     {
@@ -104,7 +104,7 @@ void test_unsent_durable_order(const std::filesystem::path& root) {
     OfflinePipeline pipeline{runtime, broker};
     require(!pipeline.synchronize() && pipeline.route_latest(1000).status == RouteStatus::blocked,
             "missing broker order cannot be repaired by blind resend");
-    require(runtime.account().reserved_cash_cents == 100100 && broker.order_count() == 0, "ambiguous dispatch retains resources and sends no duplicate");
+    require(runtime.account().reserved_cash_units == 100100 && broker.order_count() == 0, "ambiguous dispatch retains resources and sends no duplicate");
 }
 void test_freshness_limits_and_rejection(const std::filesystem::path& root) {
     {
@@ -114,7 +114,7 @@ void test_freshness_limits_and_rejection(const std::filesystem::path& root) {
         OfflinePipeline pipeline{runtime, broker}; require(pipeline.synchronize(), "dispatch failure sync");
         require(broker.submit({"external", "SPY", Side::buy, 99, 10000, 10}, 1000), "unreported external broker activity");
         rejects([&] { static_cast<void>(pipeline.accept_target(target, 1000)); });
-        require(!runtime.account().connected && runtime.account().reconciliation_required && runtime.account().reserved_cash_cents == 100100,
+        require(!runtime.account().connected && runtime.account().reconciliation_required && runtime.account().reserved_cash_units == 100100,
                 "broker exception after durable command closes the client gate and retains reservation");
         require(!pipeline.synchronize() && broker.order_count() == 1, "external broker discrepancy cannot trigger automatic resend");
     }
@@ -141,8 +141,8 @@ void test_freshness_limits_and_rejection(const std::filesystem::path& root) {
     }
     for (const bool position_limit : {true, false}) {
         auto limited = config;
-        if (position_limit) { limited.limits.maximum_position_shares = 5; } else { limited.initial_cash_cents = 50000; }
-        SimulatedBroker broker{"SPY", limited.initial_cash_cents, 1};
+        if (position_limit) { limited.limits.maximum_position_shares = 5; } else { limited.initial_cash_units = 50000; }
+        SimulatedBroker broker{"SPY", limited.initial_cash_units, 1};
         require(broker.on_quote({1, 1000, 9999, 10000, 10, 10}), "risk quote");
         auto runtime = JournaledRuntime::create(create_journal_file(root / (position_limit ? "position.journal" : "cash.journal")), limited, 2);
         OfflinePipeline pipeline{runtime, broker}; require(pipeline.synchronize(), "limited sync");
@@ -153,10 +153,10 @@ void test_freshness_limits_and_rejection(const std::filesystem::path& root) {
         SimulatedBroker broker{"SPY", 1000000, 1}; require(broker.on_quote({1, 1000, 9999, 10000, 10, 10}), "fee quote");
         auto runtime = JournaledRuntime::create(create_journal_file(root / "broker-reject.journal"), config, 2);
         OfflinePipeline pipeline{runtime, broker}; require(pipeline.synchronize(), "fee sync");
-        auto no_fee = target; no_fee.fee_per_share_ceiling_cents = 0;
+        auto no_fee = target; no_fee.fee_per_share_ceiling_units = 0;
         require(pipeline.accept_target(no_fee, 1000).status == RouteStatus::submitted, "valid local order reaches broker");
         pipeline.deliver_reports();
-        require(pipeline.route_latest(1000).status == RouteStatus::rejected && broker.order_count() == 1 && runtime.account().reserved_cash_cents == 0,
+        require(pipeline.route_latest(1000).status == RouteStatus::rejected && broker.order_count() == 1 && runtime.account().reserved_cash_units == 0,
                 "broker rejection releases resources and is not automatically retried");
     }
 }

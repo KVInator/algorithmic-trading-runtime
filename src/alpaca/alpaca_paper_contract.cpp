@@ -140,13 +140,13 @@ AlpacaPaperRequests::AlpacaPaperRequests(std::string_view rest, std::string_view
 
 PaperRequest AlpacaPaperRequests::submit(const execution::OrderRequest& order) const {
     client_id(order.id);
-    if (order.symbol != "SPY" || order.shares <= 0 || order.limit_cents < 100 ||
-        order.fee_per_share_ceiling_cents < 0 ||
+    if (order.symbol != "SPY" || order.shares <= 0 || order.limit_units < 100 ||
+        order.fee_per_share_ceiling_units < 0 ||
         (order.side != execution::Side::buy && order.side != execution::Side::sell)) {
         throw std::invalid_argument("paper submission requires a positive SPY whole-share limit order");
     }
-    const auto cents = std::to_string(order.limit_cents % 100);
-    const auto price = std::to_string(order.limit_cents / 100) + '.' + (cents.size() == 1 ? "0" : "") + cents;
+    const auto cents = std::to_string(order.limit_units % 100);
+    const auto price = std::to_string(order.limit_units / 100) + '.' + (cents.size() == 1 ? "0" : "") + cents;
     return {"POST", rest_ + "/v2/orders",
             Json{{"client_order_id", order.id},
                  {"symbol", order.symbol},

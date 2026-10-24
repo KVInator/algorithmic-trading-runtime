@@ -206,7 +206,7 @@ public:
         check(checks_, result_.label + ": authoritative entry", target.target_shares == (cash ? 0 : 10));
         static_cast<void>(accept(target, "Completed-prefix decision: " + signals.reason()));
         deliver(e);
-        const auto idle = runtime_->account().cash_cents;
+        const auto idle = runtime_->account().cash_units;
         check(checks_, result_.label + ": complete fill or cash",
               runtime_->account().position_shares == (cash ? 0 : 10));
         const Cents exit_price = fee ? 10000 : 10100;
@@ -219,12 +219,12 @@ public:
         check(checks_, result_.label + ": flat final account",
               runtime_->account().position_shares == 0 && runtime_->account().open_orders == 0);
         if (!cash) {
-            LongCashAccount fractional{static_cast<double>(config_.initial_cash_cents) / 100};
+            LongCashAccount fractional{static_cast<double>(config_.initial_cash_units) / 100};
             fractional.rebalance(signals.entry(), 100, 1, fee ? 1 : 0);
             const auto quantity = fractional.value(100).shares;
             fractional.rebalance(signals.exit(), static_cast<double>(exit_price) / 100, 0, fee ? 1 : 0);
             const double f = fractional.value(static_cast<double>(exit_price) / 100).equity_usd;
-            const double w = static_cast<double>(runtime_->account().cash_cents) / 100;
+            const double w = static_cast<double>(runtime_->account().cash_units) / 100;
             result_.parity = ExecutionParity{rounding ? "Whole-share idle cash; fractional residual exposure"
                                                       : "Matched prices, sizing and fees",
                                              quantity,
@@ -250,7 +250,7 @@ public:
         static_cast<void>(accept(target, "Entry target persisted and dispatched"));
         deliver(e);
         check(checks_, result_.label + ": partial buy accounted",
-              runtime_->account().position_shares == 4 && runtime_->account().reserved_cash_cents == 60006);
+              runtime_->account().position_shares == 4 && runtime_->account().reserved_cash_units == 60006);
         check(checks_, result_.label + ": duplicate decision waits",
               pipeline_->accept_target(target, e).status == RouteStatus::waiting &&
                   broker_.order_count() == 1);
@@ -261,7 +261,7 @@ public:
             deliver(e + 1);
         }
         check(checks_, result_.label + ": missing report recovered once",
-              runtime_->account().position_shares == 6 && runtime_->account().reserved_cash_cents == 40004);
+              runtime_->account().position_shares == 6 && runtime_->account().reserved_cash_units == 40004);
         quote({3, x, 9999, 10000, 3, 0});
         const auto flat =
             signals.target(signals.exit(), runtime_->account().position_shares, *broker_.quote());
@@ -287,7 +287,7 @@ public:
         deliver(x + 2);
         synchronize(x + 2);
         check(checks_, result_.label + ": exact independent integer ledger",
-              runtime_->account().cash_cents == 1000023 && runtime_->account().position_shares == 0 &&
+              runtime_->account().cash_units == 1000023 && runtime_->account().position_shares == 0 &&
                   runtime_->account().open_orders == 0);
         return finish();
     }

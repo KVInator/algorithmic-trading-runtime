@@ -84,7 +84,7 @@ RouteResult OfflinePipeline::route_latest(std::int64_t now) {
     const bool buy = target->target_shares > account.position_shares;
     const auto quantity = buy ? target->target_shares - account.position_shares : account.position_shares - target->target_shares;
     const OrderRequest request{id, target->symbol, buy ? Side::buy : Side::sell, quantity,
-        buy ? target->buy_limit_cents : target->sell_limit_cents, target->fee_per_share_ceiling_cents};
+        buy ? target->buy_limit_units : target->sell_limit_units, target->fee_per_share_ceiling_units};
     if (runtime_.execute(SubmitInput{request}) != Outcome::applied) { return {RouteStatus::rejected, id, "pre-trade resource checks rejected the order"}; }
     try { static_cast<void>(broker_.submit(request, now)); }
     catch (...) { static_cast<void>(runtime_.execute(ConnectionInput{false})); throw; }

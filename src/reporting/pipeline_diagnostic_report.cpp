@@ -38,7 +38,7 @@ void PipelineDiagnosticReport::write(const std::filesystem::path& directory) con
         for (const auto& target : item.targets) { targets.push_back(input_json(target)); }
         for (const auto& f : item.fills) {
             fills.push_back({{"execution_id", f.execution_id}, {"order_id", f.order_id}, {"side", name(f.side)},
-                {"shares", f.shares}, {"price_cents", f.price_cents}, {"fee_cents", f.fee_cents}, {"quote_sequence", f.quote_sequence}});
+                {"shares", f.shares}, {"price_cents", f.price_cents}, {"fee_cents", f.fee_units}, {"quote_sequence", f.quote_sequence}});
         }
         for (const auto& report : item.broker_reports) { reports.push_back(input_json(report)); }
         for (const auto& row : item.runtime_trace) { trace.push_back(trace_json(row)); }
@@ -47,7 +47,7 @@ void PipelineDiagnosticReport::write(const std::filesystem::path& directory) con
             {"final_account", account_json(item.final_account)}, {"client_restarts", item.client_restarts}});
         artifacts.push_back(item.journal_file);
         html << "<section><h2>" << ReportText{item.name}.html() << "</h2><p>Client restarts: " << item.client_restarts
-             << "; broker executions: " << item.fills.size() << "; final cash: " << item.final_account.cash_cents
+             << "; broker executions: " << item.fills.size() << "; final cash: " << item.final_account.cash_units
              << " cents; final inventory: " << item.final_account.position_shares << " shares.</p><details><summary>Expand durable event trace</summary>"
                 "<div class=\"scroll\"><table><tr><th>Seq</th><th>Input</th><th>Order / event</th><th>Outcome</th><th>State</th>"
                 "<th>Cash (cents)</th><th>Shares</th><th>Cash reserved</th><th>Shares reserved</th><th>Entry gate</th><th>Reason</th></tr>";
@@ -55,7 +55,7 @@ void PipelineDiagnosticReport::write(const std::filesystem::path& directory) con
             const auto& a = row.account;
             html << "<tr><td>" << row.sequence << "</td><td>" << row.input << "</td><td>" << ReportText{row.order_id}.html()
                  << " / " << ReportText{row.event_id}.html() << "</td><td>" << name(row.outcome) << "</td><td>" << row.order_status
-                 << "</td><td>" << a.cash_cents << "</td><td>" << a.position_shares << "</td><td>" << a.reserved_cash_cents
+                 << "</td><td>" << a.cash_units << "</td><td>" << a.position_shares << "</td><td>" << a.reserved_cash_units
                  << "</td><td>" << a.reserved_sell_shares << "</td><td>" << (a.connected && !a.reconciliation_required ? "open" : "closed")
                  << "</td><td>" << ReportText{row.reason}.html() << "</td></tr>";
         }

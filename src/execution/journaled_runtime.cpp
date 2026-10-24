@@ -1,7 +1,7 @@
 #include "journaled_runtime.hpp"
 
 #include "content_digest.hpp"
-#include "json_input.hpp"
+#include "journal_frame.hpp"
 #include "runtime_json.hpp"
 
 #include <nlohmann/json.hpp>
@@ -12,18 +12,16 @@
 namespace trading::execution {
 namespace {
 using Json = nlohmann::json;
-constexpr std::size_t maximum_frame_bytes = 64U * 1024U;
-constexpr std::size_t maximum_input_records = 10000;
 const std::string zero_digest(64, '0');
 static_assert(std::is_nothrow_move_assignable_v<OrderRuntime>);
 
 Json configuration_json(const RuntimeConfiguration& config) {
-    return {{"symbol", config.symbol}, {"initial_cash_cents", config.initial_cash_cents},
+    return {{"symbol", config.symbol}, {"initial_cash_cents", config.initial_cash_units},
             {"maximum_position_shares", config.limits.maximum_position_shares},
             {"maximum_open_orders", config.limits.maximum_open_orders}};
 }
 void validate_configuration(const RuntimeConfiguration& config) {
-    static_cast<void>(OrderRuntime{config.symbol, config.initial_cash_cents, config.limits});
+    static_cast<void>(OrderRuntime{config.symbol, config.initial_cash_units, config.limits});
     if (config.limits.maximum_open_orders > maximum_input_records) {
         throw JournalError("journal configuration exceeds the supported order limit");
     }
@@ -37,13 +35,6 @@ Json entry_json(const RuntimeInput& input, const TraceEntry& trace, const std::s
     return {{"kind", "input"}, {"sequence", trace.sequence}, {"previous_sha256", previous},
             {"input", input_json(input)}, {"trace", trace_json(trace)}};
 }
-std::pair<std::string, std::string> frame(const Json& value) {
-    auto payload = value.dump();
-    auto digest = sha256(payload);
-    payload += '\t'; payload += digest; payload += '\n';
-    if (payload.size() > maximum_frame_bytes) { throw JournalError("journal frame exceeds 64 KiB"); }
-    return {std::move(payload), std::move(digest)};
-}
 struct Loaded {
     OrderRuntime runtime;
     JournalInspection inspection;
@@ -51,7 +42,7 @@ struct Loaded {
 };
 Loaded load(JournalStorage& storage, const RuntimeConfiguration& expected) {
     validate_configuration(expected);
-    Loaded loaded{OrderRuntime{expected.symbol, expected.initial_cash_cents, expected.limits}, {0, 0, 0, ""}, storage.read_all()};
+    Loaded loaded{OrderRuntime{expected.symbol, expected.initial_cash_units, expected.limits}, {0, 0, 0, ""}, storage.read_all()};
     if (loaded.bytes.size() > maximum_journal_bytes) { throw JournalError("journal exceeds 32 MiB"); }
     bool header_seen = false;
     std::size_t offset = 0;
@@ -60,15 +51,8 @@ Loaded load(JournalStorage& storage, const RuntimeConfiguration& expected) {
         if (end == std::string::npos) { break; }
         if (end - offset + 1 > maximum_frame_bytes) { throw JournalError("journal frame exceeds 64 KiB"); }
         const std::string_view line{loaded.bytes.data() + offset, end - offset};
-        const auto separator = line.rfind('\t');
-        if (separator == std::string_view::npos || line.size() - separator - 1 != 64) {
-            throw JournalError("complete journal frame has invalid checksum framing");
-        }
-        const auto payload = line.substr(0, separator);
-        const std::string digest{line.substr(separator + 1)};
-        if (sha256(payload) != digest) { throw JournalError("complete journal frame checksum mismatch"); }
+        auto [value, digest] = JournalFrame::decode(line);
         try {
-            const auto value = parse_json_document(payload);
             if (!header_seen) {
                 const auto& version = value.at("schema_version");
                 const int schema = version == 1 ? 1 : version == 2 ? 2 : 0;
@@ -115,9 +99,9 @@ JournaledRuntime JournaledRuntime::create(std::unique_ptr<JournalStorage> storag
     require_storage(storage);
     validate_configuration(config);
     if (!storage->read_all().empty()) { throw JournalError("new journal storage must be empty"); }
-    auto [bytes, digest] = frame(header_json(config, schema));
+    auto [bytes, digest] = JournalFrame::encode(header_json(config, schema));
     storage->append_and_sync(bytes);
-    JournaledRuntime result{std::move(storage), OrderRuntime{config.symbol, config.initial_cash_cents, config.limits},
+    JournaledRuntime result{std::move(storage), OrderRuntime{config.symbol, config.initial_cash_units, config.limits},
                             {0, bytes.size(), 0, std::move(digest), schema}};
     static_cast<void>(result.execute(ConnectionInput{false}));
     return result;
@@ -157,7 +141,7 @@ Outcome JournaledRuntime::execute(const RuntimeInput& input) {
     if (inspection_.input_records >= maximum_input_records) { throw JournalError("journal record limit exceeded"); }
     auto candidate = runtime_;
     const auto outcome = apply_input(candidate, input);
-    auto [bytes, digest] = frame(entry_json(input, candidate.trace().back(), inspection_.last_sha256));
+    auto [bytes, digest] = JournalFrame::encode(entry_json(input, candidate.trace().back(), inspection_.last_sha256));
     if (bytes.size() > maximum_journal_bytes - inspection_.complete_bytes) { throw JournalError("journal exceeds 32 MiB"); }
     try { storage_->append_and_sync(bytes); }
     catch (...) { healthy_ = false; throw; }

@@ -110,8 +110,8 @@ OrderRuntime replay(const ExecutionScenario& scenario) {
         }
     }
     const auto final = runtime.account();
-    if (final.cash_cents != scenario.expected_cash_cents || final.position_shares != scenario.expected_position_shares ||
-        final.open_orders != 0 || final.reserved_cash_cents != 0 || final.reserved_sell_shares != 0 ||
+    if (final.cash_units != scenario.expected_cash_cents || final.position_shares != scenario.expected_position_shares ||
+        final.open_orders != 0 || final.reserved_cash_units != 0 || final.reserved_sell_shares != 0 ||
         final.outstanding_buy_shares != 0 || !final.connected || final.reconciliation_required) {
         throw std::logic_error("execution scenario final balance or gate differs: " + scenario.name);
     }

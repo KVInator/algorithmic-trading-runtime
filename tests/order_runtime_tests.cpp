@@ -38,14 +38,14 @@ void same_finances(AccountSnapshot a, AccountSnapshot b) {
 void test_reservations_and_races() {
     OrderRuntime runtime{"SPY", 200000, {20, 2}};
     require(runtime.submit(buy("B")) == Outcome::applied, "buy admitted");
-    require(runtime.account().reserved_cash_cents == 100100, "buy reserves limit notional plus maximum fees");
+    require(runtime.account().reserved_cash_units == 100100, "buy reserves limit notional plus maximum fees");
     require(runtime.submit(buy("cash", 10)) == Outcome::denied, "aggregate cash reservation prevents overspend");
     require(runtime.request_cancel("B", "C1") == Outcome::applied, "cancel request admitted");
-    require(runtime.account().reserved_cash_cents == 100100, "pending cancellation cannot finance another order");
+    require(runtime.account().reserved_cash_units == 100100, "pending cancellation cannot finance another order");
     require(runtime.receive(fill("F1", "B", "X1", 4, 9900, 4)) == Outcome::applied, "partial fill before acknowledgement");
     require(runtime.order("B").status == OrderStatus::pending_cancel, "fill preserves cancel intent");
-    require(runtime.account().cash_cents == 160396 && runtime.account().position_shares == 4 &&
-            runtime.account().reserved_cash_cents == 60060, "cash debited exactly and remaining units reserved");
+    require(runtime.account().cash_units == 160396 && runtime.account().position_shares == 4 &&
+            runtime.account().reserved_cash_units == 60060, "cash debited exactly and remaining units reserved");
     require(runtime.receive(message("A", "B", ReportKind::accepted)) == Outcome::obsolete, "late acknowledgement cannot regress pending cancel");
     require(runtime.receive(message("CR", "B", ReportKind::cancel_rejected, 0, "C1")) == Outcome::applied, "cancel rejection restores partial state");
     require(runtime.request_cancel("B", "C2") == Outcome::applied, "second cancel has a distinct identity");
@@ -53,7 +53,7 @@ void test_reservations_and_races() {
             "late rejection of old cancel cannot remove new cancel intent");
     require(runtime.order("B").pending_cancel_id == "C2", "current cancel identity retained");
     require(runtime.receive(message("CA", "B", ReportKind::canceled, 4, "C2")) == Outcome::applied, "confirmed partial cancellation");
-    require(runtime.account().reserved_cash_cents == 0 && runtime.account().position_shares == 4,
+    require(runtime.account().reserved_cash_units == 0 && runtime.account().position_shares == 4,
             "terminal cancellation releases only remaining reservation");
     require(runtime.request_cancel("B", "C3") == Outcome::denied, "terminal order cannot be canceled again");
     require(runtime.submit(buy("B", 1)) == Outcome::denied, "terminal order ID cannot be reused");
@@ -80,8 +80,8 @@ void test_delivery_permutations_and_integer_oracle() {
             }
         }
         // Independent integer identity: cash = initial - sum(q * price + fee).
-        require(runtime.account().cash_cents == 1000000 - 3 * 9900 - 3 - 7 * 10000 - 7 &&
-                runtime.account().position_shares == 10 && runtime.account().reserved_cash_cents == 0,
+        require(runtime.account().cash_units == 1000000 - 3 * 9900 - 3 - 7 * 10000 - 7 &&
+                runtime.account().position_shares == 10 && runtime.account().reserved_cash_units == 0,
                 "all delivery permutations conserve the independent fill ledger");
         require(runtime.order("B").status == OrderStatus::filled, "full fill is terminal regardless of acknowledgement order");
     } while (std::next_permutation(permutation.begin(), permutation.end()));
@@ -107,13 +107,13 @@ void test_quarantine_and_reconciliation() {
     require(runtime.submit(buy("blocked", 1)) == Outcome::denied, "new orders blocked after fault");
     BrokerSnapshot snapshot{959996, 4, {{request, 4}}};
     auto mismatch = snapshot;
-    ++mismatch.open_orders.front().request.limit_cents;
+    ++mismatch.open_orders.front().request.limit_units;
     require(runtime.reconcile(mismatch) == Outcome::quarantined, "snapshot must match complete order terms");
     mismatch = snapshot;
     mismatch.open_orders.push_back(mismatch.open_orders.front());
     require(runtime.reconcile(mismatch) == Outcome::quarantined, "duplicate snapshot order cannot pass reconciliation");
     mismatch = snapshot;
-    ++mismatch.cash_cents;
+    ++mismatch.cash_units;
     require(runtime.reconcile(mismatch) == Outcome::quarantined, "cash discrepancy is not silently overwritten");
     require(runtime.reconcile(snapshot) == Outcome::applied && !runtime.account().reconciliation_required, "exact snapshot opens entry gate");
     runtime.disconnect();
@@ -155,7 +155,7 @@ void test_inventory_limits_and_invalid_units() {
     require(runtime.receive(fill("bad-sell", "S", "bad", 1, 9999, 1)) == Outcome::quarantined, "sell cannot fill below limit");
     same_finances(before, runtime.account());
     require(runtime.receive(fill("SF", "S", "SX", 7, 10100, 7)) == Outcome::applied, "sell books improved price and explicit fee");
-    require(runtime.account().cash_cents == 980684 && runtime.account().position_shares == 2, "independent buy and sell cash identity");
+    require(runtime.account().cash_units == 980684 && runtime.account().position_shares == 2, "independent buy and sell cash identity");
     OrderRuntime huge{"SPY", std::numeric_limits<Cents>::max(), {10, 4}};
     require(huge.submit(buy("tiny", 1, 1, 0)) == Outcome::applied, "large account small buy");
     require(huge.receive(fill("H1", "tiny", "HX1", 1, 1, 0)) == Outcome::applied, "large account purchase");

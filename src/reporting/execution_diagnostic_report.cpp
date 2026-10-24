@@ -54,7 +54,7 @@ void ExecutionDiagnosticReport::write(const std::filesystem::path& directory) co
                          {"expected_position_shares", result.scenario.expected_position_shares},
                          {"final_account", account_json(result.final_account)}, {"deterministic_replay", true}});
         html << "<section><h2>" << ReportText{result.scenario.name}.html() << "</h2><p>Final cash: "
-             << result.final_account.cash_cents << " cents; position: " << result.final_account.position_shares
+             << result.final_account.cash_units << " cents; position: " << result.final_account.position_shares
              << " shares; no outstanding reservations.</p><div class=\"scroll\"><table><thead><tr>"
                 "<th>Step</th><th>Input</th><th>Order / event</th><th>Outcome</th><th>State</th><th>Cash (cents)</th>"
                 "<th>Shares</th><th>Cash reserved</th><th>Shares reserved</th><th>Entry gate</th><th>Reason</th>"
@@ -63,14 +63,14 @@ void ExecutionDiagnosticReport::write(const std::filesystem::path& directory) co
             const auto& a = row.account;
             csv << ReportText{result.scenario.name}.csv() << ',' << row.sequence << ',' << row.input << ','
                 << ReportText{row.order_id}.csv() << ',' << ReportText{row.event_id}.csv() << ',' << name(row.outcome) << ','
-                << ReportText{row.reason}.csv() << ',' << row.order_status << ',' << a.cash_cents << ',' << a.position_shares
-                << ',' << a.reserved_cash_cents << ',' << a.reserved_sell_shares << ',' << a.outstanding_buy_shares
+                << ReportText{row.reason}.csv() << ',' << row.order_status << ',' << a.cash_units << ',' << a.position_shares
+                << ',' << a.reserved_cash_units << ',' << a.reserved_sell_shares << ',' << a.outstanding_buy_shares
                 << ',' << a.open_orders << ',' << a.connected << ',' << a.reconciliation_required << '\n';
             html << "<tr class=\"" << name(row.outcome) << "\"><td>" << row.sequence << "</td><td>" << row.input
                  << "</td><td>" << ReportText{row.order_id}.html() << " / " << ReportText{row.event_id}.html()
                  << "</td><td>" << name(row.outcome) << "</td><td>" << row.order_status
-                 << "</td><td class=\"num\">" << a.cash_cents << "</td><td class=\"num\">" << a.position_shares
-                 << "</td><td class=\"num\">" << a.reserved_cash_cents << "</td><td class=\"num\">" << a.reserved_sell_shares
+                 << "</td><td class=\"num\">" << a.cash_units << "</td><td class=\"num\">" << a.position_shares
+                 << "</td><td class=\"num\">" << a.reserved_cash_units << "</td><td class=\"num\">" << a.reserved_sell_shares
                  << "</td><td>" << (a.connected && !a.reconciliation_required ? "open" : "closed")
                  << "</td><td>" << ReportText{row.reason}.html() << "</td></tr>";
         }

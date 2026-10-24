@@ -5,8 +5,14 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <stdexcept>
 
 namespace trading::execution {
+
+class JournalError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
 
 inline constexpr std::size_t maximum_journal_bytes = 32U * 1024U * 1024U;
 

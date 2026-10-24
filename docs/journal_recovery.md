@@ -1,6 +1,8 @@
 # Durable journal and restart recovery
 
 `JournaledRuntime` wraps the existing whole-share, integer-cent `OrderRuntime`.
+The separate [schema-3 paper owner](paper_execution.md) reuses the same order
+engine with a declared finer unit and shares `JournalFrame` encoding.
 Every input is evaluated on a candidate core, framed with its resulting trace,
 appended and synchronized before the candidate becomes visible or an outcome
 returns. Future transport code may dispatch an applied submit/cancel only after

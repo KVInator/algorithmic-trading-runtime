@@ -10,7 +10,7 @@ evidence rather than a completion percentage.
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
 | 2. Strategy research | Complete for `05aec9d` | Three strategy specifications have reproducible historical comparisons. Native MSVC build and all twenty-two groups are reported successful. SPY-MR-01 retains 476 dates, forty market cases and its cost-dominated finding; all ten artifacts and 171 source records verify, with identical native/Linux account paths. |
 | 3. Shared execution path | Complete for `9aeffa4` | MSVC build and routine test preset reported successful. Native eighteen-/twenty-two-case runs pass 224/296 checks; saved evidence, inputs and HTML match Linux byte-for-byte. Source differences are five explained CRLF variants. Journal manifest digests match the checked Linux bodies; native bodies were not supplied. |
-| 4. Paper broker | In progress: message/precision boundary | Exact decimal/time decoding, a bounded SPY/DAY-limit contract and paper-only request descriptions are implemented. Versioned accounting/identity mapping, transport, TIF/expiry, stop/capture and observed reconciliation remain. |
+| 4. Paper broker | In progress: message/precision boundary | Exact decimal/time decoding, a bounded SPY/DAY-limit contract and paper-only request descriptions are implemented. A schema-3 exact accounting/identity bridge now reuses the core; native verification, transport, TIF/expiry, stop/capture and observed reconciliation remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
 | 7. Final technical publication | Not complete | Individual reports and research notes exist. The unified analytical HTML/PDF report, offline showcase and final repository presentation remain. |
@@ -463,11 +463,41 @@ timing remains unmeasured. CMake configuration, preset inheritance, diff and
 repository hygiene checks pass; no C++ implementation changes require rebuilding
 the diagnostic for this selection update.
 
+## Exact paper execution bridge checkpoint
+
+The [schema-3 contract](paper_execution.md) extends the shared integer order core
+with an explicit nanodollar owner, a zero-fee paper convention, broker/client
+bindings and durable raw inputs. Legacy schema-1/2 JSON keys and algorithms are
+preserved; C++ monetary fields use unit-neutral names. `JournalFrame` provides
+the common framing/checksum implementation. The diagnostic passes 42 assertions
+across three continuous/restart/quarantine cases. Matched final cash is USD
+1,999.9875 with flat inventory; a cent-rounded snapshot cannot overwrite exact
+cash. No network request, observed broker event or historical score is produced.
+
+GCC Debug Build All and the full twenty-five-group suite pass in 28.18 seconds.
+The quick selection contains twenty-one groups and retains all execution checks.
+Further broker-receipt/venue-acceptance regression checks are verified in the
+focused paper group. Thirteen legacy numerical/input/journal artifacts across
+execution, recovery and pipeline diagnostics remain byte-identical to their
+retained baselines after the unit-neutral C++ rename/shared-frame extraction.
+
+The independent Decimal verifier checks all three paper journals, 48 commands
+and eighteen saved frames, reconstructing exact cash, inventory, reservations and
+execution deduplication from inputs/outcomes. Hashes, chain/sequence and saved
+state digests verify. Paper, legacy journal and offline-pipeline groups pass ASan/UBSan with leak
+detection disabled. Final quick checks pass all twenty-one groups. Debug evidence
+at `scratch/runs/paper_execution_2` and Release at `paper_execution_3` retain six
+byte-identical artifacts, including all journals. All 201 source records and
+artifact hashes verify. HTML links and a static render are inspected; browser
+interaction remains unverified. Repository hygiene and diff checks pass.
+Native verification for this substep remains pending. Milestone 4 stays open.
+
 ## Next dependency
 
-Implement the versioned exact accounting and durable broker-identity/event
-bridge, then connect paper transport, TIF/expiry and controlled-stop paths.
-Declare the five-session capture plan before an observed operational run.
-Milestones 1-3 remain closed; 4 is in progress; execution measurements, Release
-benchmarks/portable CI and the final report remain milestones 5-7. Test counts
-do not define a completion percentage.
+Verify the new bridge with MSVC, the twenty-one-group quick preset and
+`paper_execution_diagnostic`. Connect paper transport with durable raw archival,
+stable-ID lookup, consistent snapshot collection and explicit expiry/stop control.
+Observe cash precision and fee availability without silently changing the declared
+policy. Fix the five-session capture plan before operational execution.
+Milestones 1-3 remain closed; 4 is in progress; execution measurements,
+benchmarks/portable CI and final publication remain milestones 5-7.

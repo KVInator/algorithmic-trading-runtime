@@ -43,7 +43,7 @@ Json frame_json(const ExecutionFrame& f) {
             {"at_seconds", f.at_seconds},
             {"client", account_json(f.account)},
             {"broker",
-             {{"cash_cents", f.broker.cash_cents},
+             {{"cash_cents", f.broker.cash_units},
               {"position_shares", f.broker.position_shares},
               {"open_orders", open}}},
             {"orders", orders_json(f.orders)},
@@ -196,7 +196,7 @@ void StrategyExecutionReport::write(const std::filesystem::path& directory) cons
                              {"side", name(f.side)},
                              {"shares", f.shares},
                              {"price_cents", f.price_cents},
-                             {"fee_cents", f.fee_cents},
+                             {"fee_cents", f.fee_units},
                              {"quote_sequence", f.quote_sequence}});
         }
         for (const auto& r : c.reports) {
@@ -243,13 +243,13 @@ void StrategyExecutionReport::write(const std::filesystem::path& directory) cons
                  << " · Durable records: " << f.journal_records << "</p>";
             plot(html, c, f);
             html << "<div class=\"accounts\"><section><h4>Client ledger</h4><dl><dt>Cash cents</dt><dd>"
-                 << f.account.cash_cents << "</dd><dt>Position shares</dt><dd>" << f.account.position_shares
-                 << "</dd><dt>Reserved cash cents</dt><dd>" << f.account.reserved_cash_cents
+                 << f.account.cash_units << "</dd><dt>Position shares</dt><dd>" << f.account.position_shares
+                 << "</dd><dt>Reserved cash cents</dt><dd>" << f.account.reserved_cash_units
                  << "</dd><dt>Reserved sell shares</dt><dd>" << f.account.reserved_sell_shares
                  << "</dd><dt>Open orders</dt><dd>" << f.account.open_orders
                  << "</dd></dl></section>"
                     "<section><h4>Independent broker ledger</h4><dl><dt>Cash cents</dt><dd>"
-                 << f.broker.cash_cents << "</dd><dt>Position shares</dt><dd>" << f.broker.position_shares
+                 << f.broker.cash_units << "</dd><dt>Position shares</dt><dd>" << f.broker.position_shares
                  << "</dd><dt>Open orders</dt><dd>" << f.broker.open_orders.size()
                  << "</dd><dt>Executed fills</dt><dd>" << f.broker_fill_count
                  << "</dd></dl></section></div>"

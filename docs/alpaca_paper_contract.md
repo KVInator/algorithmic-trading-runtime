@@ -96,11 +96,9 @@ a hashed manifest. Expected: 56 checks across forty cases, zero network requests
 and zero observed broker events. Expected rejection cases pass when input is
 rejected explicitly.
 
-The existing cent ledger cannot represent every preserved broker price/cash
-value. This step deliberately does not convert broker messages into
-`BrokerReport`, change journal schemas 1/2, infer zero fees or round subcent cash.
-The next implementation must define a versioned exact accounting/persistence
-bridge, fee treatment and durable event/identity mapping while preserving legacy
-replay. Transport, TIF/expiry transitions, controlled stop, raw capture, uncertain
-submission lookup, reconnect reconciliation and the fixed five-session capture
-plan follow. An observed paper lifecycle remains required to close milestone 4.
+The [schema-3 execution bridge](paper_execution.md) now supplies the versioned
+nanodollar accounting and durable identity/event mapping. It reuses the order
+engine, declares a zero-fee paper convention and preserves legacy journal JSON.
+Transport, raw archival, consistent multi-response snapshots, TIF/stop policies,
+observed cash/fee conventions and the five-session capture remain open. An
+observed paper lifecycle is still required to close milestone 4.

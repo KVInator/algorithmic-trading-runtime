@@ -19,7 +19,7 @@ struct SimulatedFill {
     Side side;
     Shares shares;
     Cents price_cents;
-    Cents fee_cents;
+    Cents fee_units;
     std::uint64_t quote_sequence;
     bool operator==(const SimulatedFill&) const = default;
 };
@@ -28,7 +28,7 @@ struct SimulatedFill {
 // duplicates never replenish liquidity. Generated reports are delivered separately.
 class SimulatedBroker {
 public:
-    SimulatedBroker(std::string symbol, Cents cash_cents, Cents fee_per_share_cents);
+    SimulatedBroker(std::string symbol, Cents cash_units, Cents fee_per_share_cents);
     [[nodiscard]] bool on_quote(const TopOfBook& quote);
     [[nodiscard]] bool submit(const OrderRequest& request, std::int64_t now_seconds);
     [[nodiscard]] bool cancel(const std::string& order_id, const std::string& cancel_id, std::int64_t now_seconds);

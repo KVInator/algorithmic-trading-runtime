@@ -9,11 +9,11 @@ working directory. Each diagnostic or study writes a new directory under
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
 **Test > Run Test Preset > windows-debug-quick** for everyday edits. Select an
-executable and use **Ctrl+F5**. The quick preset runs twenty groups. Use
-**windows-debug** for the complete twenty-four-group routine suite at milestones.
+executable and use **Ctrl+F5**. The quick preset runs twenty-one groups. Use
+**windows-debug** for the complete twenty-five-group routine suite at milestones.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
-has a matching twenty-four-group test preset. Financial/artifact validation stays
+has a matching twenty-five-group test preset. Financial/artifact validation stays
 enabled. `windows-debug-full` additionally runs the optional 497-session
 synthetic disk integration test.
 
@@ -37,7 +37,7 @@ ctest --preset linux-debug -R '(intraday_reversion|offline_pipeline)_contracts' 
 Quick presets exist for `windows-debug`, `windows-release` and `linux-debug` as
 `windows-debug-quick`, `windows-release-quick` and `linux-debug-quick`. Each inherits
 its existing full preset and excludes `integration` and `extended` labels. Full
-presets retain all twenty-four routine groups; no test is shortened or removed.
+presets retain all twenty-five routine groups; no test is shortened or removed.
 
 | Extended group excluded from quick runs | MSVC Debug time supplied on 24 October 2026 |
 | --- | ---: |
@@ -48,7 +48,9 @@ presets retain all twenty-four routine groups; no test is shortened or removed.
 
 These four groups account for 333.21 of the reported 342.68 seconds. Remaining
 elapsed time projects to about 9.47 seconds on that run; this is an estimate,
-not a measured Windows quick-preset time. Disk/cache/build conditions can differ.
+not a measured Windows quick-preset time. Those timings refer to the preceding
+24-group revision; the current quick preset adds the new paper-execution group.
+Disk/cache/build conditions can differ.
 The excluded groups exercise synthetic study/accounting and disk/reload work;
 these timings do not isolate a particular implementation bottleneck.
 
@@ -75,6 +77,7 @@ branches. Local datasets remain in place.
 
 | Target | Expected evidence |
 | --- | --- |
+| `paper_execution_diagnostic` | 42 assertions, three schema-3 journals, exact subcent cash, identities, partial fills, cancellation/restart and quarantine; zero network requests |
 | `paper_contract_diagnostic` | 56 checks, forty constructed API-shaped cases, exact decimal/time boundaries and paper-only request descriptions; zero network requests |
 | `continuation_diagnostic` | `trace.html` and `decisions.csv`; constructed completed-prefix price/volume decisions |
 | `execution_diagnostic` | Six scenarios, 69 transitions, identical repeated replay and retained input/trace files |

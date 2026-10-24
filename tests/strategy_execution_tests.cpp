@@ -126,7 +126,7 @@ void case_contracts(const StrategyExecutionResult& result) {
         for (const auto& f : c.frames) {
             require(f.at_seconds >= previous, "frame chronology cannot regress");
             previous = f.at_seconds;
-            require(f.account.reserved_cash_cents <= f.account.cash_cents &&
+            require(f.account.reserved_cash_units <= f.account.cash_units &&
                         f.account.reserved_sell_shares <= f.account.position_shares,
                     "each frame conserves client reservations");
             require(f.broker_fill_count <= c.fills.size() && f.broker_report_count <= c.reports.size(),
@@ -138,17 +138,17 @@ void case_contracts(const StrategyExecutionResult& result) {
         }
         const auto& last = c.frames.back();
         require(last.account.position_shares == last.broker.position_shares &&
-                    last.account.cash_cents == last.broker.cash_cents,
+                    last.account.cash_units == last.broker.cash_units,
                 "final independent account matches client");
-        Cents cash = c.frames.front().broker.cash_cents;
+        Cents cash = c.frames.front().broker.cash_units;
         Shares shares = 0;
         for (const auto& f : c.fills) {
-            cash += (f.side == Side::buy ? -1 : 1) * f.shares * f.price_cents - f.fee_cents;
+            cash += (f.side == Side::buy ? -1 : 1) * f.shares * f.price_cents - f.fee_units;
             shares += (f.side == Side::buy ? 1 : -1) * f.shares;
         }
-        require(cash == last.broker.cash_cents && shares == last.broker.position_shares,
+        require(cash == last.broker.cash_units && shares == last.broker.position_shares,
                 "independent integer arithmetic reproduces final broker ledger");
-        require(last.account.open_orders == 0 && last.account.reserved_cash_cents == 0 &&
+        require(last.account.open_orders == 0 && last.account.reserved_cash_units == 0 &&
                     last.account.reserved_sell_shares == 0,
                 "constructed paths settle all resources");
     }

@@ -41,8 +41,8 @@ RecoveryDiagnosticResult RecoveryDiagnostic::run() const {
         auto runtime = JournaledRuntime::recover(open_journal_file(directory / "restart.journal"), config);
         check("Complete prior trace reproduced", runtime.trace().size() == before.size() + 1 &&
               std::equal(before.begin(), before.end(), runtime.trace().begin()));
-        check("Restart retains balances and reservations", runtime.account().cash_cents == 959996 &&
-              runtime.account().position_shares == 4 && runtime.account().reserved_cash_cents == 60060);
+        check("Restart retains balances and reservations", runtime.account().cash_units == 959996 &&
+              runtime.account().position_shares == 4 && runtime.account().reserved_cash_units == 60060);
         check("Restart retains cancel identity and closes entry", runtime.order("B").pending_cancel_id == "C" &&
               !runtime.account().connected && runtime.account().reconciliation_required);
         observe("Partial fill restart", "Recovered and gated", runtime);
@@ -58,8 +58,8 @@ RecoveryDiagnosticResult RecoveryDiagnostic::run() const {
               runtime.execute(BrokerReport{"CR", "B", ReportKind::cancel_rejected, "", 0, 0, 0, 0, "C"}) == Outcome::applied);
         check("Remaining execution accepted",
               runtime.execute(BrokerReport{"F2", "B", ReportKind::fill, "X2", 6, 10000, 6, 0, ""}) == Outcome::applied);
-        check("Final integer ledger conserves cash", runtime.account().cash_cents == 899990 &&
-              runtime.account().position_shares == 10 && runtime.account().reserved_cash_cents == 0);
+        check("Final integer ledger conserves cash", runtime.account().cash_units == 899990 &&
+              runtime.account().position_shares == 10 && runtime.account().reserved_cash_units == 0);
         observe("Partial fill restart", "Fully filled", runtime);
     }
     {
@@ -80,8 +80,8 @@ RecoveryDiagnosticResult RecoveryDiagnostic::run() const {
         auto runtime = JournaledRuntime::recover_prefix(open_journal_file(directory / "torn-original.journal"),
             create_journal_file(directory / "prefix-recovered.journal"), config);
         check("Original torn file retained byte for byte", sha256_file(directory / "torn-original.journal") == original_hash);
-        check("Verified prefix restores partial state and gate", runtime.account().cash_cents == 959996 &&
-              runtime.account().reserved_cash_cents == 60060 && !runtime.account().connected);
+        check("Verified prefix restores partial state and gate", runtime.account().cash_units == 959996 &&
+              runtime.account().reserved_cash_units == 60060 && !runtime.account().connected);
         observe("Incomplete final write", "Separate prefix recovery", runtime);
         check("Prefix retains fill deduplication", runtime.execute(fill) == Outcome::duplicate);
         check("Prefix reconnect recorded", runtime.execute(ConnectionInput{true}) == Outcome::applied);
@@ -89,8 +89,8 @@ RecoveryDiagnosticResult RecoveryDiagnostic::run() const {
         check("Recovered cancel intent recorded", runtime.execute(CancelInput{"B", "C"}) == Outcome::applied);
         check("Recovered cancellation releases only remaining resources",
               runtime.execute(BrokerReport{"CA", "B", ReportKind::canceled, "", 0, 0, 0, 4, "C"}) == Outcome::applied);
-        check("Canceled partial account retains executed shares", runtime.account().cash_cents == 959996 &&
-              runtime.account().position_shares == 4 && runtime.account().reserved_cash_cents == 0 && runtime.account().open_orders == 0);
+        check("Canceled partial account retains executed shares", runtime.account().cash_units == 959996 &&
+              runtime.account().position_shares == 4 && runtime.account().reserved_cash_units == 0 && runtime.account().open_orders == 0);
         observe("Incomplete final write", "Reconciled and canceled", runtime);
     }
     auto corrupt = read_text_file(directory / "restart.journal");

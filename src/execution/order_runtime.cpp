@@ -32,15 +32,15 @@ bool terminal(OrderStatus status) {
 }
 bool same_execution(const BrokerReport& a, const BrokerReport& b) {
     return a.order_id == b.order_id && a.fill_shares == b.fill_shares &&
-           a.fill_price_cents == b.fill_price_cents && a.fee_cents == b.fee_cents;
+           a.fill_price_units == b.fill_price_units && a.fee_units == b.fee_units;
 }
 void check_report(const BrokerReport& report) {
     if (!token(report.event_id) || !token(report.order_id)) {
         throw std::invalid_argument("report requires valid event and order IDs");
     }
     if (report.kind == ReportKind::fill) {
-        if (!token(report.execution_id) || report.fill_shares <= 0 || report.fill_price_cents <= 0 ||
-            report.fee_cents < 0 || report.cumulative_filled_shares != 0 || !report.cancel_id.empty()) {
+        if (!token(report.execution_id) || report.fill_shares <= 0 || report.fill_price_units <= 0 ||
+            report.fee_units < 0 || report.cumulative_filled_shares != 0 || !report.cancel_id.empty()) {
             throw std::invalid_argument("fill requires execution ID, positive units and nonnegative fee");
         }
     } else {
@@ -48,8 +48,8 @@ void check_report(const BrokerReport& report) {
             report.kind != ReportKind::rejected && report.kind != ReportKind::cancel_rejected) {
             throw std::invalid_argument("unknown broker report kind");
         }
-        if (!report.execution_id.empty() || report.fill_shares != 0 || report.fill_price_cents != 0 ||
-            report.fee_cents != 0 || report.cumulative_filled_shares < 0 ||
+        if (!report.execution_id.empty() || report.fill_shares != 0 || report.fill_price_units != 0 ||
+            report.fee_units != 0 || report.cumulative_filled_shares < 0 ||
             ((report.kind == ReportKind::accepted || report.kind == ReportKind::cancel_rejected) &&
              report.cumulative_filled_shares != 0)) {
             throw std::invalid_argument("non-fill report contains invalid or unused execution fields");
@@ -101,7 +101,7 @@ std::string_view name(Outcome outcome) {
     throw std::invalid_argument("unknown runtime outcome");
 }
 
-OrderRuntime::OrderRuntime(std::string symbol, Cents cash, RuntimeLimits limits)
+OrderRuntime::OrderRuntime(std::string symbol, MoneyUnits cash, RuntimeLimits limits)
     : symbol_{std::move(symbol)}, limits_{limits}, state_{cash, 0, {}, {}, {}, {}, {}, ""} {
     if (!token(symbol_) || cash <= 0 || limits_.maximum_position_shares <= 0 || limits_.maximum_open_orders == 0) {
         throw std::invalid_argument("runtime requires a symbol, positive cash and positive limits");
@@ -115,14 +115,14 @@ AccountSnapshot OrderRuntime::snapshot(const State& state) const {
         ++value.open_orders;
         const auto remaining = order.request.shares - order.filled_shares;
         if (order.request.side == Side::buy) {
-            value.reserved_cash_cents = add(value.reserved_cash_cents,
-                multiply(remaining, add(order.request.limit_cents, order.request.fee_per_share_ceiling_cents)));
+            value.reserved_cash_units = add(value.reserved_cash_units,
+                multiply(remaining, add(order.request.limit_units, order.request.fee_per_share_ceiling_units)));
             value.outstanding_buy_shares = add(value.outstanding_buy_shares, remaining);
         } else {
             value.reserved_sell_shares = add(value.reserved_sell_shares, remaining);
         }
     }
-    if (value.cash_cents < value.reserved_cash_cents || value.position_shares < value.reserved_sell_shares ||
+    if (value.cash_units < value.reserved_cash_units || value.position_shares < value.reserved_sell_shares ||
         add(value.position_shares, value.outstanding_buy_shares) > limits_.maximum_position_shares ||
         value.open_orders > limits_.maximum_open_orders) {
         throw std::invalid_argument("cash, inventory, position or open-order limit exceeded");
@@ -155,8 +155,8 @@ Outcome OrderRuntime::submit(const OrderRequest& request) {
     }
     try {
         static_cast<void>(name(request.side));
-        if (!token(request.id) || request.symbol != symbol_ || request.shares <= 0 || request.limit_cents <= 0 ||
-            request.fee_per_share_ceiling_cents < 0 || request.fee_per_share_ceiling_cents >= request.limit_cents ||
+        if (!token(request.id) || request.symbol != symbol_ || request.shares <= 0 || request.limit_units <= 0 ||
+            request.fee_per_share_ceiling_units < 0 || request.fee_per_share_ceiling_units >= request.limit_units ||
             state_.orders.contains(request.id)) {
             throw std::invalid_argument("invalid order terms or reused order ID");
         }
@@ -182,9 +182,9 @@ Outcome OrderRuntime::register_target(const TargetIntent& target) {
     }
     if (!token(target.id) || target.id.size() > 40 || target.symbol != symbol_ || target.decision_at_seconds <= 0 ||
         target.expires_at_seconds < target.decision_at_seconds || target.target_shares < 0 ||
-        target.target_shares > limits_.maximum_position_shares || target.sell_limit_cents <= 0 ||
-        target.buy_limit_cents < target.sell_limit_cents || target.fee_per_share_ceiling_cents < 0 ||
-        target.fee_per_share_ceiling_cents >= target.sell_limit_cents ||
+        target.target_shares > limits_.maximum_position_shares || target.sell_limit_units <= 0 ||
+        target.buy_limit_units < target.sell_limit_units || target.fee_per_share_ceiling_units < 0 ||
+        target.fee_per_share_ceiling_units >= target.sell_limit_units ||
         (!state_.latest_target_id.empty() && target.decision_at_seconds <= latest_target()->decision_at_seconds)) {
         return record("target", "", target.id, Outcome::denied, "invalid, noncausal or out-of-limit strategy target");
     }
@@ -228,20 +228,20 @@ Outcome OrderRuntime::apply(State& candidate, const BrokerReport& report) const 
             return Outcome::duplicate;
         }
         if (terminal(order.status) || report.fill_shares > request.shares - order.filled_shares ||
-            (request.side == Side::buy && report.fill_price_cents > request.limit_cents) ||
-            (request.side == Side::sell && report.fill_price_cents < request.limit_cents) ||
-            report.fee_cents > multiply(report.fill_shares, request.fee_per_share_ceiling_cents)) {
+            (request.side == Side::buy && report.fill_price_units > request.limit_units) ||
+            (request.side == Side::sell && report.fill_price_units < request.limit_units) ||
+            report.fee_units > multiply(report.fill_shares, request.fee_per_share_ceiling_units)) {
             throw std::invalid_argument("fill contradicts order quantity, limit, fee ceiling or terminal state");
         }
-        const auto notional = multiply(report.fill_shares, report.fill_price_cents);
+        const auto notional = multiply(report.fill_shares, report.fill_price_units);
         if (request.side == Side::buy) {
-            const auto debit = add(notional, report.fee_cents);
+            const auto debit = add(notional, report.fee_units);
             if (debit > candidate.cash) { throw std::invalid_argument("fill exceeds cash"); }
             candidate.cash -= debit;
             candidate.position = add(candidate.position, report.fill_shares);
         } else {
             if (report.fill_shares > candidate.position) { throw std::invalid_argument("fill exceeds inventory"); }
-            candidate.cash = add(candidate.cash, notional - report.fee_cents);
+            candidate.cash = add(candidate.cash, notional - report.fee_units);
             candidate.position -= report.fill_shares;
         }
         order.filled_shares += report.fill_shares;
@@ -322,7 +322,7 @@ void OrderRuntime::reconnect() {
     static_cast<void>(record("reconnect", "", "", Outcome::applied, "connection restored; reconciliation still required"));
 }
 Outcome OrderRuntime::reconcile(const BrokerSnapshot& broker) {
-    bool matches = connected_ && broker.cash_cents == state_.cash && broker.position_shares == state_.position;
+    bool matches = connected_ && broker.cash_units == state_.cash && broker.position_shares == state_.position;
     std::map<std::string, BrokerOpenOrder> open;
     for (const auto& item : broker.open_orders) {
         if (!open.emplace(item.request.id, item).second) { matches = false; }

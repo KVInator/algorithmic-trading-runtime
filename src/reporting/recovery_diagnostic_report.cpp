@@ -34,7 +34,7 @@ void RecoveryDiagnosticReport::write(const std::filesystem::path& directory) con
             {"pending_cancel_id", row.order.pending_cancel_id}, {"journal_records", row.journal_records}});
         // Labels originate in the fixed diagnostic, never in broker messages.
         html << "<tr><td>" << row.scenario << "<br>" << row.stage << "</td><td>" << name(row.order.status)
-             << "</td><td>" << a.cash_cents << "</td><td>" << a.position_shares << "</td><td>" << a.reserved_cash_cents
+             << "</td><td>" << a.cash_units << "</td><td>" << a.position_shares << "</td><td>" << a.reserved_cash_units
              << "</td><td>" << row.order.filled_shares << "</td><td>" << (a.connected && !a.reconciliation_required ? "open" : "closed")
              << "</td><td>" << row.journal_records << "</td></tr>";
     }

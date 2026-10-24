@@ -7,11 +7,14 @@ SPY studies. `execution_diagnostic` runs offline with synthetic prices and fills
 
 ## Model and ownership
 
-`trading::execution::OrderRuntime` owns a single symbol, integer USD cents,
+`trading::execution::OrderRuntime` owns a single symbol and integer monetary units,
 whole-share inventory, orders, cancellation identities, processed event and
 execution identities, and a sequential trace. Calls are serialized in arrival
 order. The initial diagnostic account has USD 10,000, zero shares, a twenty-share
 position limit and a four-open-order limit. Each scenario starts a fresh account.
+The owning financial contract selects the unit: legacy diagnostics/journals use
+USD cents; the [paper bridge](paper_execution.md) uses USD 1e-9. C++ core fields
+use neutral unit names, while legacy JSON cent keys retain their meaning.
 
 This is an explicit execution model. The existing `LongCashAccount` remains the
 authoritative fractional, target-weight research account with dividend and split

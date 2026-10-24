@@ -75,7 +75,7 @@ void test_restart_and_dedup(const std::filesystem::path& root) {
         require(runtime.trace().size() == original.size() + 1, "restart adds a durable disconnect barrier");
         require(std::equal(original.begin(), original.end(), runtime.trace().begin()), "entire pre-restart trace reproduced");
         require(runtime.order("B").pending_cancel_id == "C", "pending cancel identity restored");
-        require(runtime.account().cash_cents == 959996 && runtime.account().reserved_cash_cents == 60060, "partial cash and reservation restored");
+        require(runtime.account().cash_units == 959996 && runtime.account().reserved_cash_units == 60060, "partial cash and reservation restored");
         auto duplicate = first_fill; duplicate.event_id = "F1-copy";
         require(runtime.execute(duplicate) == Outcome::duplicate, "execution deduplication survives restart");
         require(runtime.execute(first_fill) == Outcome::duplicate, "delivery deduplication survives restart");
@@ -85,10 +85,10 @@ void test_restart_and_dedup(const std::filesystem::path& root) {
         require(runtime.execute(BrokerReport{"CR", "B", ReportKind::cancel_rejected, "", 0, 0, 0, 0, "C"}) == Outcome::applied,
                 "restored cancellation correlation handles delayed response");
         require(runtime.execute(BrokerReport{"F2", "B", ReportKind::fill, "X2", 6, 10000, 6, 0, ""}) == Outcome::applied, "remaining fill");
-        require(runtime.account().cash_cents == 899990 && runtime.account().position_shares == 10, "independent final cash identity");
+        require(runtime.account().cash_units == 899990 && runtime.account().position_shares == 10, "independent final cash identity");
     }
     auto twice = JournaledRuntime::recover(open_journal_file(file), config);
-    require(twice.account().cash_cents == 899990 && twice.account().reconciliation_required, "second restart retains fills and closes gate again");
+    require(twice.account().cash_units == 899990 && twice.account().reconciliation_required, "second restart retains fills and closes gate again");
 }
 
 void test_uncertain_writes(const std::filesystem::path& root) {
@@ -109,7 +109,7 @@ void test_uncertain_writes(const std::filesystem::path& root) {
         if (mode == Fault::partial) {
             rejects([&] { static_cast<void>(JournaledRuntime::recover(open_journal_file(file), config)); });
             auto recovered = JournaledRuntime::recover_prefix(open_journal_file(file), create_journal_file(root / "prefix.journal"), config);
-            require(recovered.account().position_shares == 0 && recovered.account().reserved_cash_cents == 100100, "partial frame cannot become a fill");
+            require(recovered.account().position_shares == 0 && recovered.account().reserved_cash_units == 100100, "partial frame cannot become a fill");
             require(trading::sha256_file(file) == digest, "prefix recovery retains original bytes");
         } else {
             auto recovered = JournaledRuntime::recover(open_journal_file(file), config);
@@ -129,7 +129,7 @@ void test_uncertain_order_intent(const std::filesystem::path& root) {
         require(!runtime.healthy(), "no dispatch acknowledgement returned after uncertain intent commit");
     }
     auto recovered = JournaledRuntime::recover(open_journal_file(file), config);
-    require(recovered.order("B").status == OrderStatus::pending_new && recovered.account().reserved_cash_cents == 100100,
+    require(recovered.order("B").status == OrderStatus::pending_new && recovered.account().reserved_cash_units == 100100,
             "durable but unacknowledged intent survives with its full reservation");
     require(recovered.execute(ConnectionInput{true}) == Outcome::applied, "intent fixture reconnect");
     require(recovered.execute(BrokerSnapshot{1000000, 0, {{request, 0}}}) == Outcome::applied, "broker confirms existing intent");
@@ -152,7 +152,7 @@ void test_all_delivery_schedules(const std::filesystem::path& root) {
         auto recovered = JournaledRuntime::recover(open_journal_file(file), config);
         require(recovered.trace().size() == original.size() + 1 &&
                 std::equal(original.begin(), original.end(), recovered.trace().begin()), "every original scenario replays through the core exactly");
-        require(recovered.account().cash_cents == result.final_account.cash_cents &&
+        require(recovered.account().cash_units == result.final_account.cash_units &&
                 recovered.account().position_shares == result.final_account.position_shares, "all scenario final ledgers survive restart");
     }
 }
@@ -219,7 +219,7 @@ void verify_crash(const std::filesystem::path& root, const std::string& phase) {
     require(recovered.account().position_shares == (booked ? 4 : 0), "abrupt process restart restores the durable prefix");
     require(!recovered.account().connected && recovered.account().reconciliation_required, "abrupt restart cannot dispatch");
     require(recovered.execute(first_fill) == (booked ? Outcome::duplicate : Outcome::applied), "redelivery after crash books execution exactly once");
-    require(recovered.account().cash_cents == 959996 && recovered.account().position_shares == 4, "crash recovery integer identity");
+    require(recovered.account().cash_units == 959996 && recovered.account().position_shares == 4, "crash recovery integer identity");
     if (phase == "torn_tail") { require(trading::sha256_file(source) == before, "crash tail evidence retained"); }
 }
 } // namespace

@@ -49,7 +49,7 @@ PipelineDiagnosticResult PipelineDiagnostic::run() const {
         check("Strategy target produces a durable broker order", pipeline->accept_target(target, entry).status == RouteStatus::submitted);
         check("Fill delivered before acknowledgement is accepted", pipeline->deliver_report(1) == Outcome::applied);
         pipeline->deliver_reports();
-        check("Initial four-share fill is booked once", runtime->account().position_shares == 4 && runtime->account().cash_cents == 959996);
+        check("Initial four-share fill is booked once", runtime->account().position_shares == 4 && runtime->account().cash_units == 959996);
         check("Duplicate quote cannot refill its liquidity", !broker.on_quote(quotes.back()) && broker.fills().size() == 1);
         check("Duplicate target cannot create a second order", pipeline->accept_target(target, entry).status == RouteStatus::waiting && broker.order_count() == 1);
         quote({2, entry + 1, 9999, 10000, 20, 2});
@@ -63,7 +63,7 @@ PipelineDiagnosticResult PipelineDiagnostic::run() const {
             check("Durable strategy target survives restart", runtime->latest_target() == target);
             check("Broker replay repairs the missing execution", pipeline->synchronize());
         } else { pipeline->deliver_reports(); }
-        check("Two quotes supply exactly six shares", runtime->account().position_shares == 6 && runtime->account().reserved_cash_cents == 40040);
+        check("Two quotes supply exactly six shares", runtime->account().position_shares == 6 && runtime->account().reserved_cash_units == 40040);
         quote({3, exit, 9999, 10000, 3, 0});
         const auto flat = adapter.liquidation(*broker.quote());
         check("Liquidation waits for cancellation", pipeline->accept_target(flat, exit).status == RouteStatus::waiting);
@@ -72,7 +72,7 @@ PipelineDiagnosticResult PipelineDiagnostic::run() const {
         check("Cancel race retains the seventh executed share", runtime->account().position_shares == 7 && runtime->order(target.id + "-order").status == OrderStatus::pending_cancel);
         broker.complete_cancels(exit + 1);
         pipeline->deliver_reports();
-        check("Confirmed cancellation releases the unfilled buy remainder", runtime->account().reserved_cash_cents == 0);
+        check("Confirmed cancellation releases the unfilled buy remainder", runtime->account().reserved_cash_units == 0);
         check("Liquidation sells actual inventory", pipeline->route_latest(exit + 1).status == RouteStatus::submitted);
         if (interrupted) {
             pipeline.reset(); runtime.reset();
@@ -89,8 +89,8 @@ PipelineDiagnosticResult PipelineDiagnostic::run() const {
         check("Old target replay cannot supersede liquidation", pipeline->accept_target(target, exit + 2).status == RouteStatus::superseded);
         check("Final broker snapshot matches the client", pipeline->synchronize());
         const auto account = runtime->account();
-        check("Integer ledger matches the constructed execution identity", account.cash_cents == 1000023 && account.position_shares == 0 && account.open_orders == 0 &&
-              account.reserved_cash_cents == 0 && account.reserved_sell_shares == 0 && broker.order_count() == 2 && broker.fills().size() == 5);
+        check("Integer ledger matches the constructed execution identity", account.cash_units == 1000023 && account.position_shares == 0 && account.open_orders == 0 &&
+              account.reserved_cash_units == 0 && account.reserved_sell_shares == 0 && broker.order_count() == 2 && broker.fills().size() == 5);
         result.cases.push_back({interrupted ? "Interrupted client" : "Uninterrupted client", filename, std::move(quotes),
             {target, flat}, broker.fills(), broker.reports(), runtime->trace(), account, restarts});
     }
@@ -116,7 +116,7 @@ PipelineDiagnosticResult PipelineDiagnostic::run() const {
         check("Cash liquidation quote accepted", broker.on_quote(quotes[1]));
         targets.push_back(adapter.liquidation(*broker.quote()));
         check("Cash liquidation produces no spurious sale", pipeline.accept_target(targets[1], exit).status == RouteStatus::settled);
-        check("Cash path has no broker executions", broker.order_count() == 0 && broker.fills().empty() && runtime.account().cash_cents == 1000000);
+        check("Cash path has no broker executions", broker.order_count() == 0 && broker.fills().empty() && runtime.account().cash_units == 1000000);
         result.cases.push_back({"Cash signal", filename, std::move(quotes), std::move(targets), broker.fills(), broker.reports(), runtime.trace(), runtime.account(), 1});
     }
     return result;

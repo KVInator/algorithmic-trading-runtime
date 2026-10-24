@@ -10,7 +10,7 @@ namespace trading::execution {
 
 struct RuntimeConfiguration {
     std::string symbol;
-    Cents initial_cash_cents;
+    Cents initial_cash_units;
     RuntimeLimits limits;
 };
 struct JournalInspection {
@@ -20,11 +20,6 @@ struct JournalInspection {
     std::string last_sha256;
     int schema_version{1};
 };
-class JournalError : public std::runtime_error {
-public:
-    using std::runtime_error::runtime_error;
-};
-
 // Journal before acknowledging eligibility for external dispatch. Recovery
 // reuses OrderRuntime, then durably disconnects before exposing any state.
 // No automatic resend, in-place truncation or broker transport is provided.

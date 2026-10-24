@@ -53,9 +53,9 @@ The responsibility and ownership map is in `docs/architecture.md`.
 
 Build/test presets and target prerequisites are documented in `docs/running.md`.
 Windows uses `windows-x64` and `windows-debug`; Linux uses `linux-debug` for
-configure/build/test. Full routine presets run twenty-four groups and exclude
+configure/build/test. Full routine presets run twenty-five groups and exclude
 optional full-period disk integration. The matching `*-quick` test presets run
-twenty groups, excluding four `extended` study/disk regressions. Use quick and
+twenty-one groups, excluding four `extended` study/disk regressions. Use quick and
 relevant affected contracts during edits; changes to excluded study/storage code
 also require its extended group. Run the complete routine preset at a milestone.
 Keep warnings as errors.
@@ -66,6 +66,9 @@ dispatch eligibility, preserve exclusive writer ownership, reject complete-frame
 corruption and recover incomplete tails into a separate verified-prefix file.
 Never truncate damaged evidence or automatically resend uncertain durable orders.
 Legacy schema-1 journals remain readable; target inputs require schema 2.
+The paper bridge uses schema 3 with USD 1e-9 units and an explicit paper fee
+policy. Preserve legacy JSON cent keys while C++ core fields use neutral units.
+Its accounting/persistence contract is in `docs/paper_execution.md`.
 The runtime, journal and pipeline contracts in `docs/` define these invariants.
 
 `research/intraday_reversion_protocol.md` and its JSON register SPY-MR-01
