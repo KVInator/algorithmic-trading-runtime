@@ -9,11 +9,11 @@ working directory. Each diagnostic or study writes a new directory under
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
 **Test > Run Test Preset > windows-debug-quick** for everyday edits. Select an
-executable and use **Ctrl+F5**. The quick preset runs twenty-one groups. Use
-**windows-debug** for the complete twenty-five-group routine suite at milestones.
+executable and use **Ctrl+F5**. The quick preset runs twenty-two groups. Use
+**windows-debug** for the complete twenty-six-group routine suite at milestones.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
-has a matching twenty-five-group test preset. Financial/artifact validation stays
+has a matching twenty-six-group test preset. Financial/artifact validation stays
 enabled. `windows-debug-full` additionally runs the optional 497-session
 synthetic disk integration test.
 
@@ -37,7 +37,7 @@ ctest --preset linux-debug -R '(intraday_reversion|offline_pipeline)_contracts' 
 Quick presets exist for `windows-debug`, `windows-release` and `linux-debug` as
 `windows-debug-quick`, `windows-release-quick` and `linux-debug-quick`. Each inherits
 its existing full preset and excludes `integration` and `extended` labels. Full
-presets retain all twenty-five routine groups; no test is shortened or removed.
+presets retain all twenty-six routine groups; no test is shortened or removed.
 
 | Extended group excluded from quick runs | MSVC Debug time supplied on 24 October 2026 |
 | --- | ---: |
@@ -49,7 +49,7 @@ presets retain all twenty-five routine groups; no test is shortened or removed.
 These four groups account for 333.21 of the reported 342.68 seconds. Remaining
 elapsed time projects to about 9.47 seconds on that run; this is an estimate,
 not a measured Windows quick-preset time. Those timings refer to the preceding
-24-group revision; the current quick preset adds the new paper-execution group.
+24-group revision; the current quick preset adds the paper-execution and transport groups.
 Disk/cache/build conditions can differ.
 The excluded groups exercise synthetic study/accounting and disk/reload work;
 these timings do not isolate a particular implementation bottleneck.
@@ -77,6 +77,7 @@ branches. Local datasets remain in place.
 
 | Target | Expected evidence |
 | --- | --- |
+| `paper_transport_diagnostic` | 24 checks in seven deterministic transport cases, durable raw capture and retained schema-3 state; zero network requests |
 | `paper_execution_diagnostic` | 42 assertions, three schema-3 journals, exact subcent cash, identities, partial fills, cancellation/restart and quarantine; zero network requests |
 | `paper_contract_diagnostic` | 56 checks, forty constructed API-shaped cases, exact decimal/time boundaries and paper-only request descriptions; zero network requests |
 | `continuation_diagnostic` | `trace.html` and `decisions.csv`; constructed completed-prefix price/volume decisions |
@@ -96,6 +97,20 @@ These targets need no credentials or private market datasets. Quarantined/denied
 rows in prescribed fault schedules are expected. The journal test group
 separately launches four abruptly exiting child processes. These checks do not
 establish physical power-loss behavior or historical strategy performance.
+
+## Read-only paper connection probe
+
+On Windows select **paper_transport_probe.exe** and press **Ctrl+F5**. It reuses
+Credential Manager/hidden console credentials, reads only the paper account and
+queries, authenticates and subscribes to order updates, and compares independent
+snapshots with a new flat ledger. No orders are submitted or canceled. Existing
+positions/orders or mismatched evidence stop reconciliation without altering
+the account. The report retains any available failure evidence.
+
+Run the offline `paper_transport_diagnostic` first. Keep the complete output
+directory printed by both programs. The [transport contract](paper_transport.md)
+explains request limits, capture privacy, snapshot limitations and native
+acceptance. Probe success does not complete the observed-order milestone.
 
 ## Historical and acquisition targets
 

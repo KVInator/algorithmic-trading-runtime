@@ -5,7 +5,7 @@ system preserves market-data evidence, evaluates specified trading rules and
 connects causal strategy decisions to a journaled order runtime and deterministic
 broker simulator.
 
-The project is in progress. Actual paper-broker transport, observed execution
+The project is in progress. Native paper-transport acceptance, observed execution
 measurements, performance benchmarks and the final analytical report remain open
 in the [completion plan](docs/completion_plan.md) and [milestone ledger](docs/progress.md).
 
@@ -40,7 +40,9 @@ exposes saved client/broker state, reservations, fills and routing gates.
 The [paper API boundary](docs/alpaca_paper_contract.md) adds exact decimal/time
 decoding and paper-only request construction. The [schema-3 bridge](docs/paper_execution.md)
 adds exact nanodollar accounting and durable broker identities using the same
-order core; broker transport remains open.
+order core. The [paper transport](docs/paper_transport.md) adds bounded HTTP,
+authenticated streaming, durable raw capture and deterministic faults; native
+connection acceptance and operational order capture remain open.
 The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
 and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
 
@@ -54,7 +56,7 @@ requires access to that dependency. Project warnings are treated as errors.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
 4. For everyday edits, run **Test > Run Test Preset > windows-debug-quick**
-   (twenty-one groups). Use **windows-debug** for all twenty-five groups at milestones
+   (twenty-two groups). Use **windows-debug** for all twenty-six groups at milestones
    and affected extended groups when changing study/storage code.
 5. Select **strategy_execution_diagnostic.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.

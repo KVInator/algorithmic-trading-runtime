@@ -523,13 +523,54 @@ evidence. No new build or diagnostic rerun is required for this documentation-on
 acceptance record. Milestone 4 remains open until observed transport/recovery
 and operational capture meet the completion plan.
 
+## Paper transport checkpoint
+
+The [transport contract](paper_transport.md) adds `PaperSession`, a bounded HTTP
+policy, durable raw capture and a Windows WinHTTP wire. The native composition
+root reads account/position/open-order evidence and authenticates/subscribes
+without an order-submission/cancellation call path. Operational orders remain
+unavailable until expiry/stop, feed-health and capture policy are fixed.
+
+The deterministic diagnostic passes 24 assertions in seven cases: partial-fill
+and cancellation, uncertain POST with 404 lookup, bounded GET rate limits,
+authorization denial, peer closure, changing snapshots and malformed input.
+Additional routine contracts verify unsupported statuses/fields, fragment bounds,
+quiet polling, subscription interleaving, capture failure before dispatch,
+intervening snapshot events and stable-ID restart recovery without resubmission.
+Malformed inputs are captured and durably quarantined; reconnect cannot clear
+that unsupported-evidence latch. The exact accounting bridge is unchanged.
+
+GCC Debug Build All passes with warnings as errors. The full routine suite
+contains 26 groups and the final quick selection contains 22. Both pass.
+Transport and paper-execution groups pass ASan/UBSan with leak detection disabled.
+Generated ELF executable bits lost in this workspace were restored before the
+final checks; no source/build policy changes were needed for that environment
+issue. Native Windows source and probe pass Clang 19 syntax checks against the
+Windows target headers; these are not an MSVC build or a live API acceptance.
+
+Debug evidence at `scratch/runs/paper_transport_5` and Release evidence at
+`paper_transport_4` have 136 byte-identical artifacts, including raw bodies,
+capture indexes, schema-3 journals, saved state and HTML. The independent verifier
+checks all 136 hashes, 119 capture records, seven Decimal ledgers and 42 journal
+inputs; all 212 source records match. The original three-journal bridge verifier
+also retains its 48-input/eighteen-frame result. Report links and a static layout
+render are inspected; browser behavior remains unverified. Hygiene and diff
+checks pass. No network requests, observed broker order events or changed
+historical scores are produced by this offline evidence.
+
+Double collection does not create an atomic broker snapshot. Missing/delayed
+stream evidence, cash precision, fees and operational stream health still require
+observed assessment. Capture and accounting have separate commit boundaries;
+raw archival does not prove that the financial state committed an input.
+
 ## Next dependency
 
-Connect the Alpaca paper transport to the accepted bridge with durable raw
-archival, stable-ID order lookup, bounded request handling and authenticated
-stream/reconnect management. Add consistent snapshot collection and explicit
-expiry/stop control. Observe cash precision and fee availability without silently
-changing the declared policy, and fix the five-session capture plan before
-operational execution. Milestones 1-3 remain closed; 4 is in progress;
+Pull the checkpoint, Build All and run `windows-debug-quick` (22 groups).
+Run `paper_transport_diagnostic`, followed by the read-only
+`paper_transport_probe`, retaining the complete printed directories. Native
+compilation and account/stream observations are pending for this transport.
+Then add durable expiry/controlled stop and feed-health policy, fix the five-session
+capture plan before operational orders, and collect observed lifecycle and
+reconnect/restart evidence. Milestones 1-3 remain closed; 4 is in progress;
 execution measurements, benchmarks/portable CI and final publication remain
 milestones 5-7.

@@ -65,7 +65,11 @@ class PaperExecutionVerifier:
                     active=True,
                 )
             if kind == "stream":
-                message = json.loads(command["raw"])
+                try:
+                    message = json.loads(command["raw"])
+                except json.JSONDecodeError:
+                    assert outcome == "quarantined"
+                    message = {}
                 if message.get("stream") == "trade_updates":
                     data = message["data"]
                     event = data["event"]

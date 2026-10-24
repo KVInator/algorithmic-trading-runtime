@@ -113,6 +113,10 @@ add_library(paper_execution src/execution/paper_execution.cpp src/execution/jour
 target_link_libraries(paper_execution PUBLIC execution_persistence alpaca_paper_contract)
 configure_trading_target(paper_execution)
 
+add_library(paper_transport src/alpaca/paper_transport.cpp src/alpaca/paper_transport_diagnostic.cpp)
+target_link_libraries(paper_transport PUBLIC paper_execution)
+configure_trading_target(paper_transport)
+
 add_library(offline_execution src/execution/simulated_broker.cpp src/execution/offline_pipeline.cpp
     src/execution/momentum_order_adapter.cpp src/execution/pipeline_diagnostic.cpp
     src/execution/strategy_order_adapters.cpp src/execution/strategy_execution_diagnostic.cpp)
@@ -154,6 +158,12 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/generated/trading_source_inventory.hpp"
     "#pragma once\n#include <string_view>\nnamespace trading::build {\n"
     "inline constexpr std::string_view source_sha256{\"${source_sha256}\"};\n"
     "inline constexpr std::string_view source_records{R\"inventory(${source_records})inventory\"};\n}\n")
+
+add_library(paper_transport_reporting src/reporting/paper_transport_report.cpp)
+target_include_directories(paper_transport_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting" PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+target_link_libraries(paper_transport_reporting PUBLIC paper_transport)
+target_compile_definitions(paper_transport_reporting PRIVATE TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}" TRADING_BUILD_CONFIGURATION="$<CONFIG>")
+configure_trading_target(paper_transport_reporting)
 
 add_library(paper_execution_reporting src/reporting/paper_execution_report.cpp)
 target_include_directories(paper_execution_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting" PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
@@ -236,6 +246,7 @@ add_trading_app(continuation_development continuation_reporting)
 add_trading_app(risk_preflight risk_preflight_reporting)
 add_trading_app(risk_acquire risk_preflight_reporting)
 add_trading_app(risk_development daily_risk_reporting)
+add_trading_app(paper_transport_diagnostic paper_transport_reporting)
 add_trading_app(paper_execution_diagnostic paper_execution_reporting)
 add_trading_app(paper_contract_diagnostic paper_contract_reporting)
 add_trading_app(execution_diagnostic execution_reporting)
@@ -250,6 +261,11 @@ target_sources(continuation_diagnostic PRIVATE src/reporting/continuation_diagno
 target_include_directories(continuation_diagnostic PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting")
 
 if(WIN32)
+    add_library(alpaca_paper_wire src/platform/windows/alpaca_paper_wire_winhttp.cpp)
+    target_include_directories(alpaca_paper_wire PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows")
+    target_link_libraries(alpaca_paper_wire PUBLIC paper_transport PRIVATE winhttp)
+    target_compile_definitions(alpaca_paper_wire PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
+    configure_trading_target(alpaca_paper_wire)
     add_library(alpaca_market_data src/platform/windows/alpaca_market_data_client_winhttp.cpp)
     target_link_libraries(alpaca_market_data PUBLIC alpaca_decoder PRIVATE winhttp)
     target_compile_definitions(alpaca_market_data PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
@@ -263,6 +279,7 @@ if(WIN32)
     target_compile_definitions(alpaca_console PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
     configure_trading_target(alpaca_console)
 
+    add_trading_app(paper_transport_probe "alpaca_paper_wire;paper_transport_reporting;alpaca_console")
     add_trading_app(alpaca_development "alpaca_market_data;session_data;alpaca_console")
     target_link_libraries(risk_preflight PRIVATE alpaca_market_data alpaca_console)
     target_link_libraries(risk_acquire PRIVATE alpaca_market_data alpaca_console)
@@ -288,6 +305,7 @@ if(BUILD_TESTING)
         endif()
     endfunction()
     add_trading_contract(minute_bar_tests minute_bar_contracts trading_core)
+    add_trading_contract(paper_transport_tests paper_transport_contracts paper_transport_reporting OUTPUT)
     add_trading_contract(paper_execution_tests paper_execution_contracts paper_execution_reporting OUTPUT)
     add_trading_contract(paper_contract_tests alpaca_paper_contracts "paper_contract_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(alpaca_credentials_tests alpaca_credentials_contracts trading_core)

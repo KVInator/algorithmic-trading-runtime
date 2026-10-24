@@ -57,8 +57,8 @@ automatically resent.
 
 The [runtime](execution_runtime.md), [journal](journal_recovery.md) and
 [pipeline](offline_pipeline.md) contracts define transitions, fault handling,
-versions and resource limits. Actual paper transport and observed execution
-measurements remain open.
+versions and resource limits. Native paper connection acceptance and observed
+execution measurements remain open.
 
 The [paper-broker contract](alpaca_paper_contract.md) preserves broker precision
 without changing the current cent ledger or journal schemas. The versioned exact
@@ -67,3 +67,10 @@ accounting bridge is described below; observed transport/reconciliation remains 
 The [paper execution owner](paper_execution.md) composes that same order core
 with exact broker conversion, durable identity mapping and a schema-3 journal.
 `JournalFrame` provides one framing/checksum implementation for all schemas.
+
+The [paper transport](paper_transport.md) composes `PaperSession`,
+`PaperHttpClient`, `PaperCapture` and a `PaperWire` substitution boundary.
+The Windows wire owns credentials and WinHTTP handles; the session owns protocol
+ordering and calls the same journaled bridge. Capture bodies/indexes and runtime
+inputs have separate durable boundaries. The Windows probe is read-only;
+operational policies and observed session capture remain open.

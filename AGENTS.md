@@ -53,9 +53,9 @@ The responsibility and ownership map is in `docs/architecture.md`.
 
 Build/test presets and target prerequisites are documented in `docs/running.md`.
 Windows uses `windows-x64` and `windows-debug`; Linux uses `linux-debug` for
-configure/build/test. Full routine presets run twenty-five groups and exclude
+configure/build/test. Full routine presets run twenty-six groups and exclude
 optional full-period disk integration. The matching `*-quick` test presets run
-twenty-one groups, excluding four `extended` study/disk regressions. Use quick and
+twenty-two groups, excluding four `extended` study/disk regressions. Use quick and
 relevant affected contracts during edits; changes to excluded study/storage code
 also require its extended group. Run the complete routine preset at a milestone.
 Keep warnings as errors.
