@@ -47,8 +47,9 @@ fitting/scoring. The [synthetic specification](reversion_validation.md) and
 [evidence](reversion_validation_result.md) quantify finite-sample error,
 observation/anchor noise, false OU admissibility and range undercoverage.
 Causal measurements, pooled OLS, whole-session ranges and input coverage are
-implemented. Prior-only history, policies, control accounts and the historical
-comparison remain open. Parameter ranges are descriptive and cannot filter
+implemented. Prior-only history, four policy accounts, cash reference and paired historical
+comparison are implemented. The [implementation and development evidence](../docs/reversion_development.md)
+records reproduction, gates and native verification status. Parameter ranges are descriptive and cannot filter
 entries or establish stationarity. The [original brief](intraday_reversion_brief.md)
 remains unchanged as selection history.
 

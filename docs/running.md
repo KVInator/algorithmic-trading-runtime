@@ -9,10 +9,10 @@ working directory. Each diagnostic or study writes a new directory under
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
 **Test > Run Test Preset > windows-debug**. Select an executable and use
-**Ctrl+F5**. The routine preset runs twenty-one contract groups.
+**Ctrl+F5**. The routine preset runs twenty-two contract groups.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
-has a matching twenty-one-group test preset. Financial/artifact validation stays
+has a matching twenty-two-group test preset. Financial/artifact validation stays
 enabled. `windows-debug-full` additionally runs the optional 497-session
 synthetic disk integration test.
 
@@ -74,6 +74,7 @@ establish physical power-loss behavior or historical strategy performance.
 | `risk_preflight` | Frozen development data; all-calendar coverage and constructed accounting. Windows adds three read-only corporate-action access probes. |
 | `risk_acquire` | Windows credentials; isolated calibration/warm-up/shortened-session acquisition and action reconciliation |
 | `risk_development` | Completed risk acquisition and frozen development data; registered SPY-RISK-01 forty-case study |
+| `reversion_development` | Registered SPY-MR-01 protocol/settings and frozen snapshot; twenty prior sessions, 476 scored dates and forty fixed account cases |
 | `reversion_preflight` | Frozen snapshot; constructed checks and read-only prefix/reference availability |
 
 Completed acquisition need not repeat for replay. Finalization verifies an
@@ -146,3 +147,19 @@ The independent synthetic reversion report check uses only the standard library:
 ```sh
 python research/verify_reversion_validation.py <report-directory>
 ```
+
+`reversion_development` verifies the unchanged protocol/settings and full input
+evidence before fitting. It writes forty normalized account paths in four policy
+CSV files, a cash reference, measurements, decisions, conditional parameter ranges,
+paired outcome ranges and all gates. No later-period data are opened.
+
+Its independent verification uses Python and NumPy only for the separate oracle:
+
+```sh
+python research/verify_reversion_study.py <report-directory>
+```
+
+The verifier independently implements MT19937-64/session sampling, Decimal OLS,
+account arithmetic and NumPy bulk resampling. NumPy is not a C++ build/runtime
+dependency. The [development evidence](reversion_development.md) records results
+and native verification status.

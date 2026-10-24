@@ -16,7 +16,7 @@ in the [completion plan](docs/completion_plan.md) and [milestone ledger](docs/pr
 | SPY-IM-01 intraday momentum | The 496-session development study has 268 active trades and fails its gross-edge screen. The primary one-minute-delay, 1 bp-per-side compounded return is -7.8924%. |
 | SPY-TOD-01 time-of-day continuation | Both price-only and volume-conditioned variants fail their advancement screens. An incremental benefit from volume is not established. |
 | SPY-RISK-01 daily risk allocation | Forty account cases cover all 501 development exchange sessions. The primary intraday-risk CER increment over daily-only is -1.5430 percentage points; revision 1 does not advance. |
-| SPY-MR-01 opening-anchor reversion | Revision 1 is registered after thirteen synthetic sampling/noise cases. Parameter ranges are descriptive; historical scoring remains pending. |
+| SPY-MR-01 opening-anchor reversion | The registered 476-date, forty-account comparison is cost-dominated: 83 active dates; primary compounded net return -0.4171%. Parameter ranges remain descriptive. |
 
 The [research index](research/README.md) identifies governing protocols, retained
 findings and earlier proposals. These are development findings from inspected
@@ -47,7 +47,7 @@ requires access to that dependency. Project warnings are treated as errors.
 1. Open the repository with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Run **Test > Run Test Preset > windows-debug** for twenty-one routine groups.
+4. Run **Test > Run Test Preset > windows-debug** for twenty-two routine groups.
 5. Select **pipeline_diagnostic.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.
 6. Open the printed `report.html` and retain its evidence directory.

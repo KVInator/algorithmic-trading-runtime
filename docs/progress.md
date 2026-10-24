@@ -8,7 +8,7 @@ evidence rather than a completion percentage.
 | Milestone | Status | Evidence and remaining acceptance |
 | --- | --- | --- |
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
-| 2. Strategy research | In progress: reversion revision 1 registered | Synthetic finite-sample/noise evidence, whole-session parameter ranges and failure conventions are complete. Native synthetic verification is complete for `5835606`. Prior-only history, policies/control accounts and registered historical scoring remain. |
+| 2. Strategy research | Historical implementation and Linux comparison complete; native verification pending | Three strategy specifications now have historical comparisons. SPY-MR-01 retains 476 dates, forty market cases, 83 primary active dates and a cost-dominated result. The new Windows build, twenty-two routine groups and historical study output remain to verify. |
 | 3. Shared execution path | Partially implemented | The original momentum adapter has synthetic fill/restart evidence. Continuation/reversion adapters, historical reference replay and account-convention comparisons remain. |
 | 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
@@ -220,14 +220,55 @@ or registered research rule changes are required. This closes native verificatio
 of the sampling/noise checkpoint, not milestone 2 or historical reversion scoring.
 This documentation-only update does not require another native build.
 
+## Registered historical reversion checkpoint
+
+`ReversionHistory`, `ReversionStrategy` and `ReversionStudy` implement revision 1
+without changing either registered document. Twenty prior eligible slots include
+unavailable anchors. The current prefix never enters its own dynamics estimate;
+future references affect account returns only. Fixed noon decisions feed forty
+cost/delay cases and cash. All 476 dates remain in paired economic uncertainty;
+forecast loss comparisons share the declared availability mask. Reduced fixture
+budgets cannot pass through the authenticated historical boundary.
+
+The [development evidence](reversion_development.md) records the complete finding:
+83 primary active dates, +1.2498% gross compounding and -0.4171% primary net
+compounding. The assessment is `cost_dominated`; the activity, annual/stress,
+net-positive and uncertainty requirements also fail. Net increments over the
+controls do not justify advancement: both lower-bound screens fail, and the
+paired gross increment over sign-only is negative. Conditional forecast-loss
+point contrasts favor drift; their ranges include zero. No rule is retuned.
+
+GCC 13.3 Debug Build All and all twenty-two routine groups pass with warnings as
+errors. New history/replay/report
+contracts also pass ASan/UBSan with leak detection disabled. The independent
+Python/NumPy 2.3.5 oracle verifies 476 rolling fits using 60-digit Decimal
+arithmetic, all decisions and account paths, annual metrics, common-date outcome
+resampling, 952 parameter-range records, all economic/forecast gates and hashes.
+Its explicit MT19937-64 and block sampler do not call the C++ implementation.
+
+The registered run verifies the unchanged frozen 496-session input evidence.
+The final report at `scratch/runs/SPY_MR_01_development_2022-2023_4` contains
+475,048 parameter refits, forty paths and ten hashed artifacts. Summary SHA-256:
+`5e0eeffce064a76608ee030dac6a0ff6e7ca77dd3e96c6bd7f7e23aaed2e9cb3`.
+The 171-file compiled inventory has aggregate
+`184bc6f0406ce3c63a67ef97e146acf287f745ae60fb4f437ea0c1a62fa5495c`.
+Repeated runs retain eight byte-identical numerical exports and identical
+aggregate statistics, ranges and gates. Intervening source changes complete the
+verifier, move ledger calculations into the research core and format new sources;
+trading rules and numerical outputs remain unchanged. All 171 source-file hashes
+in the final compiled inventory match the current source bytes. HTML links and
+additional break-even arithmetic checks pass; browser rendering is unavailable.
+Repository hygiene reports no findings. Frozen datasets, earlier studies,
+protocol/settings and existing journals remain unchanged. No local 2024-2025
+prices or candidate results were accessed.
+
 ## Next dependency
 
-Implement and test the registered prior-only history, noon policies, four market
-accounts/cash reference, protocol identity checks and paired outcome uncertainty.
-Then run the bounded registered 2022-2023 historical comparison, retaining all
-failure dates and negative screens. No further registration or threshold choice
-is needed unless the actual design changes. Milestone 2 remains open until that
-comparison and reproducibility checks are complete. Remaining execution adapters,
-paper capture/measurements, Release benchmarks/CI and the unified report remain
-open under milestones 3-7. A negative result does not reopen frozen rules or
-trigger another strategy search.
+Verify the new Windows build, twenty-two-group suite and `reversion_development`
+output against the retained Linux evidence, then close milestone 2. No acquisition
+or rule registration needs repeating. Research completion does not require a
+profitable or advancing result. Begin milestone 3 with continuation/reversion
+execution adapters and explicit fractional/whole-share account parity, retaining
+synthetic fill/restart cases and historical-reference semantics. Actual paper
+capture, execution measurements, Release benchmarks/CI and the unified report
+remain open under milestones 4-7.

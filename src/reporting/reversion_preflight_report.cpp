@@ -32,7 +32,7 @@ void ReversionPreflightReport::write(const std::filesystem::path& directory) con
         "<title>Opening-anchor reversion preflight</title><style>body{font:16px system-ui;max-width:1150px;margin:2rem auto;padding:0 1rem;"
         "color:#192c40;background:#f6f8fb}table{border-collapse:collapse;width:100%;background:white}th,td{padding:10px;text-align:left;"
         "border-bottom:1px solid #ccd7e2}th{background:#e8eff7}.scroll{overflow:auto}code{overflow-wrap:anywhere}</style>"
-        "<main><h1>Opening-anchor reversion preflight</h1><p>Revision 1 is registered. Historical model evaluation remains pending.</p>"
+        "<main><h1>Opening-anchor reversion preflight</h1><p>Revision 1 input-feasibility audit. This report contains no historical model evaluation.</p>"
         "<p>The opening reference is fixed from the first thirty minutes. Five-minute closing residuals end at noon. "
         "The estimator fits within-session AR(1) transitions without connecting session boundaries.</p>"
         "<p>All parameter fits below use constructed controls. Historical coverage checks inspect timestamps and positive opening volume only. "

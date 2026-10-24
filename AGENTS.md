@@ -53,7 +53,7 @@ The responsibility and ownership map is in `docs/architecture.md`.
 
 Build/test presets and target prerequisites are documented in `docs/running.md`.
 Windows uses `windows-x64` and `windows-debug`; Linux uses `linux-debug` for
-configure/build/test. The routine preset runs twenty-one groups and excludes the
+configure/build/test. The routine preset runs twenty-two groups and excludes the
 optional full-period disk integration. Keep warnings as errors. Run relevant
 contracts during editing and the complete routine preset at a milestone.
 
@@ -67,9 +67,10 @@ The runtime, journal and pipeline contracts in `docs/` define these invariants.
 
 `research/intraday_reversion_protocol.md` and its JSON register SPY-MR-01
 revision 1 after synthetic sampling/noise validation. Preserve their bytes.
-Historical fitting/scoring remains pending the tested prior-only history, replay,
-control accounts and protocol identity checks. `reversion_preflight` only audits
-inputs; the synthetic diagnostic does not authorize later-period access.
+The registered historical runner authenticates protocol/settings and the frozen
+496-session snapshot before prior-only fitting/scoring. Keep all 476 scored dates,
+499 parameter refits at blocks 1/5 and 10,000 paired outcome resamples at blocks 5/10.
+`reversion_preflight` only audits inputs; the synthetic diagnostic does not authorize later-period access.
 Conditional parameter ranges are descriptive and cannot filter entries or
 establish stationarity. Preserve all registered failure dates and raw fit statuses.
 
