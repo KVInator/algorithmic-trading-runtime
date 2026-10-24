@@ -563,14 +563,52 @@ stream evidence, cash precision, fees and operational stream health still requir
 observed assessment. Capture and accounting have separate commit boundaries;
 raw archival does not prove that the financial state committed an input.
 
+## Native paper transport connection acceptance
+
+Implementation `e06b419` ran both Windows targets successfully on 24 October
+2026 with MSVC 19.51.36260.0 Debug. The supplied logs record 24 passing offline
+checks across seven cases, zero network requests for that diagnostic, and exit
+code zero for both executables. The native probe uses Windows Credential Manager
+and completes account access, stream authorization/subscription and independent
+snapshot reconciliation. A full build/test transcript was not supplied for this
+checkpoint; no additional native test count is inferred.
+
+All seven supplied manifest-listed files verify against their hashes: three
+for the offline diagnostic and four for the native probe. Both 212-record source
+inventories contain 208 exact matches and the same four explained CRLF variants
+as the preceding checkpoint. No unexplained source differences remain. Offline
+case evidence and HTML are byte-identical to Linux. Its manifest lists 135 of
+136 hashes matching the retained Linux run; only the source inventory differs.
+The unuploaded raw bodies/indexes and offline journals are not independently
+verified native bytes merely because their listed hashes match the reference.
+
+The native schema-3 journal independently verifies seven frames and six inputs,
+including authorization, listening, exact reconciliation and final disconnect.
+The saved baseline has flat inventory, no open orders/reservations and cash of
+USD 100,000 under the existing explicit zero-fee paper convention. Its account,
+state digest and journal tip match the saved evidence. The final committed state
+closes routing and requires reconciliation. No order is submitted or canceled;
+no observed execution, fee or subcent-fill convention is established.
+
+Verification copies and the audit are retained under
+`scratch/verification/paper-transport-native-20261024`; original uploads remain
+unchanged. The probe manifest lists 23 artifacts, of which four were supplied.
+Complete native capture-chain/body verification remains pending the capture
+folder. The offline manifest lists 136 artifacts, of which three were supplied.
+The native source aggregate is
+`d1784233b85cd58ef9e99ecdc8eb0c1e9d6dc808a3df58dc894b68ef6e12084a`.
+
+This accepts the demonstrated native read-only connection and exact flat-baseline
+path. It does not accept an observed order lifecycle, restart recovery against
+the service, stale-feed behavior or the five-session operational sample.
+This documentation-only acceptance does not require a rebuild or diagnostic rerun.
+
 ## Next dependency
 
-Pull the checkpoint, Build All and run `windows-debug-quick` (22 groups).
-Run `paper_transport_diagnostic`, followed by the read-only
-`paper_transport_probe`, retaining the complete printed directories. Native
-compilation and account/stream observations are pending for this transport.
-Then add durable expiry/controlled stop and feed-health policy, fix the five-session
-capture plan before operational orders, and collect observed lifecycle and
-reconnect/restart evidence. Milestones 1-3 remain closed; 4 is in progress;
-execution measurements, benchmarks/portable CI and final publication remain
-milestones 5-7.
+Implement durable expiry/controlled stop and feed-health policy, then fix the
+five-session capture plan before operational orders. Preserve complete run
+folders for raw capture verification and collect observed lifecycle and
+reconnect/restart evidence. The missing capture folders limit the current
+forensic audit; they do not prevent policy implementation. Milestones 1-3 remain
+closed; 4 is in progress; execution measurements, benchmarks/portable CI and
+final publication remain milestones 5-7.
