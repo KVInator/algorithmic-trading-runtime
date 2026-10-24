@@ -248,10 +248,12 @@ PaperHttpResponse PaperSession::exchange(const PaperRequest& r) {
     return http_.exchange(r);
 }
 
-PaperHttpResponse PaperHttpClient::exchange(const PaperRequest& r) {
+PaperHttpResponse PaperHttpClient::exchange(const PaperRequest& r, const std::function<void()>& eligible) {
     static_cast<void>(validate_paper_request(r));
     for (unsigned attempt = 0; attempt < 3; ++attempt) {
         capture_.record("http_request", r.method + " " + r.url, r.body, clock_());
+        if (eligible)
+            eligible();
         auto response = wire_.request(r);
         capture_.record("http_response", r.method + " " + r.url, response.body, clock_(), response.status,
                         response.request_id, response.retry_after);
@@ -328,6 +330,37 @@ bool PaperSession::synchronize() {
     }
 }
 
+bool PaperSession::check_stream(std::chrono::milliseconds budget) {
+    try {
+        require(active_ && budget.count() > 0 && budget <= std::chrono::seconds{10},
+                "stream check requires an active session and a bounded budget");
+        static_cast<void>(drain());
+        wire_.subscribe_trade_updates();
+        const auto start = clock_().monotonic_ms;
+        for (unsigned count = 0; count < 100; ++count) {
+            const auto elapsed = clock_().monotonic_ms - start;
+            require(elapsed >= 0 && elapsed < budget.count(), "stream check response deadline");
+            auto raw = wire_.poll(std::chrono::milliseconds{budget.count() - elapsed});
+            require(raw.has_value(), "stream check response deadline");
+            const auto at = clock_();
+            capture_.record("stream", "subscription health response", *raw, at);
+            ingest(*raw, at);
+            const auto decoded = AlpacaPaperDecoder{}.stream(*raw, BrokerTimestamp{at.utc});
+            require(at.monotonic_ms - start >= 0 && at.monotonic_ms - start < budget.count(),
+                    "stream check response arrived beyond deadline");
+            if (decoded.kind == PaperStreamKind::listening) {
+                require(decoded.trade_updates_subscribed, "stream subscription lost");
+                return synchronize();
+            }
+            require(decoded.kind == PaperStreamKind::trade_update, "unexpected stream health response");
+        }
+        throw std::runtime_error("stream check interleaving bound exhausted");
+    } catch (...) {
+        fault();
+        throw;
+    }
+}
+
 PaperHttpResponse PaperSession::lookup(std::string client) {
     try {
         auto response = exchange(AlpacaPaperRequests{}.lookup(client));
@@ -344,12 +377,15 @@ PaperHttpResponse PaperSession::lookup(std::string client) {
     }
 }
 
-PaperHttpResponse PaperSession::submit(const execution::OrderRequest& order) {
+PaperHttpResponse PaperSession::submit(const execution::OrderRequest& order,
+                                       const std::function<void()>& eligible) {
     try {
         require(active_, "submit requires active paper stream");
         static_cast<void>(drain());
+        if (eligible)
+            eligible();
         require(runtime_.submit(order).outcome == execution::Outcome::applied, "durable order intent denied");
-        auto response = exchange(AlpacaPaperRequests{}.submit(order));
+        auto response = http_.exchange(AlpacaPaperRequests{}.submit(order), eligible);
         require(response.status == 200, "submission outcome requires lookup/reconciliation; intent retained");
         require(runtime_.observe_order(response.body).outcome == execution::Outcome::applied,
                 "submission response contradicts durable intent");

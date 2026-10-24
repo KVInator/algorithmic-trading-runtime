@@ -74,3 +74,9 @@ The Windows wire owns credentials and WinHTTP handles; the session owns protocol
 ordering and calls the same journaled bridge. Capture bodies/indexes and runtime
 inputs have separate durable boundaries. The Windows probe is read-only;
 operational policies and observed session capture remain open.
+
+`PaperControl` composes the session and schema-3 ledger with a separate policy
+journal. Deadline and permanent-stop state are durable; process-local health
+age is discarded at restart. The transport invokes its eligibility callback
+after capture and immediately before dispatch. The [control contract](paper_control.md)
+records these separate commit boundaries and serialized servicing requirements.

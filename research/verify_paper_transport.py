@@ -57,6 +57,35 @@ class PaperTransportVerifier:
                 assert row["kind"] in ["http_response", "stream"]
             self.records += 1
 
+    def control(self, journal):
+        state = dict(stopped=False, reason="", deadlines={})
+        previous = None
+        records = 0
+        for sequence, line in enumerate(journal.read_bytes().splitlines()):
+            payload, checksum = line.rsplit(b"\t", 1)
+            assert self.digest(payload) == checksum.decode()
+            row = json.loads(payload)
+            if sequence == 0:
+                assert row["schema_version"] == 1
+                assert row["model_contract"] == "paper_control_stop_deadline_v1"
+                assert row["order_tif"] == "DAY"
+            else:
+                assert row["sequence"] == sequence and row["previous_sha256"] == previous
+                command = row["command"]
+                if command["kind"] == "deadline":
+                    assert not state["stopped"]
+                    assert command["client_id"] not in state["deadlines"]
+                    state["deadlines"][command["client_id"]] = command["expires_at"]
+                else:
+                    assert command["kind"] == "stop" and command["reason"]
+                    if not state["stopped"]:
+                        state["stopped"] = True
+                        state["reason"] = command["reason"]
+                assert row["state"] == state
+                records += 1
+            previous = checksum.decode()
+        return state, records, previous
+
     def verify(self):
         summary = json.loads(self.path("summary.json").read_text())
         assert summary["schema_version"] == 1 and summary["real_order_submissions"] == 0
@@ -88,6 +117,12 @@ class PaperTransportVerifier:
                 k: v for k, v in state.items() if k not in ["durable_records", "journal_sha256"]
             }
             assert self.digest(verifier.encoded(values)) == state_hash
+            if "control" in case:
+                policy, count, tip = self.control(journal.parent / "control.journal")
+                saved = case["control"]
+                assert all(saved[k] == policy[k] for k in policy)
+                assert saved["durable_records"] == count and saved["journal_sha256"] == tip
+                assert saved["execution"] == state
             self.ledgers += 1
             self.inputs += verifier.inputs
         print(

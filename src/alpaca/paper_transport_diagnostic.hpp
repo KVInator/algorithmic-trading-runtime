@@ -15,6 +15,7 @@ public:
     explicit PaperTransportDiagnostic(std::filesystem::path directory) : directory_{std::move(directory)} {}
 
     [[nodiscard]] PaperTransportResult run() const;
+    [[nodiscard]] PaperTransportResult run_control() const;
 
 private:
     std::filesystem::path directory_;

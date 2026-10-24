@@ -38,7 +38,7 @@ void PaperTransportReport::write(const std::filesystem::path& directory) const {
                                     "broker-observed order events.")
          << " A working connection does not close the paper-broker milestone. "
             "Observed order lifecycles, "
-            "expiry/stop policy and five-session capture remain.</aside>"
+            "native control acceptance and five-session capture remain.</aside>"
          << "<p>Status: " << (result_.successful ? "checks completed" : "stopped with unresolved evidence")
          << "</p><p>" << ReportText{result_.detail}.html() << "</p><h2>Checks</h2><ul>";
     for (const auto& check : result_.checks)

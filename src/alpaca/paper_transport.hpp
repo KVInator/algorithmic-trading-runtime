@@ -67,7 +67,8 @@ public:
     using Clock = std::function<PaperReceipt()>;
     using Wait = std::function<void(std::chrono::milliseconds)>;
     PaperHttpClient(PaperWire& wire, PaperCapture& capture, Clock clock, Wait wait);
-    [[nodiscard]] PaperHttpResponse exchange(const PaperRequest& request);
+    [[nodiscard]] PaperHttpResponse exchange(const PaperRequest& request,
+                                             const std::function<void()>& eligible = {});
 
 private:
     PaperWire& wire_;
@@ -84,8 +85,10 @@ public:
                  Clock clock, Wait wait);
     void connect();
     [[nodiscard]] bool synchronize();
+    [[nodiscard]] bool check_stream(std::chrono::milliseconds budget);
     [[nodiscard]] PaperHttpResponse read(const PaperRequest& request);
-    [[nodiscard]] PaperHttpResponse submit(const execution::OrderRequest& cent_intent);
+    [[nodiscard]] PaperHttpResponse submit(const execution::OrderRequest& cent_intent,
+                                           const std::function<void()>& eligible = {});
     [[nodiscard]] PaperHttpResponse cancel(std::string client_id, std::string cancel_id);
     [[nodiscard]] PaperHttpResponse lookup(std::string client_id);
     [[nodiscard]] std::size_t drain(std::chrono::milliseconds quiet_budget = std::chrono::milliseconds{10});

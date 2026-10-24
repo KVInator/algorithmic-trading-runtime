@@ -42,7 +42,9 @@ decoding and paper-only request construction. The [schema-3 bridge](docs/paper_e
 adds exact nanodollar accounting and durable broker identities using the same
 order core. The [paper transport](docs/paper_transport.md) adds bounded HTTP,
 authenticated streaming, durable raw capture and deterministic faults; native
-connection acceptance and operational order capture remain open.
+read-only connection acceptance is recorded. The [control owner](docs/paper_control.md)
+adds durable deadlines/stopping and subscription-response health checks; native
+control acceptance and operational order capture remain open.
 The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
 and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
 

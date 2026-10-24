@@ -69,6 +69,8 @@ Legacy schema-1 journals remain readable; target inputs require schema 2.
 The paper bridge uses schema 3 with USD 1e-9 units and an explicit paper fee
 policy. Preserve legacy JSON cent keys while C++ core fields use neutral units.
 Its accounting/persistence contract is in `docs/paper_execution.md`.
+The separate deadline/stop owner and its serialized health/dispatch gates are
+specified in `docs/paper_control.md`; native operational callers must use it.
 The runtime, journal and pipeline contracts in `docs/` define these invariants.
 
 `research/intraday_reversion_protocol.md` and its JSON register SPY-MR-01

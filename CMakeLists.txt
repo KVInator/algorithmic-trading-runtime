@@ -113,7 +113,7 @@ add_library(paper_execution src/execution/paper_execution.cpp src/execution/jour
 target_link_libraries(paper_execution PUBLIC execution_persistence alpaca_paper_contract)
 configure_trading_target(paper_execution)
 
-add_library(paper_transport src/alpaca/paper_transport.cpp src/alpaca/paper_transport_diagnostic.cpp)
+add_library(paper_transport src/alpaca/paper_transport.cpp src/alpaca/paper_transport_diagnostic.cpp src/alpaca/paper_control.cpp)
 target_link_libraries(paper_transport PUBLIC paper_execution)
 configure_trading_target(paper_transport)
 
@@ -247,6 +247,7 @@ add_trading_app(risk_preflight risk_preflight_reporting)
 add_trading_app(risk_acquire risk_preflight_reporting)
 add_trading_app(risk_development daily_risk_reporting)
 add_trading_app(paper_transport_diagnostic paper_transport_reporting)
+add_trading_app(paper_control_diagnostic paper_transport_reporting)
 add_trading_app(paper_execution_diagnostic paper_execution_reporting)
 add_trading_app(paper_contract_diagnostic paper_contract_reporting)
 add_trading_app(execution_diagnostic execution_reporting)

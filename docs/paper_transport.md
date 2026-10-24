@@ -58,8 +58,9 @@ Authorization waits up to ten seconds; subscription permits up to 32 one-second
 polls with queued trade updates retained until acknowledgment. An empty poll
 during that handshake stops it. An empty ordinary poll means only that its wait
 budget expired. It does not establish feed health or trigger a reconnect.
-A durable stop policy, active stale-feed deadline and operational heartbeat
-acceptance remain open; WinHTTP keepalive behavior alone is not such evidence.
+The [control owner](paper_control.md) adds durable deadline/stop and periodic
+subscription-response checks. Native acceptance of those new controls remains
+open; WinHTTP keepalive behavior alone is not such evidence.
 
 ## Capture and commit boundaries
 
@@ -144,9 +145,10 @@ python research/verify_paper_transport.py scratch/runs/paper_transport_0
 Native Windows runs of both executables and the read-only connection/baseline
 path are accepted for `e06b419`; see the [ledger](progress.md). Both complete native output
 archives verify, including raw bodies, capture chains and runtime journals.
-Before operational orders, finish durable expiry/stop and feed-health policy,
-fix the five-session capture plan, and retain observed lifecycle/reconnect/restart
-evidence. Milestone 4 remains in progress.
+Before operational orders, verify the new control owner natively and implement
+the quote/calendar and reviewed launcher prerequisites in the fixed
+[five-session plan](../research/paper_capture_plan.md). Retain observed lifecycle
+and reconnect/restart evidence. Milestone 4 remains in progress.
 
 ## Primary API references
 

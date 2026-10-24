@@ -1,6 +1,7 @@
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
 #include "paper_transport_report.hpp"
+#include "paper_control.hpp"
 #include <deque>
 #include <iostream>
 
@@ -53,7 +54,7 @@ public:
     std::function<void(const PaperRequest&)> before_reply;
     Json open_orders = Json::array();
     unsigned waits = 0;
-    bool uncertain = false;
+    bool uncertain = false, health_ack = false;
 
     PaperHttpResponse request(const PaperRequest& request) override {
         requests.push_back(request);
@@ -87,7 +88,10 @@ public:
 
     void open_authenticated_stream() override {}
 
-    void subscribe_trade_updates() override {}
+    void subscribe_trade_updates() override {
+        if (health_ack)
+            messages.push_back(R"({"stream":"listening","data":{"streams":["trade_updates"]}})");
+    }
 
     void close() noexcept override {}
 
@@ -152,10 +156,171 @@ public:
         subscription();
         snapshot_activity();
         restart();
+        control_faults();
     }
 
 private:
     std::filesystem::path root_;
+
+    void control_faults() const {
+        struct Memory {
+            std::string bytes;
+            bool fail{false};
+        };
+
+        class Storage final : public JournalStorage {
+        public:
+            std::shared_ptr<Memory> memory;
+
+            explicit Storage(std::shared_ptr<Memory> m) : memory{std::move(m)} {}
+
+            std::string read_all() override { return memory->bytes; }
+
+            void append_and_sync(std::string_view bytes) override {
+                memory->bytes.append(bytes);
+                if (memory->fail)
+                    throw JournalError("constructed uncertain append");
+            }
+        };
+
+        {
+            Fixture f{root_ / "control_failure"};
+            f.ready();
+            f.wire.health_ack = true;
+            auto m = std::make_shared<Memory>();
+            auto c = PaperControl::create(std::make_unique<Storage>(m), {"test-control"}, f.runtime,
+                                          f.session, [] { return PaperReceipt{timestamp, 1000}; });
+            c.service();
+            m->fail = true;
+            rejects([&] { c.stop("operator_stop"); });
+            require(!c.snapshot().at("healthy").get<bool>() && f.gated(),
+                    "uncertain stop append closes both gates");
+            rejects([&] { static_cast<void>(c.submit(intent, "2026-10-26T14:00:30Z")); });
+            require(f.wire.posts() == 0, "poisoned control cannot dispatch");
+            m->fail = false;
+            auto recovered = PaperControl::recover(std::make_unique<Storage>(m), {"test-control"}, f.runtime,
+                                                   f.session, [] { return PaperReceipt{timestamp, 1000}; });
+            require(recovered.snapshot().at("stopped").get<bool>(),
+                    "committed uncertain stop survives recovery");
+            auto corrupted = std::make_shared<Memory>();
+            corrupted->bytes = m->bytes;
+            corrupted->bytes[20] = 'X';
+            rejects([&] {
+                static_cast<void>(PaperControl::recover(std::make_unique<Storage>(corrupted),
+                                                        {"test-control"}, f.runtime, f.session,
+                                                        [] { return PaperReceipt{timestamp, 1000}; }));
+            });
+            corrupted->bytes = m->bytes.substr(0, m->bytes.size() - 1);
+            rejects([&] {
+                static_cast<void>(PaperControl::recover(std::make_unique<Storage>(corrupted),
+                                                        {"test-control"}, f.runtime, f.session,
+                                                        [] { return PaperReceipt{timestamp, 1000}; }));
+            });
+        }
+        {
+            Fixture f{root_ / "control_active_restart"};
+            f.ready();
+            f.wire.health_ack = true;
+            auto m = std::make_shared<Memory>();
+            {
+                auto c = PaperControl::create(std::make_unique<Storage>(m), {"test-control"}, f.runtime,
+                                              f.session, [] { return PaperReceipt{timestamp, 1000}; });
+                static_cast<void>(c.submit(intent, "2026-10-26T14:00:30Z"));
+            }
+            auto c = PaperControl::recover(std::make_unique<Storage>(m), {"test-control"}, f.runtime,
+                                           f.session, [] { return PaperReceipt{timestamp, 1000}; });
+            require(c.snapshot().at("reason").get<std::string>() == "restart_requires_review" &&
+                        f.reserved() && f.gated(),
+                    "active-owner restart retains deadline/reservation and durably stops");
+            const auto posts = f.wire.posts();
+            rejects([&] { static_cast<void>(c.submit(intent, "2026-10-26T14:00:30Z")); });
+            require(f.wire.posts() == posts, "restart does not resend uncertain order");
+        }
+        {
+            Fixture f{root_ / "control_overdue"};
+            f.ready();
+            f.wire.health_ack = true;
+            std::int64_t tick = 1000;
+            auto m = std::make_shared<Memory>();
+            auto c = PaperControl::create(std::make_unique<Storage>(m), {"test-control"}, f.runtime,
+                                          f.session, [&] { return PaperReceipt{timestamp, tick}; });
+            c.service();
+            tick += 60000;
+            c.service();
+            require(c.snapshot().at("reason").get<std::string>() == "health_service_overdue",
+                    "missed service window permanently stops owner");
+        }
+        {
+            Fixture f{root_ / "dispatch_deadline"};
+            f.ready();
+            unsigned guards = 0;
+            rejects([&] {
+                static_cast<void>(f.session.submit(intent, [&] {
+                    if (++guards == 2)
+                        throw std::runtime_error("deadline elapsed after capture");
+                }));
+            });
+            require(guards == 2 && f.wire.posts() == 0 && f.reserved() && f.gated(),
+                    "dispatch eligibility is checked after raw request capture and before wire submission");
+        }
+        {
+            Fixture f{root_ / "stop_partial_inventory"};
+            f.ready();
+            f.wire.health_ack = true;
+            auto m = std::make_shared<Memory>();
+            auto c = PaperControl::create(std::make_unique<Storage>(m), {"test-control"}, f.runtime,
+                                          f.session, [] { return PaperReceipt{timestamp, 1000}; });
+            static_cast<void>(c.submit(intent, "2026-10-26T14:00:30Z"));
+            auto order = broker_order();
+            order["filled_qty"] = "4";
+            order["filled_avg_price"] = "100.005";
+            order["status"] = "partially_filled";
+            f.wire.messages.push_back(Json{{"stream", "trade_updates"},
+                                           {"data",
+                                            {{"event", "partial_fill"},
+                                             {"order", order},
+                                             {"execution_id", "cccccccc-cccc-4ccc-8ccc-cccccccccccc"},
+                                             {"qty", "4"},
+                                             {"price", "100.005"},
+                                             {"position_qty", "4"},
+                                             {"timestamp", timestamp}}}}
+                                          .dump());
+            static_cast<void>(f.session.drain());
+            c.stop("operator_stop");
+            require(c.snapshot().at("execution").at("account").at("position_shares").get<int>() == 4 &&
+                        f.runtime.snapshot().at("account").at("reserved_cash_units").get<std::int64_t>() ==
+                            600060000000LL,
+                    "controlled stop retains partial inventory and unconfirmed remainder");
+            order["status"] = "canceled";
+            f.wire.messages.push_back(
+                Json{{"stream", "trade_updates"},
+                     {"data", {{"event", "canceled"}, {"order", order}, {"timestamp", timestamp}}}}
+                    .dump());
+            c.service();
+            require(f.runtime.snapshot().at("account").at("reserved_cash_units").get<std::int64_t>() == 0 &&
+                        f.runtime.snapshot().at("account").at("position_shares").get<int>() == 4,
+                    "stopped service consumes terminal confirmation without liquidating inventory");
+        }
+        {
+            Fixture f{root_ / "health_roundtrip_age"};
+            f.ready();
+            f.wire.health_ack = true;
+            std::int64_t tick = 1000;
+            bool advanced = false;
+            f.wire.before_reply = [&](const PaperRequest&) {
+                if (!advanced) {
+                    tick += 30000;
+                    advanced = true;
+                }
+            };
+            auto m = std::make_shared<Memory>();
+            auto c = PaperControl::create(std::make_unique<Storage>(m), {"test-control"}, f.runtime,
+                                          f.session, [&] { return PaperReceipt{timestamp, tick}; });
+            c.service();
+            require(c.snapshot().at("reason").get<std::string>() == "health_roundtrip_stale",
+                    "slow successful reconciliation cannot manufacture fresh stream health");
+        }
+    }
 
     void framing() const {
         PaperMessageAssembler assembler;
@@ -294,6 +459,8 @@ int main(int argc, char** argv) {
         const auto result = PaperTransportDiagnostic{directory}.run();
         PaperTransportReport{result}.write(directory);
         Contracts{directory / "contracts"}.run();
+        const auto policy = PaperTransportDiagnostic{directory / "controls"}.run_control();
+        require(policy.checks.size() == 8 && policy.cases.size() == 3, "control fault cases complete");
         const auto summary = Json::parse(read_text_file(directory / "summary.json"));
         for (const auto& a : summary.at("artifacts"))
             require(sha256_file(directory / a.at("path").get<std::string>()) ==

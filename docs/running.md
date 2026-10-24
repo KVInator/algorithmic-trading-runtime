@@ -77,6 +77,7 @@ branches. Local datasets remain in place.
 
 | Target | Expected evidence |
 | --- | --- |
+| `paper_control_diagnostic` | Eight checks in three constructed deadline/stop/stream-health cases, separate durable policy journals; zero network requests |
 | `paper_transport_diagnostic` | 24 checks in seven deterministic transport cases, durable raw capture and retained schema-3 state; zero network requests |
 | `paper_execution_diagnostic` | 42 assertions, three schema-3 journals, exact subcent cash, identities, partial fills, cancellation/restart and quarantine; zero network requests |
 | `paper_contract_diagnostic` | 56 checks, forty constructed API-shaped cases, exact decimal/time boundaries and paper-only request descriptions; zero network requests |
@@ -107,7 +108,10 @@ snapshots with a new flat ledger. No orders are submitted or canceled. Existing
 positions/orders or mismatched evidence stop reconciliation without altering
 the account. The report retains any available failure evidence.
 
-Run the offline `paper_transport_diagnostic` first. Keep the complete output
+Run the offline `paper_transport_diagnostic` first. For the control checkpoint,
+run `paper_control_diagnostic`, then repeat the probe to verify its subscription
+round trip and reconciliation against the service. The [control contract](paper_control.md)
+defines deadlines, stop/recovery and health limits. Keep the complete output
 directory printed by both programs. The [transport contract](paper_transport.md)
 explains request limits, capture privacy, snapshot limitations and native
 acceptance. Probe success does not complete the observed-order milestone.

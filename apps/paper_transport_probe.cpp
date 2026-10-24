@@ -35,17 +35,24 @@ int main() {
             const bool matched = session.synchronize();
             if (matched)
                 result.checks.push_back("stable flat baseline matches exact ledger");
-            result.successful = matched;
+            bool stream_health = false;
+            if (matched) {
+                std::cout << "Checking subscription response and reconciling again\n";
+                stream_health = session.check_stream(std::chrono::seconds{5});
+                if (stream_health)
+                    result.checks.push_back("subscription round trip and reconciliation completed");
+            }
+            result.successful = matched && stream_health;
             result.cases.push_back({{"case", "read_only_connection"},
                                     {"exact_baseline_match", matched},
+                                    {"stream_health_check", stream_health},
                                     {"capture_records", capture.records()},
                                     {"state", runtime.snapshot()}});
             session.disconnect();
-            result.detail = matched ? "Read-only protocol path completed; no "
-                                      "observed order lifecycle."
-                                    : "Paper baseline does not match a flat ledger; "
-                                      "no orders attempted. "
-                                      "Existing positions/orders were not altered.";
+            result.detail = result.successful ? "Read-only connection and subscription health checks "
+                                                "completed; no observed order lifecycle."
+                                              : "Baseline or stream health reconciliation unresolved; no "
+                                                "orders attempted or account reset.";
         } catch (const std::exception& e) {
             result.successful = false;
             result.detail = e.what();

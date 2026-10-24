@@ -608,11 +608,59 @@ path. It does not accept an observed order lifecycle, restart recovery against
 the service, stale-feed behavior or the five-session operational sample.
 This documentation-only acceptance does not require a rebuild or diagnostic rerun.
 
+## Durable paper controls checkpoint
+
+The [control owner](paper_control.md) adds a separate versioned policy journal
+for deadlines and permanent stopping. The shared schema-3 financial engine and
+legacy journals are unchanged. Deadlines commit before order intent/dispatch;
+eligibility is checked after raw request capture and immediately before the
+wire call. Expiry requests cancellation without releasing reservations. A stop
+blocks new submissions, preserves inventory and continues consuming terminal
+confirmations. Uncertain policy writes close the session and poison the writer.
+Recovery retains policy state, durably stops an active owner and discards
+process-local health. Automatic rearm is not implemented.
+
+Periodic subscription-response checks distinguish silence from a failed round
+trip, then require exact reconciliation. Long service gaps, stale round trips
+and clock regression stop the owner. This is order-stream application health,
+not market quote freshness or proof of complete event delivery. Calls remain
+serialized; local cancellation is serviced rather than guaranteed by a timer.
+The native read-only probe now exercises repeated subscription/reconciliation.
+
+The new `paper_control_diagnostic` passes eight checks across three constructed
+cases. Expanded transport contracts cover uncertain policy writes, corruption,
+torn tails, active-owner recovery, missed service, stale successful round trips,
+pre-dispatch eligibility and partial inventory/terminal confirmation after stop.
+GCC Debug Build All and the 26-group full suite pass (21.88 seconds); final
+quick checks pass all 22 groups (3.17 seconds). The expanded transport group
+passes ASan/UBSan with leak detection disabled. Five changed/new translation
+units pass Clang 19 Windows-target syntax checks. Native MSVC/control/API
+acceptance remains pending for this implementation.
+
+Debug at `scratch/runs/paper_control_6` and Release at `paper_control_5` retain
+88 byte-identical artifacts. Independent checks verify all hashes, 76 capture
+records, three Decimal ledgers, 24 financial inputs and all three policy-journal
+chains/replayed states. All 216 configure-time source identities match. The
+updated verifier also checks the previously supplied complete native transport
+archives without regression. Report links and static layout are inspected;
+browser behavior remains unverified. Hygiene and diff checks pass. No network
+requests or historical scores are produced by the constructed diagnostic.
+
+The [five-session capture plan](../research/paper_capture_plan.md) fixes session
+selection, two one-share policy attempts per session, clocks, cancellation,
+quote/feed requirements, failure retention and scheduled flat-account recovery
+observations. Actual dates must be enrolled before the first operational order.
+Quote/calendar adapters, a reviewed launcher and explicit reviewed reactivation/
+closing-inventory handling are prerequisites. This plan does not itself launch
+orders or establish five-session coverage.
+
 ## Next dependency
 
-Implement durable expiry/controlled stop and feed-health policy, then fix the
-five-session capture plan before operational orders. Preserve complete run
-folders for raw capture verification and collect observed lifecycle and
-reconnect/restart evidence. Milestones 1-3 remain
-closed; 4 is in progress; execution measurements, benchmarks/portable CI and
-final publication remain milestones 5-7.
+Pull, Build All and run `windows-debug-quick` (22 groups), then run
+`paper_control_diagnostic` and the updated read-only `paper_transport_probe`.
+Retain both complete output folders. Native policy/round-trip acceptance is the
+next checkpoint. Then implement quote/calendar access and the reviewed paper
+launcher, enroll dates before orders, and collect observed lifecycle and
+reconnect/restart evidence across the five planned sessions. Milestones 1-3
+remain closed; 4 is in progress; execution measurements, benchmarks/portable CI
+and final publication remain milestones 5-7.
