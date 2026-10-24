@@ -98,8 +98,10 @@ conditions and Decimal account comparisons from retained inputs:
 python research/verify_strategy_execution.py scratch/runs/strategy_execution_N
 ```
 
-Linux verification is recorded in the [milestone ledger](progress.md). Native
-MSVC Build All, twenty-three routine groups and both executable outputs remain
-the final acceptance dependency for milestone 3. Paper transport, observed quotes
-and fills, execution measurements, benchmarks/CI and the unified technical report
-remain milestones 4-7.
+Linux and native verification are recorded in the [milestone ledger](progress.md).
+Milestone 3 is accepted for `9aeffa4`: the native build/test preset is reported
+successful and both executable outputs reproduce the Linux integration evidence.
+The attachment audit verifies the four supplied artifacts per run and compares
+journal manifest digests with checked Linux files; native journal bodies were
+not supplied. Paper transport, observed quotes and fills, execution measurements,
+benchmarks/CI and the unified technical report remain milestones 4-7.

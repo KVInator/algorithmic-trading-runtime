@@ -9,7 +9,7 @@ evidence rather than a completion percentage.
 | --- | --- | --- |
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
 | 2. Strategy research | Complete for `05aec9d` | Three strategy specifications have reproducible historical comparisons. Native MSVC build and all twenty-two groups are reported successful. SPY-MR-01 retains 476 dates, forty market cases and its cost-dominated finding; all ten artifacts and 171 source records verify, with identical native/Linux account paths. |
-| 3. Shared execution path | Implemented; native acceptance pending | Four variants share the journaled pipeline. Linux constructed and first-date reference replays, account comparisons and interactive event/account/recovery views are recorded below. MSVC build, twenty-three routine groups and both new executable outputs remain. |
+| 3. Shared execution path | Complete for `9aeffa4` | MSVC build and routine test preset reported successful. Native eighteen-/twenty-two-case runs pass 224/296 checks; saved evidence, inputs and HTML match Linux byte-for-byte. Source differences are five explained CRLF variants. Journal manifest digests match the checked Linux bodies; native bodies were not supplied. |
 | 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
@@ -355,16 +355,62 @@ All event selectors, label targets and artifact links are checked structurally.
 Selected entry/restart layouts are rendered and visually inspected; they expose
 the different broker/client balances before report delivery and the closed restart
 gate. Actual browser clicking remains unverified because a browser renderer was
-unavailable. Native MSVC build, twenty-three routine groups and both new executable
-outputs remain open. A successful synthetic replay does not establish paper
-execution quality.
+unavailable. Subsequent native acceptance is recorded below. A successful
+synthetic replay does not establish paper execution quality.
+
+## Native shared execution verification
+
+On 24 October 2026 the MSVC 19.51.36260.0 Debug build and routine test preset
+were reported successful for implementation `9aeffa4`. The preset configures
+twenty-three groups; a separate per-test console transcript was not supplied.
+Both executable logs record exit code zero. The constructed run passes 224
+checks across eighteen cases. The reference replay verifies 496 sessions and
+passes 296 checks across twenty-two cases.
+
+All four uploaded artifact hashes per run verify: execution evidence, input
+bars, HTML and source inventory. Saved evidence, inputs and HTML are byte-identical
+to the retained Linux runs. These include 216 constructed frames and 408 frames
+in the extended reference run. Independent target-direction and Decimal parity
+checks pass on the native inputs; frame balances and reservations agree with
+the independently reconstructed matching Linux journal prefixes. Broker fill
+arithmetic is rechecked from each native frame's executed-fill prefix.
+
+All eighteen/twenty-two journal digests listed in the native manifests match the
+independently checked Linux journal files. Native journal bodies were not supplied,
+so their actual uploaded bytes, chain parsing and storage behavior are not
+independently reverified by this attachment audit. This distinction is retained
+rather than treating reference journal files as native uploads.
+
+The native 181-entry source inventory aggregate is
+`589019ec621628aa5e8593150493d3358145a1c6eebf8d643f76a295a116fb05`.
+There are 176 exact source matches and five exact CRLF variants:
+`CMakePresets.json`, `research/intraday_continuation_protocol.md`,
+`src/platform/windows/alpaca_console_credentials.cpp`,
+`src/research/intraday_continuation.cpp` and its header. There are no unexplained
+source differences. Native summary identities are:
+
+- Constructed: `245773d8d4155699f85822b0e0229135fb3c7f46ae39b5fe5cd2b4fd237c74a4`.
+- Reference: `4fdaca0c381d6a8784d70b5b6c77db391179286444967a7280bdb4ad20046cca`.
+
+Uploaded originals remain unchanged. Named verification copies and audit results
+are retained under `scratch/verification/execution-native-20261024`. The four
+historical reference cases retain zero fills and flat final inventory. The
+reported build/test success and verified cross-platform integration outputs
+close milestone 3 for its declared acceptance scope. Actual browser clicking
+remains unverified; observed paper events and execution-quality evidence remain
+separate dependencies. This acceptance record changes documentation only.
 
 ## Next dependency
 
-Complete native milestone 3 acceptance with MSVC Build All, twenty-three routine
-groups, `strategy_execution_diagnostic` and `strategy_reference_replay`. Retain
-the printed report directories for comparison. Milestones 1 and 2 are closed;
-3 awaits native acceptance; 4-7 remain substantial work: paper transport and
-observed reconciliation, execution measurement, Release benchmarks/portable CI,
-and the unified analytical report and showcase. Test counts do not define a
-completion percentage.
+Begin milestone 4 with the Alpaca paper-broker event/precision contract and
+paper-only endpoint enforcement, then connect submission/cancellation, stable-ID
+lookup, event streaming and independent reconciliation. Define TIF/expiry and
+controlled-stop behavior, followed by fault replay and the fixed five-session
+operational capture plan before an observed run. A mock-only adapter cannot close
+this milestone.
+
+Milestones 1-3 are complete for their recorded implementations. Milestones 4-7
+remain substantial work: paper transport and observed reconciliation, execution
+measurement, Release benchmarks/portable CI, and the unified analytical report
+and showcase. No new build is required for this documentation-only acceptance
+record. Test counts do not define a completion percentage.
