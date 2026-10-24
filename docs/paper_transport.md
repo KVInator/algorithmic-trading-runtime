@@ -142,8 +142,8 @@ python research/verify_paper_transport.py scratch/runs/paper_transport_0
 ```
 
 Native Windows runs of both executables and the read-only connection/baseline
-path are accepted for `e06b419`; see the [ledger](progress.md). Full native raw
-capture verification remains pending because capture folders were not supplied.
+path are accepted for `e06b419`; see the [ledger](progress.md). Both complete native output
+archives verify, including raw bodies, capture chains and runtime journals.
 Before operational orders, finish durable expiry/stop and feed-health policy,
 fix the five-session capture plan, and retain observed lifecycle/reconnect/restart
 evidence. Milestone 4 remains in progress.

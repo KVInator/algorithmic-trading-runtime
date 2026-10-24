@@ -573,14 +573,21 @@ and completes account access, stream authorization/subscription and independent
 snapshot reconciliation. A full build/test transcript was not supplied for this
 checkpoint; no additional native test count is inferred.
 
-All seven supplied manifest-listed files verify against their hashes: three
-for the offline diagnostic and four for the native probe. Both 212-record source
-inventories contain 208 exact matches and the same four explained CRLF variants
-as the preceding checkpoint. No unexplained source differences remain. Offline
-case evidence and HTML are byte-identical to Linux. Its manifest lists 135 of
-136 hashes matching the retained Linux run; only the source inventory differs.
-The unuploaded raw bodies/indexes and offline journals are not independently
-verified native bytes merely because their listed hashes match the reference.
+Both complete native output archives verify against their manifests: 136
+artifacts for the offline diagnostic and 23 for the read-only probe. Both
+212-record source inventories contain 208 exact matches and the same four
+explained CRLF variants as the preceding checkpoint. No unexplained source
+differences remain. All 135 offline artifacts other than the source inventory
+are byte-identical to retained Linux evidence, including raw capture bodies,
+indexes, runtime journals, case evidence and HTML.
+
+The independent checks verify 137 capture records, eight Decimal ledgers and
+48 journal inputs across the two runs, including sequence/predecessor checksums,
+raw-body hashes, saved-state identities and exact cash/reservations. Complete
+archives also reproduce every earlier individually supplied file. Receipt
+monotonic-clock values are ordered within each capture segment. The native probe
+captures seven GET attempts with seven HTTP 200 responses and two stream messages:
+authorization and listening acknowledgment. No trade update is captured.
 
 The native schema-3 journal independently verifies seven frames and six inputs,
 including authorization, listening, exact reconciliation and final disconnect.
@@ -590,11 +597,9 @@ state digest and journal tip match the saved evidence. The final committed state
 closes routing and requires reconciliation. No order is submitted or canceled;
 no observed execution, fee or subcent-fill convention is established.
 
-Verification copies and the audit are retained under
+Verification copies and audits are retained under
 `scratch/verification/paper-transport-native-20261024`; original uploads remain
-unchanged. The probe manifest lists 23 artifacts, of which four were supplied.
-Complete native capture-chain/body verification remains pending the capture
-folder. The offline manifest lists 136 artifacts, of which three were supplied.
+unchanged. Complete raw capture-chain/body verification is closed for these runs.
 The native source aggregate is
 `d1784233b85cd58ef9e99ecdc8eb0c1e9d6dc808a3df58dc894b68ef6e12084a`.
 
@@ -608,7 +613,6 @@ This documentation-only acceptance does not require a rebuild or diagnostic reru
 Implement durable expiry/controlled stop and feed-health policy, then fix the
 five-session capture plan before operational orders. Preserve complete run
 folders for raw capture verification and collect observed lifecycle and
-reconnect/restart evidence. The missing capture folders limit the current
-forensic audit; they do not prevent policy implementation. Milestones 1-3 remain
+reconnect/restart evidence. Milestones 1-3 remain
 closed; 4 is in progress; execution measurements, benchmarks/portable CI and
 final publication remain milestones 5-7.
