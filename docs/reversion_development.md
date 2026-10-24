@@ -119,9 +119,15 @@ all HTML links resolve. Browser visual rendering remains unavailable in the
 current environment. The [ledger](progress.md) records exact summary/source
 identities and checkpoint status.
 
-The historical research implementation and Linux comparison are complete. A
-new Windows build, twenty-two-group suite and native `reversion_development`
-output remain pending before closing milestone 2. The earlier native sampling
+The historical research implementation and native comparison are complete for
+`05aec9d`. On 24 October 2026 the MSVC Debug build and all twenty-two routine
+groups were reported successful. All ten uploaded artifact hashes and the
+independent numerical verifier pass. All four account CSVs plus cash are
+byte-identical to Linux; classifications, coverage counts and gates agree.
+The 171 source records comprise 166 exact matches and five explained CRLF
+variants. The [native acceptance record](progress.md#native-historical-acceptance-and-milestone-2-completion)
+contains exact identities and numerical-difference bounds. This closes
+milestone 2 while retaining the registered negative result. The earlier native sampling
 and execution checkpoints remain valid for their recorded implementations.
 Execution adapters, account parity, actual paper transport/capture, execution
 measurements, Release benchmarks/CI and the unified report remain separate open

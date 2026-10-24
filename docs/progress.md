@@ -8,8 +8,8 @@ evidence rather than a completion percentage.
 | Milestone | Status | Evidence and remaining acceptance |
 | --- | --- | --- |
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
-| 2. Strategy research | Historical implementation and Linux comparison complete; native verification pending | Three strategy specifications now have historical comparisons. SPY-MR-01 retains 476 dates, forty market cases, 83 primary active dates and a cost-dominated result. The new Windows build, twenty-two routine groups and historical study output remain to verify. |
-| 3. Shared execution path | Partially implemented | The original momentum adapter has synthetic fill/restart evidence. Continuation/reversion adapters, historical reference replay and account-convention comparisons remain. |
+| 2. Strategy research | Complete for `05aec9d` | Three strategy specifications have reproducible historical comparisons. Native MSVC build and all twenty-two groups are reported successful. SPY-MR-01 retains 476 dates, forty market cases and its cost-dominated finding; all ten artifacts and 171 source records verify, with identical native/Linux account paths. |
+| 3. Shared execution path | Partially implemented | The original momentum adapter has synthetic fill/restart evidence. Continuation/reversion adapters, historical reference replay, account-convention comparisons and interactive event/account/recovery views remain. |
 | 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
@@ -272,16 +272,57 @@ starts an interactive trace-backed execution replay and recovery/account view;
 paper quote/fill visuals follow in milestones 4-5, benchmark views in milestone 6
 and final integration in milestone 7. Depth-data visualizations remain optional
 and cannot be fabricated from minute bars. This documentation-only clarification
-does not change the current historical runner or require a repeat build. Native
-milestone-2 verification remains the next acceptance item.
+does not change the current historical runner or require a repeat build. Native milestone-2 verification was the next acceptance item; its completion
+is recorded below.
+
+## Native historical acceptance and milestone 2 completion
+
+On 24 October 2026 the MSVC 19.51.36260.0 Debug build and all twenty-two routine
+groups were reported successful. The historical study exits zero with 476 scored
+dates, forty market-account cases, 83 primary active dates and 262 common-mask
+forecast dates. Its source inventory matches implementation `05aec9d`, including
+the unchanged registered protocol/settings and frozen dataset identity.
+
+The uploaded summary SHA-256 is
+`05132a4ab4df954ac81ef13a5acac2bb5f99a9c6e8f8ba3051dbdb0f4c95ad84`.
+All ten artifact hashes verify. The independent Decimal/NumPy verifier passes
+all 476 rolling fits/decisions, account and annual calculations, both outcome
+bootstraps, 952 parameter-range records, economic/forecast gates and identities.
+Four market-account CSVs (19,040 rows total) and the 476-row cash reference are
+byte-identical to the retained Linux report. All classifications, reason codes,
+coverage counts, settings and gates agree; HTML matches after source-fingerprint
+substitution. The registered `cost_dominated` finding remains unchanged.
+
+The largest raw/other numerical difference is approximately 1.71e-13 USD in an
+opening-anchor price near USD 431.04. The largest derived difference is about
+4.34e-6 minutes in a conditional half-life upper endpoint near 103,454.29 minutes.
+Small coefficient differences are amplified near a unit root; all comparisons
+pass relative/absolute tolerances 1e-11/1e-14 for raw/other numerical fields and
+1e-9/1e-12 for equilibrium/half-life transforms. No decision or interval-coverage
+classification changes.
+
+The 171-entry native inventory aggregate is
+`763c5b2475ff4f6c978d8b5165bed2ecd3666b9109fd86eff9df4ab66a78de1f`.
+There are 166 exact matches and five exact CRLF variants: `CMakePresets.json`,
+`research/intraday_continuation_protocol.md`,
+`src/platform/windows/alpaca_console_credentials.cpp`,
+`src/research/intraday_continuation.cpp` and its header. No source differences
+remain unexplained. Original uploaded bytes are retained under
+`scratch/verification/reversion-historical-native-kpu85l1u`, with comparison
+results in `scratch/verification/reversion-historical-native-audit.json`.
+
+This closes milestone 2 for `05aec9d`: strategy specifications, causal engines,
+controls, registered comparisons and cross-platform reproduction evidence are
+complete. Failed economic/forecast screens remain findings. The daily-risk
+experiment retains its separate objective. No research rule changes or new
+historical scores are introduced by this documentation-only acceptance update.
 
 ## Next dependency
 
-Verify the new Windows build, twenty-two-group suite and `reversion_development`
-output against the retained Linux evidence, then close milestone 2. No acquisition
-or rule registration needs repeating. Research completion does not require a
-profitable or advancing result. Begin milestone 3 with continuation/reversion
-execution adapters and explicit fractional/whole-share account parity, retaining
-synthetic fill/restart cases and historical-reference semantics. Actual paper
-capture, execution measurements, Release benchmarks/CI and the unified report
-remain open under milestones 4-7.
+Begin milestone 3 with continuation/reversion execution adapters and explicit
+fractional/whole-share account parity. Develop the trace-backed interactive event
+replay and account/recovery view alongside those adapters, using the authoritative
+runtime and saved evidence. Cover positive, cash, incomplete-fill and restart
+paths, then historical reference-price replay. Actual paper capture, execution
+measurements, Release benchmarks/CI and the unified report remain open under
+milestones 4-7. No additional build is required for this acceptance record.
