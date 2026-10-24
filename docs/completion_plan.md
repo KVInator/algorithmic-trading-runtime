@@ -1,6 +1,9 @@
 # Research and execution completion plan
 
-Revision 1, 23 October 2026. Implementation baseline: `aa58bf6`.
+Revision 2, 24 October 2026. Original implementation baseline: `aa58bf6`.
+This revision clarifies assumption interpretation and staged visual delivery.
+The existing-evidence list retains its original baseline; current acceptance
+status is recorded in the milestone ledger.
 
 The [milestone ledger](progress.md) records subsequent acceptance evidence and
 open dependencies. This scope remains the governing completion plan.
@@ -22,6 +25,34 @@ Research completion does not require a strategy to pass its advancement screens.
 This plan governs remaining implementation priorities. Earlier candidate briefs
 and checkpoint notes retain their dated scope. Frozen research protocols,
 acquisition identities, existing journals and published results remain unchanged.
+
+## Assumptions and interpretation
+
+Separate numerical validity, forecast evidence, economic value, robustness and
+execution feasibility in milestone reviews and the final report. A registered
+advancement decision applies to its declared experiment; it is not a verdict on
+the entire project or a prerequisite for testing execution infrastructure.
+
+Maintain an explicit account of consequential design assumptions: hypothetical
+per-side costs, execution delays, instrument/period coverage, long/cash scope,
+observation/reference construction, estimation window/model, fractional sizing,
+cash interest, controls and statistical screens. Distinguish assumptions informed
+by observed evidence from simplifying conventions and project judgment. The
+100-active-date cutoff is a coverage convention, not a statistical law; discuss
+sampling dependence and precision alongside it. Confidence levels, block lengths,
+annual consistency and concentration screens also require stated justification.
+
+Use existing registered sensitivity cases to explain their effects. Distinguish
+recosting fixed entries from changing a cost-aware entry rule. Preserve original
+results and criteria; any future changed design must be declared separately
+before scoring, with prior sample/selection exposure retained. Causality, data
+integrity, accounting conservation and durable recovery invariants remain required.
+No additional strategy search is added to the completion scope.
+
+Quote and execution evidence should inform later cost interpretation. Paper
+fills remain simulated and cannot establish live impact, latency slippage or
+queue-position effects. Changes in assumptions do not automatically improve
+results, and existing simplifications can be optimistic as well as conservative.
 
 ## Existing evidence
 
@@ -98,6 +129,15 @@ eligibility, fills and final positions in a common evidence view. Distinguish
 delayed bar-price research returns from quote-based simulated or paper fills.
 Bar OHLCV cannot establish bid/ask liquidity or an intraminute execution path.
 
+Start the interactive execution replay in this milestone, alongside the adapters.
+Use retained synthetic traces and journals to support an event-time playhead,
+order/target inspection, partial-fill/cancellation chronology and the corresponding
+cash, reserved cash, positions, open orders and routing gates. Include a comparison
+of interrupted and uninterrupted paths. Bind the viewer to authoritative saved
+results rather than duplicating financial or state-transition logic. Clearly label
+synthetic events and simulated timing. Add research decision/failure attribution
+and views of existing cost/delay cases where they explain the same replay.
+
 Verify simplified parity cases between fractional research accounting and the
 whole-share execution account under explicitly aligned sizing, costs and action
 assumptions. Report lot rounding, idle cash, rejected/unfilled orders and action
@@ -106,7 +146,8 @@ historical account results with newly sized execution results.
 
 Acceptance: positive, cash, incomplete-fill and restart paths for each adapter,
 plus one historical-bar replay with clearly labelled reference-price semantics.
-Quote/fill evidence is required for execution-quality conclusions.
+The replay must expose event details and account/routing state, including restart
+behavior. Quote/fill evidence is required for execution-quality conclusions.
 
 ### 4. Implement one paper-broker adapter
 
@@ -153,6 +194,13 @@ observable cost terms from assumptions; do not label a residual as causal market
 impact without identification evidence. Paper fills remain broker simulations.
 Five sessions provide operational evidence, not a strategy-validation sample.
 
+Extend the replay with observed paper quote/order events and quote-versus-fill
+views. Show fill fractions, acknowledgement/fill delays, censored observations
+and cost components with sample counts and clock/feed identities. Distinguish
+internal order/event flow from market-wide order flow. Full order-book heatmaps
+require actual depth data and remain an optional extension outside this scope;
+minute OHLCV must not be presented as reconstructed depth or aggressor flow.
+
 Acceptance: reproducible execution tables and plots from recorded paper quotes
 and events, alongside deterministic liquidity-budget tests. No execution-accuracy
 claim follows from the existing minute-open historical references alone.
@@ -187,6 +235,8 @@ covering strategy mathematics, chronological information sets, statistical
 methods, historical findings, account conventions, broker semantics, recovery,
 execution measurements and implementation performance. Include a compact map
 from each contribution to its supporting figure/table and reproduction command.
+Integrate the replay and research visuals developed through earlier milestones,
+with the latency/throughput/recovery benchmark views from milestone 6.
 
 Curate only permitted, sanitized fixtures and small result tables. Preserve bulk
 inputs and routine run output under ignored `scratch/`. Make an offline demo

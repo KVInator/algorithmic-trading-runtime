@@ -262,6 +262,19 @@ Repository hygiene reports no findings. Frozen datasets, earlier studies,
 protocol/settings and existing journals remain unchanged. No local 2024-2025
 prices or candidate results were accessed.
 
+## Assumption interpretation and visual delivery guidance
+
+Completion-plan revision 2, dated 24 October 2026, separates model validity,
+forecast evidence, economics, robustness and execution feasibility. It requires
+explicit justification of consequential assumptions and project-selected screens,
+while preserving registered studies and their findings. Milestone 3 now explicitly
+starts an interactive trace-backed execution replay and recovery/account view;
+paper quote/fill visuals follow in milestones 4-5, benchmark views in milestone 6
+and final integration in milestone 7. Depth-data visualizations remain optional
+and cannot be fabricated from minute bars. This documentation-only clarification
+does not change the current historical runner or require a repeat build. Native
+milestone-2 verification remains the next acceptance item.
+
 ## Next dependency
 
 Verify the new Windows build, twenty-two-group suite and `reversion_development`
