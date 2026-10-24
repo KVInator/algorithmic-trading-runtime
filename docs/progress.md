@@ -654,13 +654,59 @@ Quote/calendar adapters, a reviewed launcher and explicit reviewed reactivation/
 closing-inventory handling are prerequisites. This plan does not itself launch
 orders or establish five-session coverage.
 
+## Native control diagnostic and failed health probe
+
+For implementation `903e9fc`, the Windows build/tests are reported successful.
+No per-group test transcript was supplied. The MSVC 19.51.36260.0 Debug control
+diagnostic exits zero with eight checks in three constructed cases. Its complete
+archive verifies 88 artifact hashes, 76 capture records, three Decimal ledgers,
+24 financial inputs and the three control-journal chains/saved states. All 87
+artifacts other than the source inventory match a restored Linux baseline.
+Both native inventories contain 212 exact source matches and four explained
+CRLF variants, with no unexplained differences. The constructed control substep
+is accepted for that implementation.
+
+The updated native read-only probe exits one with `stream check response deadline`.
+Its 22 artifact hashes and 17 capture records verify. The financial journal also
+verifies six inputs, exact initial reconciliation and final disconnected routing.
+No submit/cancel input or observed trade update is present. Account access,
+authorization and initial subscription succeed; no response to the repeated
+subscription is captured. This is failed native health-check evidence, not a
+successful overall probe or a financial/accounting failure. Verification copies
+are retained under `scratch/verification/native-controls-20261024`.
+
+The follow-up fix preserves the five-second native response budget and actual
+acknowledgment requirement. It replaces the first-empty-poll deadline assumption
+with bounded polling and rounds native fractional-millisecond waits up. A new
+quiet-then-acknowledgment regression fails on the published implementation and
+passes with the correction. Separate cases retain timeout gating and reject
+acknowledgment at the deadline. Captures now record subscription send completion,
+failure phase, elapsed milliseconds, empty polls and decoded message count.
+Console output includes the diagnostic detail. These fixes do not prove why the
+uploaded native acknowledgment was absent; service latency/behavior and native
+buffering remain possible until the repeat probe supplies evidence.
+
+The independent verifier now checks every financial journal listed in a manifest,
+even when failure leaves no saved cases. A forged cash checkpoint with recomputed
+frame/artifact hashes is rejected on the zero-case native failure report. Source
+and artifact verification do not convert that stopped run into a pass.
+
+The fix passes GCC Debug Build All, all 26 full contracts (19.64 seconds) and
+22 quick contracts (3.20 seconds). The control diagnostic retains eight checks
+in three cases. Independent verification checks 97 artifact hashes, 85 capture
+records, three financial ledgers/24 inputs and all policy chains/saved states;
+all 216 source identities match. Windows-target Clang syntax checks pass for
+the native wire and probe; actual Windows acknowledgment acceptance remains
+pending. Regenerated workspace executables with invalid headers/permissions
+were relinked before the final tests, without changing unrelated source.
+
 ## Next dependency
 
-Pull, Build All and run `windows-debug-quick` (22 groups), then run
-`paper_control_diagnostic` and the updated read-only `paper_transport_probe`.
-Retain both complete output folders. Native policy/round-trip acceptance is the
-next checkpoint. Then implement quote/calendar access and the reviewed paper
-launcher, enroll dates before orders, and collect observed lifecycle and
-reconnect/restart evidence across the five planned sessions. Milestones 1-3
-remain closed; 4 is in progress; execution measurements, benchmarks/portable CI
-and final publication remain milestones 5-7.
+Rerun the corrected native timeout handling with the affected contracts, then rerun
+the native read-only probe and retain its complete folder. It must receive a real
+listening acknowledgment and reconcile; no fallback accepts silence as health.
+Native health acceptance remains open. Quote/calendar access, a reviewed paper
+launcher and the enrolled five-session observed lifecycle/reconnect/restart
+capture remain prerequisites to closing milestone 4. Milestones 1-3 remain closed;
+execution measurements, benchmarks/portable CI and final publication remain
+milestones 5-7.

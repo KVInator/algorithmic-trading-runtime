@@ -49,7 +49,8 @@ WebSocket upgrade requires HTTP 101. Async WinHTTP sends and receives retain
 callback contexts/buffers through the final handle-closing callback. Handshake
 send and headers each have a 20-second application wait; outbound stream sends
 have ten seconds. A pending receive can survive a quiet poll without issuing a
-second concurrent read. Binary and UTF-8 fragments are assembled, with a one-MiB
+second concurrent read. Native remaining waits round up to whole milliseconds;
+the health check polls in bounded slices until its overall response deadline. Binary and UTF-8 fragments are assembled, with a one-MiB
 message limit and 4,096-fragment bound. Mixed types, malformed payloads, peer
 closure and API errors close routing. No market-data stream is added.
 

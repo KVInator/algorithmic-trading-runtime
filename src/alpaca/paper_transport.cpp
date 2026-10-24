@@ -331,32 +331,62 @@ bool PaperSession::synchronize() {
 }
 
 bool PaperSession::check_stream(std::chrono::milliseconds budget) {
+    std::optional<std::int64_t> start;
+    unsigned empty_polls = 0, messages = 0;
+    std::string phase = "preflight";
     try {
         require(active_ && budget.count() > 0 && budget <= std::chrono::seconds{10},
                 "stream check requires an active session and a bounded budget");
         static_cast<void>(drain());
+        phase = "subscription_send";
+        capture_.record("connection", "stream_check_send_started budget_ms=" + std::to_string(budget.count()),
+                        "", clock_());
         wire_.subscribe_trade_updates();
-        const auto start = clock_().monotonic_ms;
-        for (unsigned count = 0; count < 100; ++count) {
-            const auto elapsed = clock_().monotonic_ms - start;
+        const auto sent = clock_();
+        start = sent.monotonic_ms;
+        phase = "awaiting_listening";
+        capture_.record("connection", "stream_check_send_completed", "", sent);
+        // An empty poll is not a message and need not consume the full response budget.
+        // Bound work independently so a faulty zero-progress wire cannot spin forever.
+        for (unsigned attempt = 0; attempt < 100; ++attempt) {
+            const auto elapsed = clock_().monotonic_ms - *start;
             require(elapsed >= 0 && elapsed < budget.count(), "stream check response deadline");
-            auto raw = wire_.poll(std::chrono::milliseconds{budget.count() - elapsed});
-            require(raw.has_value(), "stream check response deadline");
+            auto raw =
+                wire_.poll(std::chrono::milliseconds{std::min<std::int64_t>(250, budget.count() - elapsed)});
+            if (!raw) {
+                ++empty_polls;
+                continue;
+            }
+            ++messages;
             const auto at = clock_();
             capture_.record("stream", "subscription health response", *raw, at);
             ingest(*raw, at);
             const auto decoded = AlpacaPaperDecoder{}.stream(*raw, BrokerTimestamp{at.utc});
-            require(at.monotonic_ms - start >= 0 && at.monotonic_ms - start < budget.count(),
+            require(at.monotonic_ms - *start >= 0 && at.monotonic_ms - *start < budget.count(),
                     "stream check response arrived beyond deadline");
             if (decoded.kind == PaperStreamKind::listening) {
                 require(decoded.trade_updates_subscribed, "stream subscription lost");
-                return synchronize();
+                phase = "reconciliation";
+                const bool matched = synchronize();
+                capture_.record("connection", matched ? "stream_check_reconciled" : "stream_check_mismatch",
+                                "", clock_());
+                return matched;
             }
             require(decoded.kind == PaperStreamKind::trade_update, "unexpected stream health response");
         }
-        throw std::runtime_error("stream check interleaving bound exhausted");
+        throw std::runtime_error("stream check poll/interleaving bound exhausted");
     } catch (...) {
         fault();
+        try {
+            const auto at = clock_();
+            const auto elapsed = start ? std::to_string(at.monotonic_ms - *start) : "unavailable";
+            capture_.record("connection",
+                            "stream_check_failed phase=" + phase + " elapsed_ms=" + elapsed +
+                                " empty_polls=" + std::to_string(empty_polls) +
+                                " messages=" + std::to_string(messages),
+                            "", at);
+        } catch (...) { /* Preserve the primary failure if capture itself is unavailable. */
+        }
         throw;
     }
 }

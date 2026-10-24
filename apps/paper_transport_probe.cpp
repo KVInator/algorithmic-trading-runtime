@@ -60,6 +60,7 @@ int main() {
         trading::PaperTransportReport{result}.write(directory);
         std::cout << "Probe status: "
                   << (result.successful ? "read-only checks completed" : "stopped; review retained evidence")
+                  << "\nDetail: " << result.detail
                   << "\nVisual report: " << (directory / "report.html").string()
                   << "\nManifest: " << (directory / "summary.json").string() << '\n';
         return result.successful ? 0 : 1;

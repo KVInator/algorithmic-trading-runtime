@@ -55,6 +55,8 @@ public:
     Json open_orders = Json::array();
     unsigned waits = 0;
     bool uncertain = false, health_ack = false;
+    unsigned health_quiet_polls = 0, quiet_remaining = 0;
+    std::function<void(std::chrono::milliseconds)> polling;
 
     PaperHttpResponse request(const PaperRequest& request) override {
         requests.push_back(request);
@@ -89,13 +91,20 @@ public:
     void open_authenticated_stream() override {}
 
     void subscribe_trade_updates() override {
+        quiet_remaining = health_quiet_polls;
         if (health_ack)
             messages.push_back(R"({"stream":"listening","data":{"streams":["trade_updates"]}})");
     }
 
     void close() noexcept override {}
 
-    std::optional<std::string> poll(std::chrono::milliseconds) override {
+    std::optional<std::string> poll(std::chrono::milliseconds budget) override {
+        if (polling)
+            polling(budget);
+        if (quiet_remaining) {
+            --quiet_remaining;
+            return std::nullopt;
+        }
         if (messages.empty())
             return std::nullopt;
         auto message = std::move(messages.front());
@@ -121,11 +130,12 @@ public:
     PaperCapture capture;
     JournaledPaperRuntime runtime;
     PaperSession session;
+    std::int64_t now = 1;
 
     explicit Fixture(const std::filesystem::path& directory)
         : path{directory}, capture{directory / "capture"},
           runtime{JournaledPaperRuntime::create(create_journal_file(directory / "runtime.journal"), config)},
-          session{runtime, wire, capture, [] { return PaperReceipt{timestamp, 1}; },
+          session{runtime, wire, capture, [this] { return PaperReceipt{timestamp, now}; },
                   [this](auto) { ++wire.waits; }} {}
 
     void ready() {
@@ -150,6 +160,7 @@ public:
     explicit Contracts(std::filesystem::path root) : root_{std::move(root)} {}
 
     void run() const {
+        health_polling();
         framing();
         request_policy();
         dispatch_failures();
@@ -319,6 +330,34 @@ private:
             c.service();
             require(c.snapshot().at("reason").get<std::string>() == "health_roundtrip_stale",
                     "slow successful reconciliation cannot manufacture fresh stream health");
+        }
+    }
+
+    void health_polling() const {
+        {
+            Fixture f{root_ / "quiet_then_ack"};
+            f.ready();
+            f.wire.health_ack = true;
+            f.wire.health_quiet_polls = 2;
+            require(f.session.check_stream(std::chrono::seconds{5}),
+                    "quiet polls before acknowledgment do not mean response deadline");
+        }
+        {
+            Fixture f{root_ / "full_health_deadline"};
+            f.ready();
+            f.wire.polling = [&](auto budget) { f.now += budget.count(); };
+            const auto start = f.now;
+            rejects([&] { static_cast<void>(f.session.check_stream(std::chrono::seconds{5})); });
+            require(f.now - start == 5010 && f.gated() && f.wire.posts() == 0,
+                    "missing response consumes response budget and closes routing without POST");
+        }
+        {
+            Fixture f{root_ / "late_health_ack"};
+            f.ready();
+            f.wire.health_ack = true;
+            f.wire.polling = [&](auto budget) { f.now += budget.count(); };
+            rejects([&] { static_cast<void>(f.session.check_stream(std::chrono::milliseconds{100})); });
+            require(f.gated(), "acknowledgment at deadline is late even when decoded successfully");
         }
     }
 

@@ -348,7 +348,7 @@ std::optional<std::string> AlpacaPaperWire::poll(std::chrono::milliseconds budge
                 impl.pending = true;
             }
             const auto remaining =
-                std::max(std::chrono::milliseconds{0}, std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::max(std::chrono::milliseconds{0}, std::chrono::ceil<std::chrono::milliseconds>(
                                                            deadline - std::chrono::steady_clock::now()));
             if (!impl.state->wait(2, remaining))
                 return std::nullopt;

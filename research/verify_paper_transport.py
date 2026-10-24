@@ -106,10 +106,18 @@ class PaperTransportVerifier:
         for name in names:
             if name.endswith("capture.journal"):
                 self.capture(name)
+        ledgers = {}
+        for name in names:
+            if name.endswith("runtime.journal"):
+                journal = self.path(name)
+                verifier = PaperExecutionVerifier(journal.parent)
+                verifier.journal(journal.name)
+                ledgers[journal] = verifier
+                self.ledgers += 1
+                self.inputs += verifier.inputs
         for case in evidence["cases"]:
             journal = self.path("runtime.journal" if native else case["case"] + "/runtime.journal")
-            verifier = PaperExecutionVerifier(journal.parent)
-            verifier.journal(journal.name)
+            verifier = ledgers[journal]
             state = case["state"]
             account, state_hash, tip = verifier.frames[journal.name][state["durable_records"]]
             assert account == state["account"] and tip == state["journal_sha256"]
@@ -123,8 +131,6 @@ class PaperTransportVerifier:
                 assert all(saved[k] == policy[k] for k in policy)
                 assert saved["durable_records"] == count and saved["journal_sha256"] == tip
                 assert saved["execution"] == state
-            self.ledgers += 1
-            self.inputs += verifier.inputs
         print(
             f"Verified {len(artifacts)} artifact hashes, {self.records} capture records, "
             f"{self.ledgers} Decimal ledgers and {self.inputs} journal inputs"

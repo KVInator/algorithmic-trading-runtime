@@ -40,7 +40,9 @@ reviewed new owner/closing-inventory procedure remains a launcher design item.
 
 The default interval is 30 seconds and acknowledgment budget five seconds.
 The session drains queued messages, repeats its `trade_updates` listen request,
-waits for a listening acknowledgment and reconciles two snapshot collections.
+waits for a listening acknowledgment across bounded polls and reconciles two
+snapshot collections. Empty polls do not consume the entire response deadline.
+Send completion and failure phase/timing are retained in capture metadata.
 Trade updates arriving before the acknowledgment are captured and applied.
 A failed acknowledgment/reconciliation stops the control. A service gap reaching
 two health intervals stops it rather than silently restoring eligibility.
