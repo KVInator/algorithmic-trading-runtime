@@ -1,6 +1,6 @@
 # Completion milestone ledger
 
-Updated 23 October 2026. The [completion plan](completion_plan.md) governs scope
+Updated 24 October 2026. The [completion plan](completion_plan.md) governs scope
 and acceptance. This ledger distinguishes implemented foundations, completed
 substeps and open end-to-end milestones; contract counts are verification
 evidence rather than a completion percentage.
@@ -8,7 +8,7 @@ evidence rather than a completion percentage.
 | Milestone | Status | Evidence and remaining acceptance |
 | --- | --- | --- |
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
-| 2. Strategy research | In progress: reversion revision 1 registered | Synthetic finite-sample/noise evidence, whole-session parameter ranges and failure conventions are complete. Prior-only history, policies/control accounts, registered historical scoring and new native verification remain. |
+| 2. Strategy research | In progress: reversion revision 1 registered | Synthetic finite-sample/noise evidence, whole-session parameter ranges and failure conventions are complete. Native synthetic verification is complete for `5835606`. Prior-only history, policies/control accounts and registered historical scoring remain. |
 | 3. Shared execution path | Partially implemented | The original momentum adapter has synthetic fill/restart evidence. Continuation/reversion adapters, historical reference replay and account-convention comparisons remain. |
 | 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
@@ -173,9 +173,52 @@ Both retain the same 163-file inventory aggregate
 `c733f3bfad4967d868ca35bc6cfd755208777fb19b9c5e901ba821de024038cc`.
 The repository hygiene audit reports no findings. Existing frozen studies,
 policies, briefs, datasets, result records and journals retain their bytes.
-No 2024-2025 prices/performance were accessed. New MSVC build, twenty-one-group
-suite and native synthetic diagnostic evidence remain pending; the completed
-milestone-1 native baseline remains valid for its recorded implementation.
+No 2024-2025 prices/performance were accessed. At this checkpoint the new MSVC
+build, twenty-one-group suite and native diagnostic evidence were pending.
+Their subsequent verification is recorded below; the milestone-1 native baseline
+remains valid for its recorded implementation.
+
+## Native reversion diagnostic verification
+
+On 24 October 2026 the MSVC 19.51.36260.0 Debug build and all twenty-one routine
+groups were reported successful for implementation `5835606`. The supplied
+console log records all thirteen synthetic cases, 1,000 point trials per case,
+200 coverage trials per case and exit code zero. The uploaded report retains
+zero historical model fits and zero historical strategy scores.
+
+The native summary SHA-256 is
+`23940f247b8532527042d476ba642f2dcabbb55970f1570c0e934e68a6650b6f`.
+All sixteen artifact hashes verify. The independent standard-library verifier
+recomputes the thirteen first-trial fits and residual variances with 60-digit
+Decimal arithmetic, all 13,000 point-trial aggregates and coverage denominators.
+It also checks the reported status totals covering 1,034,800 refits. All fit classifications, failure counts,
+coverage counts, settings and seeds agree with the retained GCC Debug evidence.
+The previously reported undercoverage and false latent-OU admissibility remain.
+
+Raw/other numerical fields differ by at most approximately 4.33e-15 in absolute
+units. The largest derived-field difference is approximately 7.26e-6 minutes in
+a conditional half-life upper endpoint near 135,883.52 minutes, relative
+approximately 5.34e-11. The near-unit-root transformation amplifies coefficient
+roundoff; no model status or coverage decision changes. Numerical comparisons
+use relative/absolute tolerances 1e-11/1e-15 for raw/other fields and
+1e-9/1e-12 for equilibrium and half-life transforms. HTML text is identical after
+source-fingerprint substitution; bitwise cross-compiler numerical identity is
+not required.
+
+The 163-entry native source inventory has aggregate SHA-256
+`c3a0f46971892a23bc5d89ce33f9183ee620e4d002f97cdddfb82f6c79a81dff`.
+Of its source records, 158 match exactly and five match exact CRLF variants:
+`CMakePresets.json`, `research/intraday_continuation_protocol.md`,
+`src/platform/windows/alpaca_console_credentials.cpp`,
+`src/research/intraday_continuation.cpp` and its header. There are no unexplained
+source differences. The registered reversion protocol and settings match exactly.
+
+The original uploaded bytes are preserved in the isolated directory
+`scratch/verification/reversion-native-xc99nthw`; comparison results are retained
+in `scratch/verification/reversion-native-audit.json`. No numerical implementation
+or registered research rule changes are required. This closes native verification
+of the sampling/noise checkpoint, not milestone 2 or historical reversion scoring.
+This documentation-only update does not require another native build.
 
 ## Next dependency
 
