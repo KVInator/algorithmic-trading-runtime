@@ -37,6 +37,8 @@ cancellation races, restart and fractional/whole-share comparisons. A bounded
 historical replay uses explicitly constructed bar-price quotes. Its outcomes
 remain separate from frozen research performance. The [interactive event replay](docs/strategy_execution.md)
 exposes saved client/broker state, reservations, fills and routing gates.
+The [paper API boundary](docs/alpaca_paper_contract.md) adds exact decimal/time
+decoding and paper-only request construction; broker transport remains open.
 The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
 and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
 
@@ -49,7 +51,7 @@ requires access to that dependency. Project warnings are treated as errors.
 1. Open the repository with **File > Open > Folder**.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
-4. Run **Test > Run Test Preset > windows-debug** for twenty-three routine groups.
+4. Run **Test > Run Test Preset > windows-debug** for twenty-four routine groups.
 5. Select **strategy_execution_diagnostic.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.
 6. Open the printed `report.html` and retain its evidence directory.

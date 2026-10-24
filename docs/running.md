@@ -9,10 +9,10 @@ working directory. Each diagnostic or study writes a new directory under
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
 **Test > Run Test Preset > windows-debug**. Select an executable and use
-**Ctrl+F5**. The routine preset runs twenty-three contract groups.
+**Ctrl+F5**. The routine preset runs twenty-four contract groups.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
-has a matching twenty-three-group test preset. Financial/artifact validation stays
+has a matching twenty-four-group test preset. Financial/artifact validation stays
 enabled. `windows-debug-full` additionally runs the optional 497-session
 synthetic disk integration test.
 
@@ -46,6 +46,7 @@ branches. Local datasets remain in place.
 
 | Target | Expected evidence |
 | --- | --- |
+| `paper_contract_diagnostic` | 56 checks, forty constructed API-shaped cases, exact decimal/time boundaries and paper-only request descriptions; zero network requests |
 | `continuation_diagnostic` | `trace.html` and `decisions.csv`; constructed completed-prefix price/volume decisions |
 | `execution_diagnostic` | Six scenarios, 69 transitions, identical repeated replay and retained input/trace files |
 | `recovery_diagnostic` | 33 checks, seven checkpoints and valid/torn/recovered/corrupt journals |

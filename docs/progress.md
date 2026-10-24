@@ -10,7 +10,7 @@ evidence rather than a completion percentage.
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
 | 2. Strategy research | Complete for `05aec9d` | Three strategy specifications have reproducible historical comparisons. Native MSVC build and all twenty-two groups are reported successful. SPY-MR-01 retains 476 dates, forty market cases and its cost-dominated finding; all ten artifacts and 171 source records verify, with identical native/Linux account paths. |
 | 3. Shared execution path | Complete for `9aeffa4` | MSVC build and routine test preset reported successful. Native eighteen-/twenty-two-case runs pass 224/296 checks; saved evidence, inputs and HTML match Linux byte-for-byte. Source differences are five explained CRLF variants. Journal manifest digests match the checked Linux bodies; native bodies were not supplied. |
-| 4. Paper broker | Not implemented | Broker-generated order events, transport semantics, TIF/expiry, operational capture and observed reconciliation remain. |
+| 4. Paper broker | In progress: message/precision boundary | Exact decimal/time decoding, a bounded SPY/DAY-limit contract and paper-only request descriptions are implemented. Versioned accounting/identity mapping, transport, TIF/expiry, stop/capture and observed reconciliation remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
 | 7. Final technical publication | Not complete | Individual reports and research notes exist. The unified analytical HTML/PDF report, offline showcase and final repository presentation remain. |
@@ -400,17 +400,43 @@ close milestone 3 for its declared acceptance scope. Actual browser clicking
 remains unverified; observed paper events and execution-quality evidence remain
 separate dependencies. This acceptance record changes documentation only.
 
+## Paper API contract checkpoint
+
+The [paper-broker contract](alpaca_paper_contract.md) records a bounded first
+milestone-4 substep: exact broker decimals/timestamps, immutable paper-origin
+selection, request descriptions and REST/stream decoders. Forty constructed
+cases cover authorization/subscription responses, incremental versus cumulative
+fills, subcent values, unsupported events, invalid origins/values, missing fields,
+open-order identity collisions and potential truncation. The diagnostic passes
+56 checks and retains raw constructed evidence with an HTML report.
+
+No network requests or orders are sent. No credentials, market data or historical
+strategy results are loaded. Existing cent-ledger behavior and journal schemas
+1/2 remain unchanged. Broker fee availability and subcent accounting require an
+explicit versioned bridge before runtime reports can be emitted. This substep
+does not establish an observed paper lifecycle or close milestone 4.
+
+GCC 13.3 Debug Build All and all twenty-four routine groups pass with warnings
+as errors in 22.35 seconds. The new API contract group passes ASan/UBSan with leak
+detection disabled. An independent fixed-seed Python Decimal/UTC oracle agrees
+with 4,000 exact decimal canonicalization/comparison/projection cases and 1,000
+nanosecond timestamp cases. The local audit is retained at
+`scratch/verification/paper-contract`.
+
+Debug evidence is retained at `scratch/runs/paper_contract_3`; Release at
+`paper_contract_4`. Constructed evidence, source inventory and HTML are byte-identical
+between configurations. All three artifact hashes, all 190 configure-time source
+records, exact Decimal examples, request scope, incremental/cumulative examples
+and report links verify. The report is statically rendered and visually inspected;
+actual browser interaction remains unverified. Repository hygiene and diff checks
+pass. Native MSVC verification for this new substep remains open.
+
 ## Next dependency
 
-Begin milestone 4 with the Alpaca paper-broker event/precision contract and
-paper-only endpoint enforcement, then connect submission/cancellation, stable-ID
-lookup, event streaming and independent reconciliation. Define TIF/expiry and
-controlled-stop behavior, followed by fault replay and the fixed five-session
-operational capture plan before an observed run. A mock-only adapter cannot close
-this milestone.
-
-Milestones 1-3 are complete for their recorded implementations. Milestones 4-7
-remain substantial work: paper transport and observed reconciliation, execution
-measurement, Release benchmarks/portable CI, and the unified analytical report
-and showcase. No new build is required for this documentation-only acceptance
-record. Test counts do not define a completion percentage.
+Verify the new contract on MSVC with Build All, the twenty-four-group routine
+preset and `paper_contract_diagnostic`. Implement a versioned exact accounting
+and durable broker-identity/event bridge, then connect the paper transport,
+TIF/expiry and controlled-stop paths. Declare the five-session capture plan before
+an observed operational run. Milestones 1-3 remain closed; 4 is in progress;
+execution measurements, Release benchmarks/portable CI and the final report
+remain milestones 5-7. Test counts do not define a completion percentage.

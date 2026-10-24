@@ -93,6 +93,11 @@ add_library(order_execution src/execution/order_runtime.cpp src/execution/runtim
 target_include_directories(order_execution PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/execution")
 configure_trading_target(order_execution)
 
+add_library(alpaca_paper_contract src/alpaca/broker_value.cpp src/alpaca/alpaca_paper_contract.cpp
+    src/alpaca/paper_contract_diagnostic.cpp)
+target_link_libraries(alpaca_paper_contract PUBLIC trading_core order_execution PRIVATE alpaca_decoder nlohmann_json::nlohmann_json)
+configure_trading_target(alpaca_paper_contract)
+
 add_library(execution_persistence src/execution/journaled_runtime.cpp src/storage/runtime_json.cpp src/execution/recovery_diagnostic.cpp)
 target_link_libraries(execution_persistence PUBLIC order_execution artifact_integrity nlohmann_json::nlohmann_json
     PRIVATE alpaca_decoder)
@@ -145,6 +150,15 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/generated/trading_source_inventory.hpp"
     "#pragma once\n#include <string_view>\nnamespace trading::build {\n"
     "inline constexpr std::string_view source_sha256{\"${source_sha256}\"};\n"
     "inline constexpr std::string_view source_records{R\"inventory(${source_records})inventory\"};\n}\n")
+
+add_library(paper_contract_reporting src/reporting/paper_contract_report.cpp)
+target_include_directories(paper_contract_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting"
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
+target_link_libraries(paper_contract_reporting PUBLIC alpaca_paper_contract artifact_integrity PRIVATE nlohmann_json::nlohmann_json)
+target_compile_definitions(paper_contract_reporting PRIVATE
+    TRADING_COMPILER_ID="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
+    TRADING_BUILD_CONFIGURATION="$<CONFIG>")
+configure_trading_target(paper_contract_reporting)
 
 add_library(execution_reporting src/reporting/execution_diagnostic_report.cpp src/reporting/recovery_diagnostic_report.cpp)
 target_include_directories(execution_reporting PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/reporting"
@@ -212,6 +226,7 @@ add_trading_app(continuation_development continuation_reporting)
 add_trading_app(risk_preflight risk_preflight_reporting)
 add_trading_app(risk_acquire risk_preflight_reporting)
 add_trading_app(risk_development daily_risk_reporting)
+add_trading_app(paper_contract_diagnostic paper_contract_reporting)
 add_trading_app(execution_diagnostic execution_reporting)
 add_trading_app(recovery_diagnostic execution_reporting)
 add_trading_app(pipeline_diagnostic pipeline_reporting)
@@ -262,6 +277,7 @@ if(BUILD_TESTING)
         endif()
     endfunction()
     add_trading_contract(minute_bar_tests minute_bar_contracts trading_core)
+    add_trading_contract(paper_contract_tests alpaca_paper_contracts "paper_contract_reporting;nlohmann_json::nlohmann_json" OUTPUT)
     add_trading_contract(alpaca_credentials_tests alpaca_credentials_contracts trading_core)
     add_trading_contract(alpaca_bar_page_tests alpaca_bar_page_contracts "alpaca_decoder;nlohmann_json::nlohmann_json")
     add_trading_contract(session_download_tests session_download_contracts "session_data;nlohmann_json::nlohmann_json" OUTPUT)

@@ -53,7 +53,7 @@ The responsibility and ownership map is in `docs/architecture.md`.
 
 Build/test presets and target prerequisites are documented in `docs/running.md`.
 Windows uses `windows-x64` and `windows-debug`; Linux uses `linux-debug` for
-configure/build/test. The routine preset runs twenty-three groups and excludes the
+configure/build/test. The routine preset runs twenty-four groups and excludes the
 optional full-period disk integration. Keep warnings as errors. Run relevant
 contracts during editing and the complete routine preset at a milestone.
 
