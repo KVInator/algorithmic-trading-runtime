@@ -700,13 +700,58 @@ the native wire and probe; actual Windows acknowledgment acceptance remains
 pending. Regenerated workspace executables with invalid headers/permissions
 were relinked before the final tests, without changing unrelated source.
 
+## Correlated WebSocket heartbeat replacement
+
+The complete `paper_transport_probe_2` archive for `eb8e7db` verifies 25 artifact
+hashes, twenty capture records and six financial inputs. Source identity has
+212 exact matches and four explained CRLF variants. Its new timing trace records
+send completion followed by 5,023 ms, twenty empty polls and zero messages.
+Initial authorization/subscription and exact reconciliation succeed, but the
+repeated-listen health check fails. This confirms that the previous wait-loop
+repair did not resolve native health acceptance. Routing closes and no orders
+are submitted/canceled. Evidence is retained under
+`scratch/verification/probe2-native-20261024`.
+
+The [heartbeat correction](websocket_heartbeat.md) replaces that check with
+correlated RFC6455 PING/PONG, without changing the active subscription. A pinned
+libcurl 8.23.0 socket owner replaces the native WinHTTP WebSocket path; WinHTTP
+REST remains unchanged. Windows uses Schannel certificate/hostname validation.
+The production stream URL remains paper-only and redirects remain disabled.
+Trade updates are retained while awaiting the matching PONG, followed by exact
+reconciliation. PONG proves a transport round trip rather than complete event
+history or market-quote freshness. The five-second challenge budget is retained.
+
+New control journals explicitly identify schema 2 and the PING/PONG health model.
+Legacy control schema 1 remains recoverable stopped and is labeled as legacy;
+financial schemas 1-3 and their accounting engine remain unchanged. A genuine
+socket loopback fixture exercises the production library/framing path, including
+wrong/matching PONGs, server PING replies, interleaved fragmented data, silence,
+close, oversized messages and redirect rejection. No broker requests are sent
+by those local tests.
+
+GCC Debug Build All passes with warnings as errors. All 26 routine groups pass
+in 19.64 seconds; all 22 quick groups pass in 3.26 seconds. The optional real-wire
+group passes its five cases separately. The wire and expanded transport groups
+also pass ASan/UBSan with leak detection disabled. Four Windows-target C++ syntax
+checks pass for the socket owner, native wire, probe and loopback client. This is
+not MSVC/Schannel runtime acceptance. The optional wire test uses standard-library
+Python when available and does not change routine preset counts.
+
+Debug at `scratch/runs/paper_control_4` and Release at `paper_control_3` retain
+97 byte-identical artifacts. Independent checks verify 85 capture records, three
+Decimal ledgers/22 financial inputs, all three policy-journal chains/saved states
+and correlated PING/PONG payloads. All 219 source identities match. The verifier
+continues to validate the previously supplied schema-1 native control archive.
+No historical strategy result or frozen input is changed.
+
 ## Next dependency
 
-Rerun the corrected native timeout handling with the affected contracts, then rerun
-the native read-only probe and retain its complete folder. It must receive a real
-listening acknowledgment and reconcile; no fallback accepts silence as health.
-Native health acceptance remains open. Quote/calendar access, a reviewed paper
-launcher and the enrolled five-session observed lifecycle/reconnect/restart
-capture remain prerequisites to closing milestone 4. Milestones 1-3 remain closed;
+Build the pinned socket dependency and run the updated read-only native probe.
+It must receive an actual matching WebSocket PONG and reconcile before native
+health acceptance can close. The first build downloads/builds libcurl; later
+builds reuse it. No extra curl installation is required on Windows. Preserve
+the complete probe folder. Milestone 4 remains open for native heartbeat
+acceptance, quote/calendar access, the reviewed launcher and five-session
+observed lifecycle/reconnect/restart capture. Milestones 1-3 remain closed;
 execution measurements, benchmarks/portable CI and final publication remain
 milestones 5-7.

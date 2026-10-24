@@ -71,6 +71,8 @@ policy. Preserve legacy JSON cent keys while C++ core fields use neutral units.
 Its accounting/persistence contract is in `docs/paper_execution.md`.
 The separate deadline/stop owner and its serialized health/dispatch gates are
 specified in `docs/paper_control.md`; native operational callers must use it.
+The WebSocket PING/PONG model, pinned libcurl transport and optional real-wire
+contracts are documented in `docs/websocket_heartbeat.md`.
 The runtime, journal and pipeline contracts in `docs/` define these invariants.
 
 `research/intraday_reversion_protocol.md` and its JSON register SPY-MR-01

@@ -104,13 +104,12 @@ establish physical power-loss behavior or historical strategy performance.
 On Windows select **paper_transport_probe.exe** and press **Ctrl+F5**. It reuses
 Credential Manager/hidden console credentials, reads only the paper account and
 queries, authenticates and subscribes to order updates, and compares independent
-snapshots with a new flat ledger. No orders are submitted or canceled. Existing
+snapshots with a new flat ledger. Its heartbeat requires a matching WebSocket PONG. No orders are submitted or canceled. Existing
 positions/orders or mismatched evidence stop reconciliation without altering
 the account. The report retains any available failure evidence.
 
 Run the offline `paper_transport_diagnostic` first. For the control checkpoint,
-run `paper_control_diagnostic`, then repeat the probe to verify its subscription
-round trip and reconciliation against the service. The [control contract](paper_control.md)
+run `paper_control_diagnostic`, then repeat the probe to verify its WebSocket PING/PONG and reconciliation against the service. The [control contract](paper_control.md)
 defines deadlines, stop/recovery and health limits. Keep the complete output
 directory printed by both programs. The [transport contract](paper_transport.md)
 explains request limits, capture privacy, snapshot limitations and native
@@ -223,3 +222,9 @@ The verifier independently implements MT19937-64/session sampling, Decimal OLS,
 account arithmetic and NumPy bulk resampling. NumPy is not a C++ build/runtime
 dependency. The [development evidence](reversion_development.md) records results
 and native verification status.
+
+The first configure/build also downloads the SHA-256-pinned libcurl source and
+builds its static WebSocket library. Windows uses Schannel; no separate curl or
+OpenSSL installation is needed there. The optional `paper_websocket_loopback`
+CTest group uses Python, when found, and is labeled `integration`; it does not
+change the 26-group full routine or 22-group quick selections.

@@ -1,0 +1,32 @@
+# The native WinHTTP WebSocket API does not expose challenge PING/PONG frames.
+# Build only libcurl's HTTP/WebSocket path, with platform certificate validation.
+function(add_paper_websocket_dependency)
+    set(BUILD_CURL_EXE OFF)
+    set(BUILD_SHARED_LIBS OFF)
+    set(BUILD_STATIC_LIBS ON)
+    set(BUILD_TESTING OFF)
+    set(CURL_DISABLE_INSTALL ON)
+    set(CURL_ZLIB OFF)
+    set(CURL_BROTLI OFF)
+    set(CURL_ZSTD OFF)
+    set(CURL_USE_LIBPSL OFF)
+    set(USE_LIBIDN2 OFF)
+    set(USE_NGHTTP2 OFF)
+    set(USE_LIBSSH2 OFF)
+    set(USE_LIBSSH OFF)
+    foreach(protocol DICT DOH FILE FTP GOPHER IMAP LDAP LDAPS MQTT POP3 RTSP SCP SFTP SMTP TELNET TFTP)
+        set(CURL_DISABLE_${protocol} ON)
+    endforeach()
+    if(WIN32)
+        set(CURL_USE_SCHANNEL ON)
+        set(CURL_USE_OPENSSL OFF)
+    else()
+        set(CURL_USE_OPENSSL ON)
+    endif()
+    FetchContent_Declare(paper_curl
+        URL https://curl.se/download/curl-8.23.0.tar.xz
+        URL_HASH SHA256=8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5
+        DOWNLOAD_EXTRACT_TIMESTAMP FALSE)
+    FetchContent_MakeAvailable(paper_curl)
+endfunction()
+add_paper_websocket_dependency()

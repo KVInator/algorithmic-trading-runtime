@@ -44,7 +44,7 @@ If it fully fills, schedule one exit attempt after a 60-second holding period:
 a marketable sell limit at the contemporaneous bid, rounded down to cents,
 with a 30-second cancellation deadline. Do not start the next round trip until
 flat with no unresolved orders. Stop after uncertain commands, inconsistent
-snapshots, missing event evidence, failed quote/stream health or failed exit.
+snapshots, missing event evidence, failed quote/WebSocket PING-PONG health or failed exit.
 Remaining inventory is reported and requires the reviewed closing procedure;
 a stop never fabricates a flat account or sends an automatic market liquidation.
 

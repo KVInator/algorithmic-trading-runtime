@@ -10,7 +10,7 @@ launcher or completed paper-session sample is provided by this checkpoint.
 `PaperSession` coordinates durable order intents, authenticated subscription,
 raw capture, order lookup and independent reconciliation. `PaperHttpClient`
 provides the bounded HTTP policy, including bootstrap queries before a runtime
-exists. `PaperWire` is the substitution boundary for the native WinHTTP adapter
+exists. `PaperWire` is the substitution boundary for the native Windows adapter
 and deterministic faults. Calculations and state transitions remain in
 `JournaledPaperRuntime` and its shared whole-share order engine.
 
@@ -45,23 +45,19 @@ a 20-second response-body budget after headers. These are separate phase
 bounds, not one total request deadline. Bodies are limited to one MiB. Only
 bounded printable `Retry-After` and request-ID response headers are retained.
 
-WebSocket upgrade requires HTTP 101. Async WinHTTP sends and receives retain
-callback contexts/buffers through the final handle-closing callback. Handshake
-send and headers each have a 20-second application wait; outbound stream sends
-have ten seconds. A pending receive can survive a quiet poll without issuing a
-second concurrent read. Native remaining waits round up to whole milliseconds;
-the health check polls in bounded slices until its overall response deadline. Binary and UTF-8 fragments are assembled, with a one-MiB
-message limit and 4,096-fragment bound. Mixed types, malformed payloads, peer
-closure and API errors close routing. No market-data stream is added.
+WebSocket upgrade requires HTTP 101. The [heartbeat/socket owner](websocket_heartbeat.md)
+uses pinned libcurl with native Schannel TLS on Windows; REST continues to use
+WinHTTP. Binary/text fragments are assembled with one-MiB and 4,096-chunk bounds.
+Mixed types, malformed payloads, peer closure and API errors close routing.
+No market-data stream is added.
 
-An authorized response must precede a `trade_updates` listening acknowledgment.
-Authorization waits up to ten seconds; subscription permits up to 32 one-second
-polls with queued trade updates retained until acknowledgment. An empty poll
-during that handshake stops it. An empty ordinary poll means only that its wait
-budget expired. It does not establish feed health or trigger a reconnect.
-The [control owner](paper_control.md) adds durable deadline/stop and periodic
-subscription-response checks. Native acceptance of those new controls remains
-open; WinHTTP keepalive behavior alone is not such evidence.
+Authorization precedes the initial `trade_updates` listening acknowledgment.
+Authorization waits up to ten seconds; initial subscription permits up to 32
+one-second polls with interleaved trade updates retained until acknowledgment.
+An empty poll during that handshake stops it. Ordinary empty polls do not prove
+a feed failure. Periodic liveness uses a matching WebSocket PING/PONG challenge
+and exact reconciliation, without resending the subscription configuration.
+The [control owner](paper_control.md) supplies the durable deadline/stop policy.
 
 ## Capture and commit boundaries
 
@@ -156,8 +152,6 @@ and reconnect/restart evidence. Milestone 4 remains in progress.
 - [Alpaca streaming](https://docs.alpaca.markets/us/docs/websocket-streaming):
   paper binary frames, authorization, listening and trade updates.
 - [Alpaca client-ID order lookup](https://docs.alpaca.markets/us/reference/getorderbyclientorderid).
-- [WinHTTP callbacks](https://learn.microsoft.com/en-us/windows/win32/api/winhttp/nc-winhttp-winhttp_status_callback):
-  completion payloads, reentrancy and final handle closure.
-- [WinHTTP concurrency](https://learn.microsoft.com/en-us/windows/win32/winhttp/concurrency-in-winhttp):
-  asynchronous cancellation and handle lifetime.
-- [WebSocket upgrade](https://learn.microsoft.com/en-us/windows/win32/api/winhttp/nf-winhttp-winhttpwebsocketcompleteupgrade).
+- [libcurl WebSocket interface](https://curl.se/libcurl/c/libcurl-ws.html):
+  control frames, chunked receives and send completion semantics.
+- [Heartbeat correction](websocket_heartbeat.md): native failure evidence and pinned transport implementation.

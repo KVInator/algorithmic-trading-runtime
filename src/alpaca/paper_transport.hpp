@@ -26,6 +26,8 @@ public:
     [[nodiscard]] virtual PaperHttpResponse request(const PaperRequest&) = 0;
     virtual void open_authenticated_stream() = 0; // Credentials stay inside the wire.
     virtual void subscribe_trade_updates() = 0;
+    virtual void ping(std::string_view token, std::chrono::milliseconds budget) = 0;
+    [[nodiscard]] virtual std::optional<std::string> take_pong() = 0;
     [[nodiscard]] virtual std::optional<std::string> poll(std::chrono::milliseconds budget) = 0;
     virtual void close() noexcept = 0;
 };
@@ -105,5 +107,6 @@ private:
     PaperHttpClient http_;
     bool active_{false};
     std::size_t trades_{0};
+    std::uint64_t health_sequence_{0};
 };
 } // namespace trading

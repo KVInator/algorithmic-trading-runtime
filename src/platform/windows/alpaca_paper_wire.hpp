@@ -3,7 +3,7 @@
 #include "alpaca_credentials.hpp"
 
 namespace trading {
-// Serialized caller API. Callback-owned buffers outlive pending asynchronous I/O.
+// Serialized caller API. WinHTTP owns REST; PaperWebSocket owns streaming and PING/PONG.
 class AlpacaPaperWire final : public PaperWire {
 public:
     explicit AlpacaPaperWire(AlpacaCredentials credentials);
@@ -13,6 +13,8 @@ public:
     [[nodiscard]] PaperHttpResponse request(const PaperRequest&) override;
     void open_authenticated_stream() override;
     void subscribe_trade_updates() override;
+    void ping(std::string_view token, std::chrono::milliseconds budget) override;
+    [[nodiscard]] std::optional<std::string> take_pong() override;
     [[nodiscard]] std::optional<std::string> poll(std::chrono::milliseconds budget) override;
     void close() noexcept override;
 

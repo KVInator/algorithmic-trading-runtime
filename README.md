@@ -43,7 +43,7 @@ adds exact nanodollar accounting and durable broker identities using the same
 order core. The [paper transport](docs/paper_transport.md) adds bounded HTTP,
 authenticated streaming, durable raw capture and deterministic faults; native
 read-only connection acceptance is recorded. The [control owner](docs/paper_control.md)
-adds durable deadlines/stopping and subscription-response health checks; native
+adds durable deadlines/stopping and WebSocket PING/PONG health checks; native
 control acceptance and operational order capture remain open.
 The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
 and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
@@ -51,7 +51,7 @@ and [pipeline](docs/offline_pipeline.md) contracts define the execution invarian
 ## Build and run
 
 Windows requires Visual Studio 2026 with MSVC, a Windows SDK and C++ CMake tools.
-CMake 3.25 or later pins nlohmann/json 3.12.0 by SHA-256. Initial configuration
+CMake 3.25 or later pins nlohmann/json 3.12.0 and libcurl 8.23.0 by SHA-256. Initial configuration
 requires access to that dependency. Project warnings are treated as errors.
 
 1. Open the repository with **File > Open > Folder**.

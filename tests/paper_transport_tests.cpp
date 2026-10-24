@@ -2,6 +2,7 @@
 #include "content_digest.hpp"
 #include "paper_transport_report.hpp"
 #include "paper_control.hpp"
+#include "journal_frame.hpp"
 #include <deque>
 #include <iostream>
 
@@ -90,10 +91,23 @@ public:
 
     void open_authenticated_stream() override {}
 
-    void subscribe_trade_updates() override {
+    void subscribe_trade_updates() override { ++subscriptions; }
+
+    std::optional<std::string> pong, wrong_pong;
+    unsigned subscriptions = 0;
+
+    void ping(std::string_view token, std::chrono::milliseconds) override {
         quiet_remaining = health_quiet_polls;
         if (health_ack)
-            messages.push_back(R"({"stream":"listening","data":{"streams":["trade_updates"]}})");
+            pong = wrong_pong.value_or(std::string{token});
+    }
+
+    std::optional<std::string> take_pong() override {
+        if (quiet_remaining)
+            return std::nullopt;
+        auto value = std::move(pong);
+        pong.reset();
+        return value;
     }
 
     void close() noexcept override {}
@@ -213,6 +227,29 @@ private:
                                                    f.session, [] { return PaperReceipt{timestamp, 1000}; });
             require(recovered.snapshot().at("stopped").get<bool>(),
                     "committed uncertain stop survives recovery");
+            auto legacy = std::make_shared<Memory>();
+            std::size_t at = 0;
+            std::string previous;
+            while (at < m->bytes.size()) {
+                const auto end = m->bytes.find('\n', at);
+                auto [row, hash] = JournalFrame::decode(std::string_view{m->bytes}.substr(at, end - at));
+                static_cast<void>(hash);
+                if (at == 0) {
+                    row["schema_version"] = 1;
+                    row["model_contract"] = "paper_control_stop_deadline_v1";
+                    row.erase("health_model");
+                } else
+                    row["previous_sha256"] = previous;
+                auto [frame, digest] = JournalFrame::encode(row);
+                legacy->bytes += frame;
+                previous = digest;
+                at = end + 1;
+            }
+            auto legacy_owner =
+                PaperControl::recover(std::make_unique<Storage>(legacy), {"test-control"}, f.runtime,
+                                      f.session, [] { return PaperReceipt{timestamp, 1000}; });
+            require(legacy_owner.snapshot().at("stopped").get<bool>(),
+                    "legacy control journals recover stopped");
             auto corrupted = std::make_shared<Memory>();
             corrupted->bytes = m->bytes;
             corrupted->bytes[20] = 'X';
@@ -339,8 +376,10 @@ private:
             f.ready();
             f.wire.health_ack = true;
             f.wire.health_quiet_polls = 2;
+            const auto before = f.wire.subscriptions;
             require(f.session.check_stream(std::chrono::seconds{5}),
-                    "quiet polls before acknowledgment do not mean response deadline");
+                    "quiet polls before PONG do not mean response deadline");
+            require(f.wire.subscriptions == before, "heartbeat must preserve active subscription");
         }
         {
             Fixture f{root_ / "full_health_deadline"};
@@ -358,6 +397,15 @@ private:
             f.wire.polling = [&](auto budget) { f.now += budget.count(); };
             rejects([&] { static_cast<void>(f.session.check_stream(std::chrono::milliseconds{100})); });
             require(f.gated(), "acknowledgment at deadline is late even when decoded successfully");
+        }
+        {
+            Fixture f{root_ / "wrong_heartbeat_nonce"};
+            f.ready();
+            f.wire.health_ack = true;
+            f.wire.wrong_pong = "unrelated-nonce";
+            f.wire.polling = [&](auto budget) { f.now += budget.count(); };
+            rejects([&] { static_cast<void>(f.session.check_stream(std::chrono::seconds{5})); });
+            require(f.gated(), "unmatched PONG cannot establish liveness");
         }
     }
 

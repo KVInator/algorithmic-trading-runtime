@@ -37,10 +37,10 @@ int main() {
                 result.checks.push_back("stable flat baseline matches exact ledger");
             bool stream_health = false;
             if (matched) {
-                std::cout << "Checking subscription response and reconciling again\n";
+                std::cout << "Checking WebSocket PING/PONG and reconciling again\n";
                 stream_health = session.check_stream(std::chrono::seconds{5});
                 if (stream_health)
-                    result.checks.push_back("subscription round trip and reconciliation completed");
+                    result.checks.push_back("matching WebSocket PONG and reconciliation completed");
             }
             result.successful = matched && stream_health;
             result.cases.push_back({{"case", "read_only_connection"},

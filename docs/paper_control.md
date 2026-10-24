@@ -8,7 +8,7 @@ operational launcher is introduced in this checkpoint.
 
 ## Deadlines and stopping
 
-Submission requires a successful subscription-response check and exact snapshot
+Submission requires a successful matching WebSocket PONG and exact snapshot
 reconciliation. A future UTC cancellation deadline, at most one hour away, is
 synchronized before the local order intent and POST eligibility. The transport
 checks eligibility after queued messages and again after request capture,
@@ -38,22 +38,21 @@ reviewed new owner/closing-inventory procedure remains a launcher design item.
 
 ## Stream health and clocks
 
-The default interval is 30 seconds and acknowledgment budget five seconds.
-The session drains queued messages, repeats its `trade_updates` listen request,
-waits for a listening acknowledgment across bounded polls and reconciles two
-snapshot collections. Empty polls do not consume the entire response deadline.
-Send completion and failure phase/timing are retained in capture metadata.
-Trade updates arriving before the acknowledgment are captured and applied.
-A failed acknowledgment/reconciliation stops the control. A service gap reaching
-two health intervals stops it rather than silently restoring eligibility.
-A new process never restores a saved monotonic health timestamp.
+The default interval is 30 seconds and PONG budget five seconds. The session
+drains queued input, sends a WebSocket PING with a fresh correlation token,
+requires an identical PONG and reconciles two snapshot collections. Trade updates
+arriving during this check are captured and applied. A failed response or
+reconciliation stops the control. A service gap reaching two health intervals
+stops it rather than silently restoring eligibility. A new process never restores
+a saved monotonic health timestamp. The subscription remains active throughout.
 
-A quiet order stream alone is not failure. This is an application subscription
-round trip, not an exchange heartbeat, market-quote freshness check or proof that
-all earlier order events arrived. Listening responses have no request nonce;
-queued/delayed acknowledgments and non-atomic snapshots remain limitations.
-The response budget bounds acknowledgment polling, separately from outbound
-send and REST phase timeouts. Exact reconciliation can take longer.
+A quiet order stream alone is not failure. This is transport PING/PONG, not an
+exchange heartbeat, market-quote freshness check or proof that all earlier order
+events arrived. The [heartbeat contract](websocket_heartbeat.md) records why the
+repeated-listen approach was replaced and how the real socket path is tested.
+The deadline is enforced on received proof; synchronous capture/network work
+still makes calls serialized rather than hard real-time. Reconciliation has its
+own REST phase timeouts.
 
 UTC timestamps determine deadlines; monotonic milliseconds determine health age.
 Observed backward movement in either clock durably stops the owner. Positive
@@ -66,8 +65,8 @@ future quote/order composition separately.
 
 ## Persistence and recovery
 
-The control journal uses `paper_control_stop_deadline_v1`, schema 1, separate
-from execution schemas 1-3. Its exact configuration header is checksum framed.
+The control journal uses `paper_control_stop_deadline_v2`, schema 2, separate
+from execution schemas 1-3. Schema-1 control journals remain recoverable stopped. Its exact configuration header is checksum framed.
 Commands chain sequence and predecessor SHA-256 and retain replayed state.
 Capacity is 256 deadline identities, 2,000 commands and 32 MiB, with the shared
 64-KiB frame bound. Uncertain append poisons the writer and closes the session.
@@ -84,7 +83,7 @@ Raw capture, policy and execution each have their own commit boundary.
 ## Evidence and native check
 
 `paper_control_diagnostic` produces eight checks across three constructed cases:
-deadline/cancel plus operator stop, failed stream acknowledgment, and clock
+deadline/cancel plus operator stop, failed WebSocket PONG, and clock
 regression/recovery. The existing transport contract group also exercises
 uncertain policy append, corruption/torn tails, active-owner restart, missed
 service, the final dispatch guard and partial inventory retained during stop.
@@ -97,7 +96,7 @@ reimplemented in reporting.
 
 On Windows, Build All and run `windows-debug-quick`, then select
 `paper_control_diagnostic.exe` with Ctrl+F5. Run the read-only
-`paper_transport_probe.exe` again to exercise the new repeated subscription
+`paper_transport_probe.exe` again to exercise the new PING/PONG
 round trip and subsequent reconciliation against the service. It still submits
 and cancels no orders. Retain each complete run directory. Native acceptance
 of these new controls remains pending.

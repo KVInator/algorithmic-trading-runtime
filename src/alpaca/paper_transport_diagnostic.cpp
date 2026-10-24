@@ -61,9 +61,19 @@ public:
 
     void open_authenticated_stream() override { opened = true; }
 
-    void subscribe_trade_updates() override {
+    void subscribe_trade_updates() override {}
+
+    std::optional<std::string> pong;
+
+    void ping(std::string_view token, std::chrono::milliseconds) override {
         if (health_ack)
-            messages.push_back(R"({"stream":"listening","data":{"streams":["trade_updates"]}})");
+            pong = std::string{token};
+    }
+
+    std::optional<std::string> take_pong() override {
+        auto value = std::move(pong);
+        pong.reset();
+        return value;
     }
 
     std::optional<std::string> poll(std::chrono::milliseconds) override {
@@ -76,7 +86,10 @@ public:
         return out;
     }
 
-    void close() noexcept override { opened = false; }
+    void close() noexcept override {
+        opened = false;
+        pong.reset();
+    }
 
     void handshake() {
         messages.push_back(R"({"stream":"authorization","data":{"status":"authorized"}})");
@@ -276,7 +289,7 @@ PaperTransportResult PaperTransportDiagnostic::run_control() const {
         auto control =
             PaperControl::create(execution::create_journal_file(f.directory / "control.journal"),
                                  {"constructed-control"}, f.runtime, f.session, [&] { return now; });
-        check(result, "fresh stream round trip and exact snapshots precede submission",
+        check(result, "fresh matching WebSocket PONG and exact snapshots precede submission",
               control.submit({"transport-buy", "SPY", execution::Side::buy, 10, 10001, 0},
                              "2026-10-26T14:00:01Z")
                       .status == 200);
@@ -308,7 +321,7 @@ PaperTransportResult PaperTransportDiagnostic::run_control() const {
             PaperControl::create(execution::create_journal_file(f.directory / "control.journal"),
                                  {"constructed-control"}, f.runtime, f.session, [&] { return now; });
         control.service();
-        check(result, "missing subscription health acknowledgment durably stops control",
+        check(result, "missing matching WebSocket PONG durably stops control",
               control.snapshot().at("reason").get<std::string>() == "health_probe_failed");
         check(result, "failed stream health closes execution routing",
               !f.runtime.snapshot().at("account").at("connected").get<bool>());
@@ -342,7 +355,7 @@ PaperTransportResult PaperTransportDiagnostic::run_control() const {
         result.cases.push_back(std::move(evidence));
     }
     result.detail =
-        "Constructed deadline, stop and subscription-health controls; no operational broker orders.";
+        "Constructed deadline, stop and WebSocket-heartbeat controls; no operational broker orders.";
     return result;
 }
 } // namespace trading

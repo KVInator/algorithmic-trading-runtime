@@ -42,6 +42,7 @@ private:
     std::size_t sequence_{0}, bytes_{0};
     std::string previous_ = std::string(64, '0');
     bool healthy_{true};
+    unsigned journal_schema_version_{2};
     std::string last_action_error_;
     std::optional<PaperReceipt> last_clock_;
     std::optional<std::int64_t> last_health_;

@@ -80,3 +80,9 @@ journal. Deadline and permanent-stop state are durable; process-local health
 age is discarded at restart. The transport invokes its eligibility callback
 after capture and immediately before dispatch. The [control contract](paper_control.md)
 records these separate commit boundaries and serialized servicing requirements.
+
+`PaperWebSocket` owns the libcurl framing and control-frame path. The Windows
+wire retains WinHTTP for REST and composes that socket with credentials. Health
+checks correlate PING/PONG payloads without changing subscriptions. The
+[heartbeat contract](websocket_heartbeat.md) specifies the versioned control
+model, pinned dependency and real loopback verification.

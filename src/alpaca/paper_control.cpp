@@ -11,14 +11,20 @@ void require(bool value, const char* message) {
         throw std::invalid_argument(message);
 }
 
-Json header(const PaperControlConfiguration& c) {
-    return {{"kind", "paper_control_header"},
-            {"schema_version", 1},
-            {"owner", c.owner},
-            {"health_interval_ms", c.health_interval_ms},
-            {"health_budget_ms", c.health_budget_ms},
-            {"order_tif", "DAY"},
-            {"model_contract", "paper_control_stop_deadline_v1"}};
+Json header(const PaperControlConfiguration& c, bool legacy = false) {
+    auto value = Json{{"kind", "paper_control_header"},
+                      {"schema_version", 1},
+                      {"owner", c.owner},
+                      {"health_interval_ms", c.health_interval_ms},
+                      {"health_budget_ms", c.health_budget_ms},
+                      {"order_tif", "DAY"},
+                      {"model_contract", "paper_control_stop_deadline_v1"}};
+    if (!legacy) {
+        value["schema_version"] = 2;
+        value["model_contract"] = "paper_control_stop_deadline_v2";
+        value["health_model"] = "websocket_ping_pong_v1";
+    }
+    return value;
 }
 
 Json apply_command(Json state, const Json& command) {
@@ -97,7 +103,9 @@ PaperControl PaperControl::recover(std::unique_ptr<execution::JournalStorage> st
             const auto [row, digest] =
                 execution::JournalFrame::decode(std::string_view{raw}.substr(offset, end - offset));
             if (!seen) {
-                require(row == header(r.configuration_), "control configuration/header differs");
+                require(row == header(r.configuration_) || row == header(r.configuration_, true),
+                        "control configuration/header differs");
+                r.journal_schema_version_ = row.at("schema_version").get<unsigned>();
                 seen = true;
             } else {
                 require(++r.sequence_ <= 2000 && row.at("sequence").get<std::size_t>() == r.sequence_ &&
@@ -271,6 +279,9 @@ PaperHttpResponse PaperControl::submit(const execution::OrderRequest& order, std
 Json PaperControl::snapshot() const {
     auto r = state_;
     r["healthy"] = healthy_;
+    r["control_schema_version"] = journal_schema_version_;
+    r["health_model"] =
+        journal_schema_version_ == 2 ? "websocket_ping_pong_v1" : "legacy_subscription_check_v1";
     r["last_action_error"] = last_action_error_;
     r["durable_records"] = sequence_;
     r["journal_sha256"] = previous_;

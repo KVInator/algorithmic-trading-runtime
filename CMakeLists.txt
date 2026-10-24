@@ -27,6 +27,7 @@ FetchContent_Declare(nlohmann_json
     URL_HASH SHA256=42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
     DOWNLOAD_EXTRACT_TIMESTAMP FALSE)
 FetchContent_MakeAvailable(nlohmann_json)
+include(cmake/paper_websocket.cmake)
 
 add_library(trading_core
     src/market/minute_bar.cpp src/market/utc_timestamp.cpp
@@ -116,6 +117,9 @@ configure_trading_target(paper_execution)
 add_library(paper_transport src/alpaca/paper_transport.cpp src/alpaca/paper_transport_diagnostic.cpp src/alpaca/paper_control.cpp)
 target_link_libraries(paper_transport PUBLIC paper_execution)
 configure_trading_target(paper_transport)
+add_library(paper_websocket src/alpaca/paper_websocket.cpp)
+target_link_libraries(paper_websocket PUBLIC paper_transport PRIVATE CURL::libcurl_static)
+configure_trading_target(paper_websocket)
 
 add_library(offline_execution src/execution/simulated_broker.cpp src/execution/offline_pipeline.cpp
     src/execution/momentum_order_adapter.cpp src/execution/pipeline_diagnostic.cpp
@@ -141,7 +145,7 @@ configure_trading_target(daily_risk_research)
 # Actual source-file bytes and build identity accompany every generated study.
 file(GLOB_RECURSE study_sources CONFIGURE_DEPENDS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "src/*.cpp" "src/*.hpp" "apps/*.cpp" "apps/*.hpp" "research/*")
-list(APPEND study_sources CMakeLists.txt CMakePresets.json)
+list(APPEND study_sources CMakeLists.txt CMakePresets.json cmake/paper_websocket.cmake)
 list(SORT study_sources)
 set(source_records "")
 foreach(source_file IN LISTS study_sources)
@@ -264,7 +268,7 @@ target_include_directories(continuation_diagnostic PRIVATE "${CMAKE_CURRENT_SOUR
 if(WIN32)
     add_library(alpaca_paper_wire src/platform/windows/alpaca_paper_wire_winhttp.cpp)
     target_include_directories(alpaca_paper_wire PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows")
-    target_link_libraries(alpaca_paper_wire PUBLIC paper_transport PRIVATE winhttp)
+    target_link_libraries(alpaca_paper_wire PUBLIC paper_transport PRIVATE paper_websocket winhttp)
     target_compile_definitions(alpaca_paper_wire PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
     configure_trading_target(alpaca_paper_wire)
     add_library(alpaca_market_data src/platform/windows/alpaca_market_data_client_winhttp.cpp)
@@ -294,6 +298,15 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(paper_websocket_loopback_tests tests/paper_websocket_loopback_tests.cpp)
+    target_link_libraries(paper_websocket_loopback_tests PRIVATE paper_websocket)
+    configure_trading_target(paper_websocket_loopback_tests)
+    find_package(Python3 QUIET COMPONENTS Interpreter)
+    if(Python3_Interpreter_FOUND)
+        add_test(NAME paper_websocket_loopback COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/websocket_loopback.py" "$<TARGET_FILE:paper_websocket_loopback_tests>")
+        set_tests_properties(paper_websocket_loopback PROPERTIES LABELS integration ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1" TIMEOUT 30)
+    endif()
     function(add_trading_contract target test_name libraries)
         add_executable(${target} tests/${target}.cpp)
         target_link_libraries(${target} PRIVATE ${libraries})

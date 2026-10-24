@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <thread>
+#include <limits>
 
 namespace trading {
 namespace {
@@ -155,9 +156,7 @@ void PaperCapture::record(std::string kind, std::string detail, std::string_view
     bytes_ += body.size();
 }
 
-std::size_t PaperCapture::records() const noexcept {
-    return records_;
-}
+std::size_t PaperCapture::records() const noexcept { return records_; }
 
 PaperSession::PaperSession(execution::JournaledPaperRuntime& r, PaperWire& w, PaperCapture& c, Clock clock,
                            Wait wait)
@@ -244,9 +243,7 @@ PaperHttpClient::PaperHttpClient(PaperWire& wire, PaperCapture& capture, Clock c
     require(clock_ && wait_, "HTTP clock and wait policy are required");
 }
 
-PaperHttpResponse PaperSession::exchange(const PaperRequest& r) {
-    return http_.exchange(r);
-}
+PaperHttpResponse PaperSession::exchange(const PaperRequest& r) { return http_.exchange(r); }
 
 PaperHttpResponse PaperHttpClient::exchange(const PaperRequest& r, const std::function<void()>& eligible) {
     static_cast<void>(validate_paper_request(r));
@@ -338,14 +335,18 @@ bool PaperSession::check_stream(std::chrono::milliseconds budget) {
         require(active_ && budget.count() > 0 && budget <= std::chrono::seconds{10},
                 "stream check requires an active session and a bounded budget");
         static_cast<void>(drain());
-        phase = "subscription_send";
-        capture_.record("connection", "stream_check_send_started budget_ms=" + std::to_string(budget.count()),
-                        "", clock_());
-        wire_.subscribe_trade_updates();
+        while (auto stale = wire_.take_pong())
+            capture_.record("websocket_pong", "unmatched", *stale, clock_());
+        phase = "ping_send";
         const auto sent = clock_();
+        require(health_sequence_ < std::numeric_limits<std::uint64_t>::max(), "heartbeat sequence exhausted");
+        const auto token =
+            "paper-health-" + std::to_string(++health_sequence_) + "-" + std::to_string(sent.monotonic_ms);
         start = sent.monotonic_ms;
-        phase = "awaiting_listening";
-        capture_.record("connection", "stream_check_send_completed", "", sent);
+        capture_.record("websocket_ping", "heartbeat challenge", token, sent);
+        wire_.ping(token, budget);
+        phase = "awaiting_pong";
+        capture_.record("connection", "websocket_ping_send_completed", "", clock_());
         // An empty poll is not a message and need not consume the full response budget.
         // Bound work independently so a faulty zero-progress wire cannot spin forever.
         for (unsigned attempt = 0; attempt < 100; ++attempt) {
@@ -353,26 +354,27 @@ bool PaperSession::check_stream(std::chrono::milliseconds budget) {
             require(elapsed >= 0 && elapsed < budget.count(), "stream check response deadline");
             auto raw =
                 wire_.poll(std::chrono::milliseconds{std::min<std::int64_t>(250, budget.count() - elapsed)});
-            if (!raw) {
-                ++empty_polls;
-                continue;
-            }
-            ++messages;
             const auto at = clock_();
-            capture_.record("stream", "subscription health response", *raw, at);
-            ingest(*raw, at);
-            const auto decoded = AlpacaPaperDecoder{}.stream(*raw, BrokerTimestamp{at.utc});
-            require(at.monotonic_ms - *start >= 0 && at.monotonic_ms - *start < budget.count(),
-                    "stream check response arrived beyond deadline");
-            if (decoded.kind == PaperStreamKind::listening) {
-                require(decoded.trade_updates_subscribed, "stream subscription lost");
+            if (raw) {
+                ++messages;
+                capture_.record("stream", "trade/account update during heartbeat", *raw, at);
+                ingest(*raw, at);
+            } else
+                ++empty_polls;
+            if (auto pong = wire_.take_pong()) {
+                const bool matched = *pong == token;
+                capture_.record("websocket_pong", matched ? "matched" : "unmatched", *pong, at);
+                if (!matched)
+                    continue;
+                require(at.monotonic_ms - *start >= 0 && at.monotonic_ms - *start < budget.count(),
+                        "WebSocket PONG arrived beyond deadline");
                 phase = "reconciliation";
-                const bool matched = synchronize();
-                capture_.record("connection", matched ? "stream_check_reconciled" : "stream_check_mismatch",
-                                "", clock_());
-                return matched;
+                const bool reconciled = synchronize();
+                capture_.record("connection",
+                                reconciled ? "stream_check_reconciled" : "stream_check_mismatch", "",
+                                clock_());
+                return reconciled;
             }
-            require(decoded.kind == PaperStreamKind::trade_update, "unexpected stream health response");
         }
         throw std::runtime_error("stream check poll/interleaving bound exhausted");
     } catch (...) {

@@ -28,6 +28,7 @@ class PaperTransportVerifier:
     def capture(self, name):
         previous = "0" * 64
         parent = self.path(name).parent
+        challenge = None
         for sequence, line in enumerate(self.path(name).read_bytes().splitlines()):
             payload, checksum = line.rsplit(b"\t", 1)
             assert self.digest(payload) == checksum.decode()
@@ -51,6 +52,14 @@ class PaperTransportVerifier:
                     assert request["time_in_force"] == "day" and not request["extended_hours"]
                 else:
                     assert body == b""
+            elif row["kind"] == "websocket_ping":
+                assert 0 < len(body) <= 125
+                challenge = body
+            elif row["kind"] == "websocket_pong":
+                assert len(body) <= 125
+                if row["detail"] == "matched":
+                    assert challenge is not None and body == challenge
+                    challenge = None
             elif row["kind"] == "connection":
                 assert body == b""
             else:
@@ -66,8 +75,12 @@ class PaperTransportVerifier:
             assert self.digest(payload) == checksum.decode()
             row = json.loads(payload)
             if sequence == 0:
-                assert row["schema_version"] == 1
-                assert row["model_contract"] == "paper_control_stop_deadline_v1"
+                assert (row["schema_version"], row["model_contract"]) in [
+                    (1, "paper_control_stop_deadline_v1"),
+                    (2, "paper_control_stop_deadline_v2"),
+                ]
+                if row["schema_version"] == 2:
+                    assert row["health_model"] == "websocket_ping_pong_v1"
                 assert row["order_tif"] == "DAY"
             else:
                 assert row["sequence"] == sequence and row["previous_sha256"] == previous
