@@ -10,7 +10,7 @@ Completion follows acceptance evidence, not test counts or strategy profitabilit
 | 3. Strategy/execution integration | Complete | Preserve adapters and historical reference-price distinctions |
 | 4. Simulated broker protocol | Complete | Native diagnostic independently verified; Windows build and tests reported successful |
 | 5. Simulated execution measurements | Complete | Native archive independently verified; Windows build and tests reported successful |
-| 6. Implementation benchmarks and CI | Implementation and hosted CI verified | Native workstation Release benchmark archive pending |
+| 6. Implementation benchmarks and CI | Complete | Native Release archive independently verified; preserve benchmark and portable CI contracts |
 | 7. Unified technical report | Open | Standalone HTML/PDF, integrated figures, curated evidence and final repository presentation |
 
 ## Retained research findings
@@ -241,8 +241,57 @@ source-inventory identity is
 `7c4ad64e387e6a7692810e27d648ee0a8c489c0c21c61df4caf40facb0d4a452`.
 The CSV verifier also rejects a recomputed-hash throughput forgery.
 
-Native workstation Release benchmark evidence remains the milestone-6 checkpoint.
-Run `windows-release`, its full 29-group test preset and `runtime_benchmark.exe`;
-retain the complete 120-row output directory. Milestone 7 remains the unified
+Native workstation acceptance follows below. Milestone 7 remains the unified
 HTML/PDF report, integrated figures, curated reproduction evidence and final
 repository presentation. No additional strategy search or broker service is needed.
+
+## Native benchmark acceptance, 25 October 2026
+
+The supplied `runtime_benchmark_0` archive verifies as MSVC 19.51.36260.0 Release,
+with `/O2 /Ob2 /DNDEBUG`, C++20 and project warnings as errors. The workstation
+reports Windows x64, Intel Family 6 Model 183 Stepping 1 and 24 logical processors.
+The build and all 29 routine groups were reported successful; the supplied CTest
+transcript records 56.41 seconds. The executable completes all 120 rows with
+successful account/order parity and exit code zero.
+
+Independent verification passes all 100 artifact hashes, 120 timing rows and
+fifteen complete mode groups. Quantiles, timed-call rates, every CSV field,
+analytical cash/positions, duplicate fills, journal chains/replay and recovery
+closure agree. All 96 journal files are byte-identical to the final Linux grid,
+and the constructed workloads match. Timing and OS memory observations differ
+by host and are not required to match.
+
+At 128 round trips, median trial p50 values across five repetitions are:
+
+| Mode | Median trial p50 | Range of trial p50 values |
+| --- | ---: | ---: |
+| Core | 24.4 us | 22.2-32.6 us |
+| Additional candidate copy | 83.8 us | 72.0-91.1 us |
+| Schema-2 volatile journal | 99.3 us | 89.2-108.8 us |
+| Schema-2 synchronized journal | 2.4384 ms | 2.4276-2.5149 ms |
+| Schema-3 volatile paper journal | 1.1865 ms | 1.1693-1.1968 ms |
+| Schema-3 synchronized paper journal | 3.5602 ms | 3.4130-3.5907 ms |
+| Schema-2 warm recovery | 72.7635 ms | 65.7849-80.4134 ms |
+| Schema-3 warm recovery | 982.5807 ms | 975.2624-999.8579 ms |
+
+Processing rows summarize input calls; recovery rows summarize whole recovery
+operations. Nested synchronized-append p50 medians are 2.2468 ms for schema 2
+and 2.2289 ms for schema 3. Synchronization contributes substantial cost on this
+workstation. Cross-host differences also mix compiler, hardware, storage, caching
+and scheduling effects; they do not isolate an operating-system effect.
+The observed process-wide peak is 20.730 MiB, not an isolated per-case allocation.
+
+All 230 source records are accounted for: 226 exact byte matches and four
+explained CRLF variants, with no unexplained differences. The variants are the
+continuation protocol, continuation header/implementation and Windows console
+credential adapter, matching earlier native provenance checks. No frozen source
+is modified by this verification. Native manifest SHA-256:
+`94585a586a04b7568a13a5a50674498edeef550f327f04faa270ad81d6d4b501`.
+Native source-inventory identity:
+`b27db9a88e6a71ca2a9c60134aabc39afccb67dcf039fe30c7e54143dd471fc3`.
+The extracted archive and verification evidence remain under
+`scratch/verification/native-benchmark-20261025/`.
+
+Milestones 1-6 are complete. The next dependency is milestone 7's standalone
+analytical report and repository presentation, using the accepted research,
+execution, measurement and performance evidence.
