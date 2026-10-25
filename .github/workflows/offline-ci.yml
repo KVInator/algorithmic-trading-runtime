@@ -2,6 +2,10 @@ name: Offline C++ verification
 on:
   push:
     branches: [master, research/continuation-study]
+    paths-ignore:
+      - docs/**
+      - README.md
+      - AGENTS.md
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,7 +23,7 @@ jobs:
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Configure Release
@@ -28,6 +32,8 @@ jobs:
         run: cmake --build scratch/ci-build --config Release --parallel 2
       - name: Offline routine contracts
         run: ctest --test-dir scratch/ci-build -C Release -LE integration --output-on-failure
+      - name: Independently verify benchmark contract artifacts
+        run: python -B research/verify_runtime_benchmark.py scratch/ci-build/runtime_benchmark_tests-output/runtime-benchmark_0
       - name: Constructed demo and independent verifier (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -41,7 +47,7 @@ jobs:
           python -B research/verify_paper_broker.py scratch/runs/paper_broker_0
       - name: Retain test logs
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: offline-logs-${{ matrix.os }}
           path: scratch/ci-build/Testing/Temporary/
@@ -54,7 +60,7 @@ jobs:
       ASAN_OPTIONS: detect_leaks=1
       UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Configure ASan and UBSan

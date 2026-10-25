@@ -89,7 +89,7 @@ such an unrecordable command poisons this writer. Transport must archive bounded
 raw messages before decode/journaling, stop routing on storage failure and omit
 credential-bearing outbound authentication messages. Rotation and archival
 transport are not implemented. State copies and full-state digest calculation
-are correctness mechanisms pending the milestone-6 benchmarks.
+are correctness mechanisms retained in the [milestone-6 benchmarks](runtime_benchmark.md).
 
 ## Diagnostic and verification
 

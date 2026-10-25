@@ -244,6 +244,7 @@ class RuntimeBenchmarkVerifier:
             "paper_recovery",
         }
         assert all(v == modes for v in group_modes.values())
+        assert len(rows) == len(group_modes) * len(modes)
         for n, trial in group_modes:
             for prefix in ("journal", "paper"):
                 memory = self.path(
@@ -257,9 +258,30 @@ class RuntimeBenchmarkVerifier:
             csv_rows = list(csv.DictReader(f))
         assert len(csv_rows) == len(rows)
         for c, r in zip(csv_rows, rows):
-            assert c["mode"] == r["mode"] and int(c["elapsed_ns"]) == r["elapsed_ns"]
+            for key in ("mode", "sample_unit"):
+                assert c[key] == r[key]
+            for key in (
+                "round_trips",
+                "trial",
+                "elapsed_ns",
+                "journal_bytes",
+                "journal_records",
+                "largest_frame_bytes",
+            ):
+                assert int(c[key]) == r[key]
+            assert int(c["count"]) == r["latency"]["count"]
+            assert Decimal(c["operations_per_second"]) == Decimal(
+                str(r["operations_per_second"])
+            )
             for key in ("p50_ns", "p95_ns", "p99_ns", "max_ns"):
                 assert int(c[key]) == r["latency"][key]
+            for column, group, field in (
+                ("rss_before_bytes", "resources_before", "resident_bytes"),
+                ("rss_after_bytes", "resources_after", "resident_bytes"),
+                ("process_peak_bytes", "resources_after", "peak_resident_bytes"),
+            ):
+                expected = r[group][field]
+                assert c[column] == ("" if expected is None else str(expected))
         print(
             f"Verified {len(summary['artifacts'])} artifact hashes, {len(rows)} trial rows and {len(group_modes)} complete mode groups"
         )

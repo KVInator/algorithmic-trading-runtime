@@ -5,8 +5,9 @@ system preserves market-data evidence, evaluates specified trading rules and
 connects causal strategy decisions to a journaled order runtime and deterministic
 broker simulator.
 
-The project is in progress. Implementation benchmarks, portable CI and the final analytical report are tracked in
-the [completion plan](docs/completion_plan.md) and [milestone ledger](docs/progress.md).
+The project is in progress. Implementation benchmarks, portable CI and the final
+analytical report are tracked in the [completion plan](docs/completion_plan.md)
+and [milestone ledger](docs/progress.md).
 Historical research retains Alpaca as its data source. The broker demonstration
 runs offline without credentials, subscriptions or purchases.
 

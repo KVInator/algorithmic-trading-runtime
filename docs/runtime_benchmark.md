@@ -133,15 +133,18 @@ time or OS memory observations.
 
 `.github/workflows/offline-ci.yml` runs on pushes to `master` and
 `research/continuation-study`, or manual dispatch. Standard `ubuntu-24.04` and
-`windows-2025` runners build Release with warnings as errors, run the full offline
+`windows-2025` runners build Release with warnings as errors. General documentation-
+only pushes under `docs/`, `README.md` and `AGENTS.md` are skipped; research
+protocols are outside that exclusion. The jobs run the full offline
 routine contracts, then create and independently verify a constructed broker
-demo from the clean checkout. No private dataset or Alpaca secret is supplied.
+demo from the clean checkout. The small benchmark contract's exported evidence
+also receives independent verification. No private dataset or Alpaca secret is supplied.
 An Ubuntu ASan/UBSan job covers the order, journal, exact paper, simulated broker,
 measurement and benchmark contract groups. It enables leak detection on the hosted
 runner. Integration-labelled full-period disk runs stay separate.
 
 nlohmann/json 3.12.0 remains pinned by archive SHA-256. Actions are pinned to full
-commit identities with read-only workflow permissions. Superseded runs on the
+commit identities using Node 24, with read-only workflow permissions. Superseded runs on the
 same branch are canceled. Test logs are retained for three days. No benchmark
 speed threshold runs in CI: shared-host timing is unsuitable for such a gate.
 Hosted-runner availability and the account's included quota remain external

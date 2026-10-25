@@ -191,7 +191,7 @@ verifier checks all 100 artifact hashes, fifteen complete mode groups, raw
 quantiles/rates, nested append timings, journals and CSV arithmetic. Recomputed-
 hash forgeries of a quantile, final cash and recovery gate are rejected.
 
-The first Linux Release run uses GCC 12.2.0, an OS-reported AMD EPYC 9V74 and nine
+The first Linux Release run uses GCC 13.3.0, an OS-reported AMD EPYC 9V74 and nine
 logical processors in this hosted environment. At 128 round trips:
 
 | Mode | Median trial p50 | Trial p50 range | Median timed-call rate |
