@@ -1,9 +1,9 @@
 # Research and execution completion plan
 
-Revision 2, 24 October 2026. Original implementation baseline: `aa58bf6`.
-This revision clarifies assumption interpretation and staged visual delivery.
-The existing-evidence list retains its original baseline; current acceptance
-status is recorded in the milestone ledger.
+Revision 3, 25 October 2026. Original implementation baseline: `aa58bf6`.
+Milestones 4 and 5 use a deterministic simulated broker and synthetic quote/event
+evidence. Paid feeds, native broker operation and multi-session live capture are
+outside the completion scope. Historical Alpaca acquisition remains supported.
 
 The [milestone ledger](progress.md) records subsequent acceptance evidence and
 open dependencies. This scope remains the governing completion plan.
@@ -13,7 +13,7 @@ open dependencies. This scope remains the governing completion plan.
 Complete a bounded C++20 study of how specified intraday strategies translate
 into auditable orders and positions under execution uncertainty. The completed
 work must combine mathematical strategy definitions, historical comparisons,
-broker-generated paper events, deterministic recovery checks and measured
+synthetic broker-protocol events, deterministic recovery checks and measured
 implementation costs in one reproducible technical report.
 
 The scope contains two trend-oriented designs and one nontrivial reversion
@@ -49,10 +49,9 @@ before scoring, with prior sample/selection exposure retained. Causality, data
 integrity, accounting conservation and durable recovery invariants remain required.
 No additional strategy search is added to the completion scope.
 
-Quote and execution evidence should inform later cost interpretation. Paper
-fills remain simulated and cannot establish live impact, latency slippage or
-queue-position effects. Changes in assumptions do not automatically improve
-results, and existing simplifications can be optimistic as well as conservative.
+Synthetic quote and execution scenarios explain declared cost conventions. Their
+fills cannot estimate live spreads, impact, latency slippage or queue-position
+effects. Changes in assumptions do not automatically improve results, and existing simplifications can be optimistic as well as conservative.
 
 ## Existing evidence
 
@@ -149,61 +148,41 @@ plus one historical-bar replay with clearly labelled reference-price semantics.
 The replay must expose event details and account/routing state, including restart
 behavior. Quote/fill evidence is required for execution-quality conclusions.
 
-### 4. Implement one paper-broker adapter
+### 4. Demonstrate a simulated paper-broker protocol
 
-Use Alpaca's paper trading environment for order submission/cancellation, order
-lookup by stable client identity, streaming order events and independent account,
-position and open-order queries. Enforce the paper endpoint in the application.
-Real-money order routing is outside the completion scope.
+Compose the existing matching engine with a deterministic `PaperWire` peer, the
+paper-message decoder, schema-3 ledger, durable capture and policy controller.
+Retain independent broker account/position/open-order state, stable client and
+broker identities, incremental/cumulative fill distinctions and exact money.
+No native broker connection, paid access or current market-data query is required.
 
-Map the broker's actual event semantics before connecting transport: broker and
-client IDs, incremental versus cumulative fills, decimal monetary precision,
-fee availability, time-in-force, expiry and unsupported states. Preserve raw
-messages and reject unsupported information without silently rounding financial
-values. Version any changed persistence contract explicitly and preserve legacy
-replay behavior.
+Acceptance: partial/full fills, confirmed cancellation, fill/cancel races,
+duplicate delivery, uncertain submission resolved by stable-ID lookup without
+resend, disconnect/restart, missing-fill refusal, exact reconciliation,
+deadlines and permanent stop. Compare interrupted/uninterrupted final ledgers,
+retain raw synthetic messages and verify accounting independently. Repeated runs
+must reproduce saved states. Native Windows build/tests/demo remain a verification
+checkpoint. Describe the evidence as synthetic protocol testing, never as an
+observed external-broker lifecycle. Details are in [the broker contract](paper_broker.md).
 
-Exercise authentication errors, bounded rate-limit handling, disconnects,
-heartbeat/stale-feed detection, restart and uncertain submission outcomes. Lookup
-and reconciliation resolve evidence where possible; an unresolved command keeps
-its identity/reservation and closes routing. Never treat a timeout or missing
-order as permission for an automatic new submission.
+### 5. Measure simulated execution behavior
 
-Add explicit order expiry/TIF and a controlled stop policy. A stop blocks new
-orders and requests cancellation of tracked open orders; it reports unresolved
-orders and remaining inventory rather than promising an immediate flat account.
+On declared synthetic quote/delivery schedules, record decision, dispatch,
+acknowledgment, incremental fill and receipt times. Retain bid/ask, displayed
+sizes, intended quantities, fill prices and source quote sequences. Compare the
+supported limit/cancellation policies on matched schedules; record unfilled
+quantities, censored outcomes, sample counts and zero-fee assumptions.
 
-Acceptance: an observed paper order lifecycle and reconnect/restart reconciliation,
-with sanitized captured messages replayed through the same adapter. Synthetic
-fault injection supplements observed events. A mock-only adapter does not close
-this milestone. Before the operational run, fix a five-session capture plan and
-record session coverage; unavailable events or service access remain explicit.
+Compute signed arrival-midpoint shortfall, spread-related costs, fill fraction
+and simulated acknowledgment/fill delays where inputs support them. Show how
+spread, size, delivery delay and cancellation deadline assumptions affect these
+measurements. Synthetic prices are not historical SIP observations. Do not infer
+market impact or actual broker latency from constructed timestamps.
 
-### 5. Measure execution behavior
-
-Record decision, dispatch, acknowledgement and fill timestamps, with clock
-sources, quote-source/feed identity and both source/receipt times where available.
-Retain contemporaneous bid/ask, displayed sizes, intended quantity and actual
-fills. Measure signed arrival-midpoint shortfall, spread-related costs, fees,
-fill fraction, acknowledgement delay and time to fill where inputs support them.
-Report unfilled quantities, censored observations and sample counts.
-
-Compare the limited order policies actually supported by the adapter on declared
-workloads. A cancellation deadline and broker TIF are distinct controls. Separate
-observable cost terms from assumptions; do not label a residual as causal market
-impact without identification evidence. Paper fills remain broker simulations.
-Five sessions provide operational evidence, not a strategy-validation sample.
-
-Extend the replay with observed paper quote/order events and quote-versus-fill
-views. Show fill fractions, acknowledgement/fill delays, censored observations
-and cost components with sample counts and clock/feed identities. Distinguish
-internal order/event flow from market-wide order flow. Full order-book heatmaps
-require actual depth data and remain an optional extension outside this scope;
-minute OHLCV must not be presented as reconstructed depth or aggressor flow.
-
-Acceptance: reproducible execution tables and plots from recorded paper quotes
-and events, alongside deterministic liquidity-budget tests. No execution-accuracy
-claim follows from the existing minute-open historical references alone.
+Acceptance: reproducible scenario tables and quote-versus-fill plots, independent
+arithmetic, liquidity-budget checks and explicit assumption attribution. Extend
+the saved event viewer with these measurements. This milestone remains distinct
+from software processing-time benchmarks and historical strategy performance.
 
 ### 6. Measure C++ implementation costs and verification portability
 
@@ -216,7 +195,7 @@ Benchmark Release builds on matched replay workloads: core event processing,
 journal append/synchronization and restart replay. Report workload sizes,
 hardware/compiler settings, repeated-run variability, latency quantiles,
 throughput and memory use. Distinguish local processing time from network and
-broker delays. Explicitly measure the current copy-per-input design and journal
+simulated delivery delays. Explicitly measure the current copy-per-input design and journal
 limits. Optimize only if a measured cost obstructs the declared workload; record
 correctness parity for any optimization.
 
@@ -241,7 +220,7 @@ with the latency/throughput/recovery benchmark views from milestone 6.
 Curate only permitted, sanitized fixtures and small result tables. Preserve bulk
 inputs and routine run output under ignored `scratch/`. Make an offline demo
 reproducible without private datasets; describe additional requirements for full
-historical and paper reproduction. Rewrite the README around the finished
+historical reproduction. Rewrite the README around the finished
 contributions and measured findings, with detailed run procedures linked out.
 
 Acceptance: the report, README and retained outputs agree; supported conclusions
@@ -253,9 +232,10 @@ showcase. Merges and visibility changes remain separate publication operations.
 
 Follow the milestone dependencies while retaining the native checkpoint as
 an explicit final verification requirement. Research and Linux-verified
-implementation can continue while native output is pending. Start the registered
-paper capture after the transport/account semantics are verified, then collect
-execution evidence while preparing the performance study and report.
+implementation can continue while native output is pending. Complete the synthetic
+broker checkpoint, then measure declared execution scenarios before preparing
+the performance study and final report. No service entitlement or external order
+history is a dependency.
 
 No additional strategy search, multi-venue router, market-making engine, Level-II
 reconstruction, learned strategy, distributed service or database platform is
@@ -267,12 +247,11 @@ reproducible report. Profitability, guaranteed execution quality, universal
 generalization and production readiness are not completion criteria. Persistent
 limitations are documented rather than removed by changing research gates.
 
-## Broker references
+## Broker semantics references
 
 - Alpaca, [Paper Trading](https://docs.alpaca.markets/docs/paper-trading).
 - Alpaca, [Working with Orders](https://docs.alpaca.markets/docs/working-with-orders).
 - Alpaca, [Websocket Streaming](https://docs.alpaca.markets/docs/websocket-streaming).
 
-The implementation must verify current field semantics and account capabilities
-at its own transport milestone. Paper simulation limitations are retained in
-the execution report rather than interpreted as observed exchange behavior.
+These references describe the emulated message subset. Offline tests do not
+verify the current behavior or availability of those external services.

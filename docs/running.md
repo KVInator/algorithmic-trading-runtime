@@ -25,7 +25,7 @@ pinned archive digest.
 cmake --preset linux-debug
 cmake --build --preset linux-debug
 ctest --preset linux-debug-quick --output-on-failure
-scratch/build-linux/pipeline_diagnostic
+scratch/build-linux/paper_broker_diagnostic
 ```
 
 A focused check can select existing groups without changing the full preset:
@@ -77,9 +77,7 @@ branches. Local datasets remain in place.
 
 | Target | Expected evidence |
 | --- | --- |
-| `paper_market_diagnostic` | Six checks in four constructed quote/calendar access cases, exact quote gates and raw capture; zero network requests |
-| `paper_control_diagnostic` | Eight checks in three constructed deadline/stop/stream-health cases, separate durable policy journals; zero network requests |
-| `paper_transport_diagnostic` | 24 checks in seven deterministic transport cases, durable raw capture and retained schema-3 state; zero network requests |
+| `paper_broker_diagnostic` | Six synthetic broker cases: partial/full fills, cancellation races, duplicate delivery, uncertain response, paired restart, exact reconciliation and durable deadline/stop; zero network requests |
 | `paper_execution_diagnostic` | 42 assertions, three schema-3 journals, exact subcent cash, identities, partial fills, cancellation/restart and quarantine; zero network requests |
 | `paper_contract_diagnostic` | 56 checks, forty constructed API-shaped cases, exact decimal/time boundaries and paper-only request descriptions; zero network requests |
 | `continuation_diagnostic` | `trace.html` and `decisions.csv`; constructed completed-prefix price/volume decisions |
@@ -100,36 +98,21 @@ rows in prescribed fault schedules are expected. The journal test group
 separately launches four abruptly exiting child processes. These checks do not
 establish physical power-loss behavior or historical strategy performance.
 
-## Read-only paper connection probe
+## Simulated broker demonstration
 
-On Windows select **paper_transport_probe.exe** and press **Ctrl+F5**. It reuses
-Credential Manager/hidden console credentials, reads only the paper account and
-queries, authenticates and subscribes to order updates, and compares independent
-snapshots with a new flat ledger. Its heartbeat requires a matching WebSocket PONG. No orders are submitted or canceled. Existing
-positions/orders or mismatched evidence stop reconciliation without altering
-the account. The report retains any available failure evidence.
+Run **paper_broker_diagnostic.exe** with Ctrl+F5 after Build All and
+`windows-debug-quick`. It needs no credentials or datasets. Open the printed
+`report.html` for expandable event/account tables and a position chart. Keep the
+whole output directory for independent verification:
 
-Run the offline `paper_transport_diagnostic` first. For the control checkpoint,
-run `paper_control_diagnostic`, then repeat the probe to verify its WebSocket PING/PONG and reconciliation against the service. The [control contract](paper_control.md)
-defines deadlines, stop/recovery and health limits. Keep the complete output
-directory printed by both programs. The [transport contract](paper_transport.md)
-explains request limits, capture privacy, snapshot limitations and native
-acceptance. Probe success does not complete the observed-order milestone.
+```sh
+python -B research/verify_paper_broker.py <printed-report-directory>
+```
 
-## Read-only current quote/calendar probe
-
-After Build All and `windows-debug-quick` (23 groups), run
-`paper_market_diagnostic.exe`, then `paper_market_probe.exe` with Ctrl+F5.
-The native probe reuses Windows credentials and makes only current paper-calendar
-and explicit SIP/USD SPY latest-quote GETs. No orders or enrollment occur.
-
-Read-only access can pass while a weekend/off-hours/stale quote is correctly
-unusable. The report separately retains access status, `quote_usable`, clocks,
-denials and exact directed cent projections. HTTP 403/429, malformed responses
-and transport failures remain failed evidence; no retry or feed substitution
-occurs. Retain complete folders from both programs. The
-[market-data contract](paper_market_data.md) defines bounds and interpretation.
-Do not run historical acquisition targets for this check.
+The [broker contract](paper_broker.md) defines the scenarios, ownership, simulated
+health/deadline policy and recovery evidence. Historical Alpaca acquisition below
+remains available. Native paper-broker and current quote/calendar probes have
+been retired; no subscription-dependent run is part of milestone 4.
 
 ## Historical and acquisition targets
 
@@ -238,19 +221,3 @@ The verifier independently implements MT19937-64/session sampling, Decimal OLS,
 account arithmetic and NumPy bulk resampling. NumPy is not a C++ build/runtime
 dependency. The [development evidence](reversion_development.md) records results
 and native verification status.
-
-The first configure/build also downloads the SHA-256-pinned libcurl source and
-builds its static WebSocket library. Windows uses Schannel; no separate curl or
-OpenSSL installation is needed there. The optional `paper_websocket_loopback`
-CTest group uses Python, when found, and is labeled `integration`; it does not
-change the 27-group full routine or 23-group quick selections.
-
-Dependency examples, command-line tools and manuals are disabled in the scoped
-libcurl configuration. They must not appear as executable startup targets.
-A recursive configure-time check rejects executable targets anywhere inside
-the libcurl dependency, so an accidentally enabled tool/example fails generation.
-After pulling a CMake change, allow generation to finish before reopening the
-Visual Studio startup-target chooser. Project executables retain their names,
-including `paper_market_diagnostic.exe` and `paper_market_probe.exe`.
-Previously generated files can remain under the build directory; target discovery
-uses the regenerated CMake model and does not require deleting datasets or runs.

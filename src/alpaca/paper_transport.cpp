@@ -3,12 +3,8 @@
 #include "journal_frame.hpp"
 #include "json_input.hpp"
 #include "runtime_json.hpp"
-#include "utc_timestamp.hpp"
 #include <algorithm>
 #include <charconv>
-#include <iomanip>
-#include <sstream>
-#include <thread>
 #include <limits>
 
 namespace trading {
@@ -20,13 +16,13 @@ void require(bool value, std::string_view message) {
         throw std::invalid_argument(std::string{message});
 }
 
-Json projection(const PaperHttpResponse& a, const PaperHttpResponse& p, const PaperHttpResponse& o) {
+Json projection(const PaperHttpResponse &a, const PaperHttpResponse &p, const PaperHttpResponse &o) {
     const AlpacaPaperDecoder decoder{};
     const auto account = decoder.account(a.body);
     Json positions = Json::array(), orders = Json::array();
-    for (const auto& value : decoder.positions(p.body))
+    for (const auto &value : decoder.positions(p.body))
         positions.push_back({value.symbol, value.quantity.text(), value.average_entry_price.text()});
-    for (const auto& value : decoder.open_orders(o.body))
+    for (const auto &value : decoder.open_orders(o.body))
         orders.push_back({value.broker_id, value.client_id, value.symbol, execution::name(value.side),
                           value.quantity.text(), value.filled_quantity.text(), value.limit_price.text(),
                           value.status});
@@ -37,7 +33,7 @@ Json projection(const PaperHttpResponse& a, const PaperHttpResponse& p, const Pa
 }
 } // namespace
 
-std::string validate_paper_request(const PaperRequest& r) {
+std::string validate_paper_request(const PaperRequest &r) {
     const AlpacaPaperRequests factory{};
     constexpr std::string_view base = "https://paper-api.alpaca.markets";
     require(r.url.starts_with(std::string{base} + "/"), "paper transport refuses non-paper origin");
@@ -75,26 +71,13 @@ std::string validate_paper_request(const PaperRequest& r) {
             expected = factory.submit(order);
             require(body == parse_json_document(expected.body),
                     "paper POST differs from supported canonical order fields");
-        } catch (const Json::exception&) {
+        } catch (const Json::exception &) {
             throw std::invalid_argument("invalid paper POST data types");
         }
     } else
         throw std::invalid_argument("unsupported paper HTTP method");
     require(r.url == expected.url, "noncanonical paper request URL");
     return path;
-}
-
-PaperReceipt paper_receipt_now() {
-    const auto now = std::chrono::system_clock::now();
-    const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
-    const auto fraction = std::chrono::duration_cast<std::chrono::nanoseconds>(now - seconds).count();
-    auto utc = format_utc_seconds(seconds);
-    utc.pop_back();
-    std::ostringstream text;
-    text << utc << '.' << std::setw(9) << std::setfill('0') << fraction << 'Z';
-    return {text.str(), std::chrono::duration_cast<std::chrono::milliseconds>(
-                            std::chrono::steady_clock::now().time_since_epoch())
-                            .count()};
 }
 
 std::optional<std::string> PaperMessageAssembler::push(std::string_view bytes, bool binary, bool final) {
@@ -125,7 +108,7 @@ PaperCapture::PaperCapture(std::filesystem::path directory) : directory_{std::mo
 }
 
 void PaperCapture::record(std::string kind, std::string detail, std::string_view body,
-                          const PaperReceipt& receipt, unsigned status, std::string request_id,
+                          const PaperReceipt &receipt, unsigned status, std::string request_id,
                           std::string retry_after) {
     require(body.size() <= 1024U * 1024U && detail.size() <= 4096 && request_id.size() <= 256 &&
                 retry_after.size() <= 256,
@@ -158,7 +141,7 @@ void PaperCapture::record(std::string kind, std::string detail, std::string_view
 
 std::size_t PaperCapture::records() const noexcept { return records_; }
 
-PaperSession::PaperSession(execution::JournaledPaperRuntime& r, PaperWire& w, PaperCapture& c, Clock clock,
+PaperSession::PaperSession(execution::JournaledPaperRuntime &r, PaperWire &w, PaperCapture &c, Clock clock,
                            Wait wait)
     : runtime_{r}, wire_{w}, capture_{c}, clock_{clock}, http_{w, c, std::move(clock), std::move(wait)} {
     require(static_cast<bool>(clock_), "transport clock is required");
@@ -181,7 +164,7 @@ void PaperSession::disconnect() {
     capture_.record("connection", "closed", "", clock_());
 }
 
-void PaperSession::ingest(const std::string& message, const PaperReceipt& receipt) {
+void PaperSession::ingest(const std::string &message, const PaperReceipt &receipt) {
     const auto result = runtime_.receive(message, receipt.utc);
     require(result.outcome != execution::Outcome::quarantined,
             "paper bridge quarantined inbound stream evidence");
@@ -229,7 +212,7 @@ void PaperSession::connect() {
             break;
         }
         require(subscribed, "subscription interleaving bound exhausted");
-        for (const auto& [raw, at_pending] : pending)
+        for (const auto &[raw, at_pending] : pending)
             ingest(raw, at_pending);
         active_ = true;
     } catch (...) {
@@ -238,14 +221,14 @@ void PaperSession::connect() {
     }
 }
 
-PaperHttpClient::PaperHttpClient(PaperWire& wire, PaperCapture& capture, Clock clock, Wait wait)
+PaperHttpClient::PaperHttpClient(PaperWire &wire, PaperCapture &capture, Clock clock, Wait wait)
     : wire_{wire}, capture_{capture}, clock_{std::move(clock)}, wait_{std::move(wait)} {
     require(clock_ && wait_, "HTTP clock and wait policy are required");
 }
 
-PaperHttpResponse PaperSession::exchange(const PaperRequest& r) { return http_.exchange(r); }
+PaperHttpResponse PaperSession::exchange(const PaperRequest &r) { return http_.exchange(r); }
 
-PaperHttpResponse PaperHttpClient::exchange(const PaperRequest& r, const std::function<void()>& eligible) {
+PaperHttpResponse PaperHttpClient::exchange(const PaperRequest &r, const std::function<void()> &eligible) {
     static_cast<void>(validate_paper_request(r));
     for (unsigned attempt = 0; attempt < 3; ++attempt) {
         capture_.record("http_request", r.method + " " + r.url, r.body, clock_());
@@ -271,7 +254,7 @@ PaperHttpResponse PaperHttpClient::exchange(const PaperRequest& r, const std::fu
     throw std::logic_error("unreachable HTTP retry state");
 }
 
-PaperHttpResponse PaperSession::read(const PaperRequest& r) {
+PaperHttpResponse PaperSession::read(const PaperRequest &r) {
     require(r.method == "GET", "read path permits only GET");
     try {
         auto result = exchange(r);
@@ -409,8 +392,8 @@ PaperHttpResponse PaperSession::lookup(std::string client) {
     }
 }
 
-PaperHttpResponse PaperSession::submit(const execution::OrderRequest& order,
-                                       const std::function<void()>& eligible) {
+PaperHttpResponse PaperSession::submit(const execution::OrderRequest &order,
+                                       const std::function<void()> &eligible) {
     try {
         require(active_, "submit requires active paper stream");
         static_cast<void>(drain());

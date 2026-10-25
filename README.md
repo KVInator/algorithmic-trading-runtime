@@ -5,9 +5,11 @@ system preserves market-data evidence, evaluates specified trading rules and
 connects causal strategy decisions to a journaled order runtime and deterministic
 broker simulator.
 
-The project is in progress. Native paper-transport acceptance, observed execution
-measurements, performance benchmarks and the final analytical report remain open
-in the [completion plan](docs/completion_plan.md) and [milestone ledger](docs/progress.md).
+The project is in progress. The simulated broker checkpoint, execution
+measurements, performance benchmarks and final analytical report are tracked in
+the [completion plan](docs/completion_plan.md) and [milestone ledger](docs/progress.md).
+Historical research retains Alpaca as its data source. The broker demonstration
+runs offline without credentials, subscriptions or purchases.
 
 ## Research findings
 
@@ -40,22 +42,19 @@ exposes saved client/broker state, reservations, fills and routing gates.
 The [paper API boundary](docs/alpaca_paper_contract.md) adds exact decimal/time
 decoding and paper-only request construction. The [schema-3 bridge](docs/paper_execution.md)
 adds exact nanodollar accounting and durable broker identities using the same
-order core. The [paper transport](docs/paper_transport.md) adds bounded HTTP,
-authenticated streaming, durable raw capture and deterministic faults.
-The [control owner](docs/paper_control.md) adds durable deadlines/stopping
-and WebSocket PING/PONG health checks; native
-read-only PONG/reconciliation acceptance is recorded. Operational control
-composition and observed order/recovery capture remain open.
-The [current quote/calendar boundary](docs/paper_market_data.md) adds a read-only
-SIP access probe, exact price/time gates and provisional session candidates;
-native acceptance remains pending.
+order core. The [simulated paper broker](docs/paper_broker.md) drives that adapter with
+synthetic protocol messages from the shared matching engine. It checks partial
+fills, cancellations, lost responses, duplicate delivery, deadlines, permanent
+stop and exact reconciliation across restart. Saved event tables expose client
+and independently maintained broker state. Native broker connections and current
+quote probes are outside scope; synthetic results are not observed executions.
 The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
 and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
 
 ## Build and run
 
 Windows requires Visual Studio 2026 with MSVC, a Windows SDK and C++ CMake tools.
-CMake 3.25 or later pins nlohmann/json 3.12.0 and libcurl 8.23.0 by SHA-256. Initial configuration
+CMake 3.25 or later pins nlohmann/json 3.12.0 by SHA-256. Initial configuration
 requires access to that dependency. Project warnings are treated as errors.
 
 1. Open the repository with **File > Open > Folder**.
@@ -64,7 +63,7 @@ requires access to that dependency. Project warnings are treated as errors.
 4. For everyday edits, run **Test > Run Test Preset > windows-debug-quick**
    (twenty-three groups). Use **windows-debug** for all twenty-seven groups at milestones
    and affected extended groups when changing study/storage code.
-5. Select **strategy_execution_diagnostic.exe** and press **Ctrl+F5** for an offline example
+5. Select **paper_broker_diagnostic.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.
 6. Open the printed `report.html` and retain its evidence directory.
 
@@ -97,8 +96,8 @@ Expensive acquisition evidence is retained locally outside source distribution.
 
 The routine suite uses constructed observations, including full-calendar study
 fixtures and crash/recovery cases. Historical reproduction additionally requires
-the retained acquisition datasets; paper operation requires separate service
-access and observed-event evidence. GitHub CI is not configured yet.
+the retained acquisition datasets. Broker integration uses an offline protocol
+peer and does not establish external service connectivity. GitHub CI is not configured yet.
 
 The frozen intraday sample contains 496 complete sessions and 193,440 bars. Its
 [data policy](research/development_data_policy.json) preserves all five excluded

@@ -103,5 +103,5 @@ Milestone 3 is accepted for `9aeffa4`: the native build/test preset is reported
 successful and both executable outputs reproduce the Linux integration evidence.
 The attachment audit verifies the four supplied artifacts per run and compares
 journal manifest digests with checked Linux files; native journal bodies were
-not supplied. Paper transport, observed quotes and fills, execution measurements,
-benchmarks/CI and the unified technical report remain milestones 4-7.
+not supplied. The [completion plan](completion_plan.md) defines the subsequent
+simulated broker, execution measurements, benchmarks/CI and unified report.

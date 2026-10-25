@@ -4,7 +4,6 @@ from decimal import localcontext
 import hashlib
 import json
 from pathlib import Path
-import re
 import sys
 
 from verify_paper_execution import PaperExecutionVerifier
@@ -37,7 +36,10 @@ class PaperTransportVerifier:
             assert row["sequence"] == sequence and row["previous_sha256"] == previous
             previous = checksum.decode()
             body_path = (parent / row["body_file"]).resolve()
-            assert body_path.parent == parent and row["body_file"] == f"body_{sequence}.txt"
+            assert (
+                body_path.parent == parent
+                and row["body_file"] == f"body_{sequence}.txt"
+            )
             body = body_path.read_bytes()
             assert self.digest(body) == row["body_sha256"] and len(body) <= 1024 * 1024
             assert isinstance(row["monotonic_ms"], int) and row["monotonic_ms"] >= 0
@@ -50,17 +52,12 @@ class PaperTransportVerifier:
                 if method == "POST":
                     request = json.loads(body)
                     assert request["symbol"] == "SPY" and request["type"] == "limit"
-                    assert request["time_in_force"] == "day" and not request["extended_hours"]
+                    assert (
+                        request["time_in_force"] == "day"
+                        and not request["extended_hours"]
+                    )
                 else:
                     assert body == b""
-            elif row["kind"] == "market_request":
-                assert body == b""
-                assert row[
-                    "detail"
-                ] == "GET https://data.alpaca.markets/v2/stocks/SPY/quotes/latest?feed=sip&currency=USD" or re.fullmatch(
-                    r"GET https://paper-api\.alpaca\.markets/v2/calendar\?start=202[6-9]-\d{2}-\d{2}&end=202[6-9]-\d{2}-\d{2}&date_type=TRADING",
-                    row["detail"],
-                )
             elif row["kind"] == "websocket_ping":
                 assert 0 < len(body) <= 125
                 challenge = body
@@ -72,7 +69,7 @@ class PaperTransportVerifier:
             elif row["kind"] == "connection":
                 assert body == b""
             else:
-                assert row["kind"] in ["http_response", "market_response", "stream"]
+                assert row["kind"] in ["http_response", "stream"]
             self.records += 1
 
     def control(self, journal):
@@ -92,7 +89,9 @@ class PaperTransportVerifier:
                     assert row["health_model"] == "websocket_ping_pong_v1"
                 assert row["order_tif"] == "DAY"
             else:
-                assert row["sequence"] == sequence and row["previous_sha256"] == previous
+                assert (
+                    row["sequence"] == sequence and row["previous_sha256"] == previous
+                )
                 command = row["command"]
                 if command["kind"] == "deadline":
                     assert not state["stopped"]
@@ -120,7 +119,8 @@ class PaperTransportVerifier:
         for entry in artifacts:
             assert self.digest(self.path(entry["path"]).read_bytes()) == entry["sha256"]
         assert (
-            self.digest(self.path("source_inventory.txt").read_bytes()) == summary["source_sha256"]
+            self.digest(self.path("source_inventory.txt").read_bytes())
+            == summary["source_sha256"]
         )
         evidence = json.loads(self.path("transport_evidence.json").read_text())
         assert len(evidence["checks"]) == summary["checked_assertions"]
@@ -138,32 +138,44 @@ class PaperTransportVerifier:
                 self.ledgers += 1
                 self.inputs += verifier.inputs
         for case in evidence["cases"]:
-            journal = self.path("runtime.journal" if native else case["case"] + "/runtime.journal")
+            journal = self.path(
+                "runtime.journal" if native else case["case"] + "/runtime.journal"
+            )
             verifier = ledgers[journal]
             state = case["state"]
-            account, state_hash, tip = verifier.frames[journal.name][state["durable_records"]]
+            account, state_hash, tip = verifier.frames[journal.name][
+                state["durable_records"]
+            ]
             assert account == state["account"] and tip == state["journal_sha256"]
             values = {
-                k: v for k, v in state.items() if k not in ["durable_records", "journal_sha256"]
+                k: v
+                for k, v in state.items()
+                if k not in ["durable_records", "journal_sha256"]
             }
             assert self.digest(verifier.encoded(values)) == state_hash
             if "control" in case:
                 policy, count, tip = self.control(journal.parent / "control.journal")
                 saved = case["control"]
                 assert all(saved[k] == policy[k] for k in policy)
-                assert saved["durable_records"] == count and saved["journal_sha256"] == tip
+                assert (
+                    saved["durable_records"] == count and saved["journal_sha256"] == tip
+                )
                 assert saved["execution"] == state
         print(
             f"Verified {len(artifacts)} artifact hashes, {self.records} capture records, "
             f"{self.ledgers} Decimal ledgers and {self.inputs} journal inputs"
         )
         if native:
-            print("Read-only evidence only; no order-lifecycle or heartbeat acceptance implied")
+            print(
+                "Read-only evidence only; no order-lifecycle or heartbeat acceptance implied"
+            )
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        raise SystemExit("usage: python research/verify_paper_transport.py <report-directory>")
+        raise SystemExit(
+            "usage: python research/verify_paper_transport.py <report-directory>"
+        )
     with localcontext() as context:
         context.prec = 80
         PaperTransportVerifier(sys.argv[1]).verify()

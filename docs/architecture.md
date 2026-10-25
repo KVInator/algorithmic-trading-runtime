@@ -57,41 +57,25 @@ automatically resent.
 
 The [runtime](execution_runtime.md), [journal](journal_recovery.md) and
 [pipeline](offline_pipeline.md) contracts define transitions, fault handling,
-versions and resource limits. Native read-only connection/heartbeat acceptance
-is recorded in the [ledger](progress.md); observed execution measurements remain open.
+versions and resource limits. Current acceptance and remaining measurements are recorded in the [ledger](progress.md).
 
 The [paper-broker contract](alpaca_paper_contract.md) preserves broker precision
 without changing the current cent ledger or journal schemas. The versioned exact
-accounting bridge is described below; observed order/recovery evidence remains open.
+accounting bridge is described below; the offline broker contract defines the current acceptance boundary.
 
 The [paper execution owner](paper_execution.md) composes that same order core
 with exact broker conversion, durable identity mapping and a schema-3 journal.
 `JournalFrame` provides one framing/checksum implementation for all schemas.
 
-The [paper transport](paper_transport.md) composes `PaperSession`,
-`PaperHttpClient`, `PaperCapture` and a `PaperWire` substitution boundary.
-The Windows wire owns credentials and WinHTTP handles; the session owns protocol
-ordering and calls the same journaled bridge. Capture bodies/indexes and runtime
-inputs have separate durable boundaries. The Windows probe is read-only;
-operational policies and observed session capture remain open.
+The [simulated paper broker](paper_broker.md) composes `PaperSession`,
+`PaperHttpClient`, durable `PaperCapture` and `SimulatedPaperWire`. The peer
+translates requests into the existing FIFO `SimulatedBroker`; it never reads the
+client ledger to produce broker balances. Synthetic messages reach the same
+schema-3 decoder/accounting path. There is no native broker socket dependency.
 
-`PaperControl` composes the session and schema-3 ledger with a separate policy
-journal. Deadline and permanent-stop state are durable; process-local health
-age is discarded at restart. The transport invokes its eligibility callback
-after capture and immediately before dispatch. The [control contract](paper_control.md)
-records these separate commit boundaries and serialized servicing requirements.
-
-`PaperWebSocket` owns the libcurl framing and control-frame path. The Windows
-wire retains WinHTTP for REST and composes that socket with credentials. Health
-checks correlate PING/PONG payloads without changing subscriptions. The
-[heartbeat contract](websocket_heartbeat.md) specifies the versioned control
-model, pinned dependency and real loopback verification.
-
-`PaperMarketProbe` composes read-only request descriptions, the existing Windows
-market-data reader and durable capture. `PaperQuoteDecoder` retains numeric
-lexemes through the shared JSON parser and exact broker value types.
-`PaperQuotePolicy` owns freshness/calendar gates and directed cent projections;
-reports present saved outcomes. The shared calendar's explicit paper role adds
-current dates while preserving historical defaults and refusing price requests
-from paper sessions. The [current market-data contract](paper_market_data.md)
-separates service access, quote usability and operational order eligibility.
+`PaperControl` adds a separate deadline/stop journal and serialized logical
+health gates. `PaperBrokerDiagnostic` composes paired schedules, failures and
+saved frames. Report objects display those frames without applying transitions.
+The independent Python verifier reconstructs cash, positions and quote budgets.
+Historical Alpaca transport and credentials remain separate from this offline
+broker path.

@@ -11,16 +11,6 @@
 namespace trading {
 namespace {
 
-std::chrono::sys_days calendar_date(std::string_view date, CalendarRole role) {
-    if (role == CalendarRole::historical) {
-        return parse_session_date(date);
-    }
-    if (role != CalendarRole::paper || date.size() != 10 || date < "2026-01-01" || date > "2029-12-31") {
-        throw std::invalid_argument("paper calendar is bounded to 2026 through 2029");
-    }
-    return std::chrono::floor<std::chrono::days>(parse_utc_seconds(std::string{date} + "T00:00:00Z"));
-}
-
 std::chrono::minutes clock_minutes(std::string_view value) {
     if (value.size() == 8 && value.substr(5) == ":00") {
         value = value.substr(0, 5);
@@ -64,29 +54,24 @@ std::chrono::sys_days parse_session_date(std::string_view date) {
     return value;
 }
 
-CalendarRange::CalendarRange(std::string first, std::string last, CalendarRole role)
-    : first_{std::move(first)}, last_{std::move(last)}, role_{role} {
-    const auto start = calendar_date(first_, role_);
-    const auto end = calendar_date(last_, role_);
+CalendarRange::CalendarRange(std::string first, std::string last)
+    : first_{std::move(first)}, last_{std::move(last)} {
+    const auto start = parse_session_date(first_);
+    const auto end = parse_session_date(last_);
     if (end < start || end - start > std::chrono::days{30}) {
         throw std::invalid_argument("calendar range requires 1 to 31 inclusive days");
     }
 }
 
-const std::string& CalendarRange::first() const noexcept { return first_; }
-
-const std::string& CalendarRange::last() const noexcept { return last_; }
-
-CalendarRole CalendarRange::role() const noexcept { return role_; }
-
+const std::string &CalendarRange::first() const noexcept { return first_; }
+const std::string &CalendarRange::last() const noexcept { return last_; }
 std::string CalendarRange::path() const {
     return "/v2/calendar?start=" + first_ + "&end=" + last_ + "&date_type=TRADING";
 }
 
-CalendarSession::CalendarSession(std::string date, std::string open_local, std::string close_local,
-                                 CalendarRole role)
-    : date_{std::move(date)}, regular_{false}, role_{role} {
-    const auto day = calendar_date(date_, role_);
+CalendarSession::CalendarSession(std::string date, std::string open_local, std::string close_local)
+    : date_{std::move(date)}, regular_{false} {
+    const auto day = parse_session_date(date_);
     const auto weekday = std::chrono::weekday{day};
     if (weekday == std::chrono::Saturday || weekday == std::chrono::Sunday) {
         throw std::invalid_argument("equity calendar returned a weekend session");
@@ -102,36 +87,26 @@ CalendarSession::CalendarSession(std::string date, std::string open_local, std::
     regular_ = open == std::chrono::minutes{570} && close == std::chrono::minutes{960};
 }
 
-const std::string& CalendarSession::date() const noexcept { return date_; }
-
+const std::string &CalendarSession::date() const noexcept { return date_; }
 std::chrono::sys_seconds CalendarSession::open_utc() const noexcept { return open_utc_; }
-
 std::chrono::sys_seconds CalendarSession::close_utc() const noexcept { return close_utc_; }
-
 bool CalendarSession::regular() const noexcept { return regular_; }
+HistoricalBarRequest CalendarSession::bar_request() const { return {"SPY", open_utc_, close_utc_, 100}; }
 
-HistoricalBarRequest CalendarSession::bar_request() const {
-    if (role_ != CalendarRole::historical) {
-        throw std::invalid_argument("paper calendar does not authorize historical price access");
-    }
-    return {"SPY", open_utc_, close_utc_, 100};
-}
-
-std::vector<CalendarSession> decode_market_calendar(std::string_view payload, const CalendarRange& range) {
+std::vector<CalendarSession> decode_market_calendar(std::string_view payload, const CalendarRange &range) {
     const auto document = parse_json_document(payload);
-    if (!document.is_array() || (document.empty() && range.role() == CalendarRole::historical) ||
-        document.size() > 31) {
-        throw std::invalid_argument("calendar response requires a bounded array of session records");
+    if (!document.is_array() || document.empty() || document.size() > 31) {
+        throw std::invalid_argument("calendar response requires 1 to 31 session records");
     }
     std::vector<CalendarSession> result;
-    for (const auto& record : document) {
+    for (const auto &record : document) {
         if (!record.is_object() || !record.contains("date") || !record.at("date").is_string() ||
             !record.contains("open") || !record.at("open").is_string() || !record.contains("close") ||
             !record.at("close").is_string()) {
             throw std::invalid_argument("calendar record requires date, open and close strings");
         }
         CalendarSession session{record.at("date").get<std::string>(), record.at("open").get<std::string>(),
-                                record.at("close").get<std::string>(), range.role()};
+                                record.at("close").get<std::string>()};
         if (session.date() < range.first() || session.date() > range.last() ||
             (!result.empty() && session.date() <= result.back().date())) {
             throw std::invalid_argument(
@@ -143,7 +118,7 @@ std::vector<CalendarSession> decode_market_calendar(std::string_view payload, co
 }
 
 namespace {
-std::vector<CalendarSession> reference_sessions(const CalendarRange& range,
+std::vector<CalendarSession> reference_sessions(const CalendarRange &range,
                                                 std::span<const std::string_view> holidays,
                                                 std::span<const std::string_view> short_dates) {
     std::vector<CalendarSession> result;
@@ -162,7 +137,7 @@ std::vector<CalendarSession> reference_sessions(const CalendarRange& range,
 }
 } // namespace
 
-std::vector<CalendarSession> development_calendar(const CalendarRange& range) {
+std::vector<CalendarSession> development_calendar(const CalendarRange &range) {
     if (range.first() < "2022-01-01" || range.last() > "2023-12-31") {
         throw std::invalid_argument("development calendar is restricted to 2022-2023");
     }
@@ -174,7 +149,7 @@ std::vector<CalendarSession> development_calendar(const CalendarRange& range) {
     return reference_sessions(range, holidays, short_dates);
 }
 
-std::vector<CalendarSession> risk_calibration_calendar(const CalendarRange& range) {
+std::vector<CalendarSession> risk_calibration_calendar(const CalendarRange &range) {
     if (range.first() < "2020-12-31" || range.last() > "2021-12-31") {
         throw std::invalid_argument("risk calibration calendar is restricted to the 2020 boundary and 2021");
     }

@@ -69,14 +69,11 @@ Legacy schema-1 journals remain readable; target inputs require schema 2.
 The paper bridge uses schema 3 with USD 1e-9 units and an explicit paper fee
 policy. Preserve legacy JSON cent keys while C++ core fields use neutral units.
 Its accounting/persistence contract is in `docs/paper_execution.md`.
-The separate deadline/stop owner and its serialized health/dispatch gates are
-specified in `docs/paper_control.md`; native operational callers must use it.
-The WebSocket PING/PONG model, pinned libcurl transport and optional real-wire
-contracts are documented in `docs/websocket_heartbeat.md`.
-Current quote/calendar access and exact quote eligibility are documented in
-`docs/paper_market_data.md`. Calendar paper mode is explicit; preserve historical
-default bounds and reject historical bar requests from paper sessions. Quote
-usability does not authorize orders or enroll operational sessions.
+The simulated broker, logical health/dispatch gates and separate deadline/stop
+owner are specified in `docs/paper_broker.md`. No native paper-broker wire,
+current quote/calendar probe or paid feed is required. Keep historical Alpaca
+acquisition and credentials intact. Synthetic messages must never be labelled
+observed broker evidence.
 The runtime, journal and pipeline contracts in `docs/` define these invariants.
 
 `research/intraday_reversion_protocol.md` and its JSON register SPY-MR-01

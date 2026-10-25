@@ -118,8 +118,7 @@ identities. It does not claim an independent classifier for every broker event.
 
 Native acceptance for `484e2de` is recorded in the [milestone ledger](progress.md).
 The uploaded journal bodies and saved evidence reproduce Linux exactly.
-Paper transport, consistent
-multi-response snapshot collection, fee/cash-precision observation, explicit
-expiry/stop control and the declared five-session operational capture remain
-before milestone 4 can close. Minute-bar study inputs and registered results
-are not used or changed by this diagnostic.
+The [simulated broker](paper_broker.md) composes transport, independent snapshot
+collection, explicit deadlines and stop controls around this owner. Native
+external-broker lifecycle observation is outside the current completion scope.
+Minute-bar study inputs and registered results remain unchanged.

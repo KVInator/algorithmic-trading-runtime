@@ -82,10 +82,10 @@ activity between responses.
 
 Payload parsing is bounded to one MiB and uses the existing duplicate-key/depth
 checks. The stream result owns the raw decoded server message and receipt time.
-Future transport must retain bounded raw inbound evidence before decoding,
+The session retains bounded raw inbound evidence before decoding,
 including rejected messages, while excluding credentials/authentication requests.
-Only complete JSON messages enter this decoder. Binary frame assembly, codec
-selection and connection health remain transport work.
+Only complete JSON messages enter this decoder. The offline peer supplies complete
+messages; no native socket is required.
 
 ## Diagnostic and remaining dependency
 
@@ -99,6 +99,6 @@ rejected explicitly.
 The [schema-3 execution bridge](paper_execution.md) now supplies the versioned
 nanodollar accounting and durable identity/event mapping. It reuses the order
 engine, declares a zero-fee paper convention and preserves legacy journal JSON.
-Transport, raw archival, consistent multi-response snapshots, TIF/stop policies,
-observed cash/fee conventions and the five-session capture remain open. An
-observed paper lifecycle is still required to close milestone 4.
+The [simulated broker workflow](paper_broker.md) supplies raw capture,
+consistent snapshots, deadlines/stop policies and synthetic lifecycle/recovery
+evidence. Observed external-broker execution is outside the current scope.
