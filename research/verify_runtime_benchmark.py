@@ -135,6 +135,9 @@ class RuntimeBenchmarkVerifier:
             == summary["source_sha256"]
         )
         data = json.loads(self.path("benchmark_evidence.json").read_text())
+        if "build_settings" in summary:
+            assert summary["build_settings"] == data["build_settings"]
+            assert summary["build_settings"]["cxx_standard"] == 20
         assert data["clock_probe"]["count"] == 1000
         rows, workloads = data["rows"], {w["round_trips"]: w for w in data["workloads"]}
         assert len(rows) == summary["rows"]

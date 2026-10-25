@@ -1,4 +1,5 @@
 #include "runtime_benchmark_report.hpp"
+#include "runtime_benchmark_build.hpp"
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
 #include "journal_frame.hpp"
@@ -70,13 +71,18 @@ class BenchmarkFigure {
 };
 } // namespace
 void RuntimeBenchmarkReport::write(const std::filesystem::path &directory) const {
+    const Json settings{{"common_cxx_flags", build::benchmark_common_flags},
+                        {"configuration_cxx_flags", build::benchmark_configuration_flags},
+                        {"cxx_standard", 20},
+                        {"project_warnings_as_errors", build::benchmark_warnings_as_errors}};
     const auto save = [&](std::string_view name, const std::string &bytes) {
         write_new_text_file(directory / name, bytes);
     };
     save("benchmark_evidence.json", Json{{"rows", result_.rows},
                                          {"workloads", result_.workloads},
                                          {"environment", result_.environment},
-                                         {"clock_probe", result_.clock_probe}}
+                                         {"clock_probe", result_.clock_probe},
+                                         {"build_settings", settings}}
                                             .dump() +
                                         '\n');
     save("source_inventory.txt", std::string{build::source_records});
@@ -117,7 +123,8 @@ void RuntimeBenchmarkReport::write(const std::filesystem::path &directory) const
          << ".</p>"
             "<details><summary>Environment and clock probe</summary><pre>"
          << ReportText{result_.environment.dump(2)}.html() << "</pre><pre>"
-         << ReportText{result_.clock_probe.dump(2)}.html()
+         << ReportText{result_.clock_probe.dump(2)}.html() << "</pre><pre>"
+         << ReportText{settings.dump(2)}.html()
          << "</pre></details>"
             "<p>Core applies typed inputs directly. Copy candidate adds the journal owner's outer "
             "transaction copy. Journal memory retains serialization, hashing and volatile storage without "
@@ -205,6 +212,7 @@ void RuntimeBenchmarkReport::write(const std::filesystem::path &directory) const
               {"rows", result_.rows.size()},
               {"compiler", TRADING_COMPILER_ID},
               {"build_configuration", TRADING_BUILD_CONFIGURATION},
+              {"build_settings", settings},
               {"release_reference", std::string_view{TRADING_BUILD_CONFIGURATION} == "Release"},
               {"source_sha256", build::source_sha256},
               {"limits",

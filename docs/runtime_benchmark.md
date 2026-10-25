@@ -69,6 +69,11 @@ These are process-wide sequential observations, including fixtures, evidence and
 allocator retention; they do not isolate per-case allocations or transient copies.
 Unavailable readings remain null. The report retains OS, CPU descriptor, logical
 processor count, compiler, build configuration and source inventory.
+The manifest/evidence also retain common and configuration-specific CMake C++
+flags, the C++20 standard and the warnings-as-errors setting. Target warning
+options remain specified by the retained root CMake source. Compiler/linker
+defaults and externally injected launcher/environment options are not a captured
+toolchain image.
 
 The existing journal limits remain 10,000 inputs, 32 MiB per file and 64 KiB per
 frame. Exhaustion refuses append/restart rather than rotating or compacting.
