@@ -16,7 +16,7 @@ and limitations; [running](running.md) describes reproduction.
 | 4. Simulated broker protocol | Six cases/35 checks; raw message capture, Decimal accounting, quote budgets and paired restart; native archive independently verified | Accepted |
 | 5. Execution measurements | Native 144-account archive, 108 paired policy and 120 assumption comparisons, 206 fills; independent timing, censoring and cost arithmetic | Accepted |
 | 6. Release benchmarks and CI | Native 120-row archive; 100 hashes, all mode groups and 96 Linux-identical journals; portable Release contracts and hosted ASan/UBSan | Accepted |
-| 7. Unified publication/final tree | Standalone HTML/PDF, eight evidence figures, source/evidence manifests, consolidated offline demo, cleanup and final verification | Final validation in progress |
+| 7. Unified publication/final tree | Standalone HTML/PDF, eight evidence figures, source/evidence manifests, consolidated offline demo, cleanup and final verification | Accepted |
 
 ## Retained evidence and provenance
 
@@ -42,10 +42,18 @@ The reported native full 29-group suite takes 56.41 seconds. The full benchmark
 runs as MSVC 19.51.36260.0 Release with `/O2 /Ob2 /DNDEBUG` and warnings as errors.
 These observations support that build/host, not a universal throughput target.
 
-The [pre-cleanup hosted checkpoint](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40177057941)
-passes 29 Release groups on Windows and Linux, independent benchmark/broker
-checks and six ASan/UBSan groups with leak detection. Final cleanup verification
-will be recorded below after the current source and publication checks complete.
+The [final hosted checkpoint](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40196954358)
+verifies source commit `4cdb9e84a77f21e96997e69a5e597ee92db233dc`:
+
+| Hosted job | Result |
+| --- | --- |
+| Windows 2025 Release | 29/29 routine groups; 22.76 seconds |
+| Ubuntu 24.04 Release | 29/29 routine groups; 6.62 seconds |
+| Ubuntu ASan/UBSan with leak detection | 7/7 execution/recovery groups; 6.63 seconds; complete 259-check demo also passes |
+
+Both Release jobs verify publication identities/links, eight benchmark smoke rows
+and the complete offline demo through independent saved-state/accounting oracles.
+CI smoke timings are not substituted for the full native benchmark grid.
 
 The final local Linux Release tree passes all 29 routine groups (6.54 seconds)
 and all 25 quick groups (3.42 seconds). Four affected accounting/recovery groups
@@ -55,6 +63,9 @@ oracles. Publication verification checks fourteen hashes, eight figures, two emb
 views and document links. The 17-page PDF is rendered and visually inspected;
 repeated publication builds produce identical artifact bytes. Deliberate timing-data
 alteration and embedded script injection are rejected by the publication verifier.
+
+All seven bounded roadmap milestones are accepted. No additional feature or
+historical strategy run is required to complete this scope.
 
 ## Finalization changes
 
