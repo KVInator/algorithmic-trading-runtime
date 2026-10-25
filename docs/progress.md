@@ -10,7 +10,7 @@ evidence rather than a completion percentage.
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
 | 2. Strategy research | Complete for `05aec9d` | Three strategy specifications have reproducible historical comparisons. Native MSVC build and all twenty-two groups are reported successful. SPY-MR-01 retains 476 dates, forty market cases and its cost-dominated finding; all ten artifacts and 171 source records verify, with identical native/Linux account paths. |
 | 3. Shared execution path | Complete for `9aeffa4` | MSVC build and routine test preset reported successful. Native eighteen-/twenty-two-case runs pass 224/296 checks; saved evidence, inputs and HTML match Linux byte-for-byte. Source differences are five explained CRLF variants. Journal manifest digests match the checked Linux bodies; native bodies were not supplied. |
-| 4. Paper broker | In progress: native bridge and read-only heartbeat accepted | Exact accounting/identity, bounded transport and durable deadline/stop foundations are implemented. Current SIP quote/calendar checks are implemented; their native acceptance is pending. Operational control composition and five-session observed lifecycle/reconnect/restart evidence remain. |
+| 4. Paper broker | In progress: native bridge, heartbeat and calendar accepted | Constructed quote/calendar evidence and native calendar access verify. The native latest-SIP quote is denied by subscription entitlement. Quote access, operational control composition and five-session observed lifecycle/reconnect/restart evidence remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
 | 7. Final technical publication | Not complete | Individual reports and research notes exist. The unified analytical HTML/PDF report, offline showcase and final repository presentation remain. |
@@ -836,13 +836,61 @@ production-socket loopback and market contracts pass in 0.54 seconds; hygiene
 and diff checks pass. Native chooser refresh follows CMake regeneration.
 This build-configuration correction does not close a paper-execution substep.
 
+## Native market calendar acceptance and SIP denial
+
+For `8f3db66`, the complete MSVC 19.51.36260.0 Debug
+`paper_market_0` archive verifies 27 artifact hashes, twenty capture records,
+24 calendar conversions and two exact quote assessments. Both native archives
+have 225 exact source matches and four explained CRLF variants, with no
+unexplained differences. The native constructed diagnostic passes six checks
+in four cases. A new build/test-suite transcript was not supplied.
+
+The complete `paper_market_probe_0` archive verifies nine artifact hashes,
+five capture records and 22 IANA-checked session conversions. Its calendar GET
+returns HTTP 200 for 2026-10-25 through 2026-11-24, including the November DST
+transition. Five provisional candidate dates are retained; none is enrolled.
+The latest SIP quote GET returns HTTP 403 with the provider message:
+`subscription does not permit querying recent SIP data`.
+
+This accepts native calendar access and records a current-SIP entitlement
+failure. No quote, quote freshness, order lifecycle or execution-quality result
+is established. Prior historical SIP downloads do not prove current quote
+entitlement. The provider documents that distinction in its
+[market-data FAQ](https://docs.alpaca.markets/us/docs/market-data-faq).
+The unchanged paper plan stops without retrying or switching feeds.
+
+The constructed summary SHA-256 is
+`3254e1fa98e924de27f15f595accbda9c0a0b8cafa9549304de7e7171c06bbe5`;
+the native probe summary SHA-256 is
+`824b02413d00e5b6396d25ee93587686c0ed13608470ca750320cc1261bcf916`.
+Both retain source-inventory identity
+`a5ab0631a8cf410d63f0b7a266be28eafb9f3424cc8fab3ffa9905c0b3495366`.
+Verification copies remain under `scratch/verification/native-market-20261025`.
+
+The follow-up diagnostic identifies this exact latest-SIP subscription response
+in console/report text while leaving other HTTP failures distinct. Tests cover
+the observed response, unrelated 403, malformed error body and calendar denial.
+The CMake dependency check now rejects executable targets recursively during
+configuration, supplementing disabled examples/manuals with an enforced build
+invariant. A deliberately enabled upstream example is rejected in an isolated
+configuration check.
+
+Affected GCC targets and market contracts pass, with all 23 quick groups passing
+in 5.96 seconds. Three Windows-target C++ syntax checks pass; actual native
+acceptance of the clearer error text remains pending. The new constructed run at
+`scratch/runs/paper_market_2` independently verifies 27 artifact hashes, twenty
+capture records, 24 calendar conversions and two exact quote assessments.
+The uploaded constructed run has 26 artifacts byte-identical to the preceding
+Linux baseline; its source inventory differs by the recorded platform line endings
+and dependency-recipe revision. Hygiene, formatting and diff checks pass.
+
 ## Next dependency
 
-Build and run the current Windows quick preset, `paper_market_diagnostic` and
-`paper_market_probe`. Retain both complete folders to verify native SIP access,
-calendar conversions, source/receipt clocks and quote gates. A successful
-read-only probe does not launch orders or enroll dates; unavailable SIP access
-remains an explicit prerequisite failure.
+Resolve current SIP entitlement or declare a paper-only feed revision before
+collecting operational quotes. Repeating the same subscription-denied request
+does not establish readiness. A feed revision must preserve the SIP failure and
+label its market coverage and execution-measurement limits explicitly; it must
+not revise frozen historical strategies/results or reinterpret IEX as SIP.
 
 Then compose the reviewed operational launcher with the durable control owner,
 explicit reviewed reactivation and closing-inventory handling. Native control/

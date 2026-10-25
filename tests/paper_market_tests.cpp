@@ -163,6 +163,37 @@ void quote_gates() {
     require(!PaperQuotePolicy{}.assess(quote, received, received, {}).usable,
             "missing calendar session denied");
 }
+
+void http_failures(const std::filesystem::path& root) {
+    const PaperReceipt at{"2026-10-26T14:30:01Z", 1000};
+    for (int failure = 0; failure < 4; ++failure) {
+        const auto directory = create_unique_directory(root, "http-failure");
+        PaperCapture capture{directory / "capture"};
+        std::size_t calls = 0;
+        const auto read = [&](const PaperMarketRequest& request) -> MarketDataResponse {
+            ++calls;
+            if (validate_paper_market_request(request).first && failure != 3) {
+                return {200, "[]", {}};
+            }
+            const auto body = failure == 1 ? R"({"message":"different permission error"})"
+                              : failure == 2
+                                  ? "<html>forbidden</html>"
+                                  : R"({"message":"subscription does not permit querying recent SIP data"})";
+            return {403, body, {}};
+        };
+        const auto result = PaperMarketProbe{read, [at] { return at; }, capture}.run();
+        require(!result.access_verified && calls == (failure == 3 ? 1U : 2U),
+                "denied requests stop without retry or feed substitution");
+        require((result.detail.find("subscription does not permit") != std::string::npos) == (failure == 0),
+                "only the observed latest-SIP entitlement response receives its specific diagnosis");
+        if (failure == 3) {
+            require(result.cases.empty() && result.detail.starts_with("paper calendar GET"),
+                    "calendar failures retain the correct resource");
+        } else {
+            require(result.cases.size() == 1, "successful calendar evidence survives quote denial");
+        }
+    }
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -171,6 +202,7 @@ int main(int argc, char** argv) {
         calendar_contracts();
         requests_and_decoding();
         quote_gates();
+        http_failures(argv[1]);
         const auto directory = create_unique_directory(argv[1], "paper-market");
         const auto result = PaperMarketDiagnostic{directory}.run();
         PaperMarketReport{result}.write(directory);

@@ -9,6 +9,27 @@ namespace trading {
 namespace {
 using Json = nlohmann::json;
 
+std::string http_failure(const PaperMarketRequest& request, const MarketDataResponse& response) {
+    const bool quote = request.url == PaperMarketRequests{}.quote().url;
+    const std::string resource = quote ? "latest SIP SPY quote" : "paper calendar";
+    if (quote && response.status == 403) {
+        try {
+            const auto error = parse_json_document(response.body);
+            if (error.is_object() && error.contains("message") && error.at("message").is_string() &&
+                error.at("message").get<std::string>() ==
+                    "subscription does not permit querying recent SIP data") {
+                return "Latest SIP quote access unavailable (HTTP 403): subscription does not permit "
+                       "querying recent SIP data. Calendar evidence is retained; no retry or feed "
+                       "substitution.";
+            }
+        } catch (const std::invalid_argument&) {
+            // A malformed error body remains an HTTP failure; its raw bytes are already captured.
+        }
+    }
+    return resource + " GET returned HTTP " + std::to_string(response.status) +
+           "; review the retained response.";
+}
+
 std::string text(const Json& item, const char* field) {
     if (!item.is_object() || !item.contains(field) || !item.at(field).is_string() ||
         item.at(field).get_ref<const std::string&>().empty() ||
@@ -196,7 +217,7 @@ PaperMarketResult PaperMarketProbe::run() const {
             throw std::runtime_error("read-only request clock regression");
         }
         if (response.status != 200) {
-            throw std::runtime_error("read-only GET returned HTTP " + std::to_string(response.status));
+            throw std::runtime_error(http_failure(request, response));
         }
         return std::pair{std::move(response), received};
     };

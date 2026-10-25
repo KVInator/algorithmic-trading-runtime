@@ -28,6 +28,15 @@ native response, not inferred from historical-bar or order-stream access.
 The explicit request supplies feed provenance; the quote body does not
 independently authenticate feed identity.
 
+The observed latest-SIP HTTP 403 subscription response receives a specific
+entitlement diagnosis in the console/report. Other 403s, malformed error bodies
+and calendar failures retain their resource and generic HTTP-failure status;
+they are not reclassified as this entitlement response.
+Older historical SIP access and current SIP quote access are separate permissions.
+The [provider FAQ](https://docs.alpaca.markets/us/docs/market-data-faq) documents
+the subscription requirement for latest SIP endpoints and the historical-data
+delay restriction.
+
 ## Calendar roles
 
 The shared conversion has an explicit `CalendarRole`. Its historical default
@@ -97,6 +106,14 @@ retains the response. Preserve both complete folders for native verification.
 Native access acceptance, the reviewed control/launcher composition,
 reactivation/closing-inventory procedures and five-session observed lifecycles
 remain open. This prerequisite launches no orders.
+
+The native `paper_market_probe_0` archive accepts the calendar path but records a
+subscription denial for the latest SIP quote. No quote was decoded or assessed.
+Its [ledger entry](progress.md#native-market-calendar-acceptance-and-sip-denial)
+records the verified evidence. Resolving SIP entitlement or declaring a separate
+paper-only feed revision is required before enrollment. IEX is a single-exchange
+reference and cannot be relabeled consolidated SIP/NBBO; no automatic feed
+substitution is implemented and historical research remains unchanged.
 
 ## Primary references
 

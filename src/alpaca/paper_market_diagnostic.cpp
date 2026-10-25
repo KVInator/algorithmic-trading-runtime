@@ -22,7 +22,9 @@ PaperMarketResult PaperMarketDiagnostic::run() const {
                 return {200, std::string{calendar}, {}};
             }
             return {status,
-                    status == 200 ? std::string{quote} : R"({"message":"constructed access denial"})",
+                    status == 200   ? std::string{quote}
+                    : status == 403 ? R"({"message":"subscription does not permit querying recent SIP data"})"
+                                    : R"({"message":"constructed access denial"})",
                     {}};
         };
         const auto observed = PaperMarketProbe{read, [at] { return at; }, capture}.run();
