@@ -1,4 +1,5 @@
 #include "strategy_execution_report.hpp"
+#include "momentum_order_adapter.hpp"
 
 #include "artifact_io.hpp"
 #include "content_digest.hpp"

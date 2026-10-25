@@ -1,6 +1,6 @@
 # Simulated execution measurements
 
-Milestone 5 compares fixed limit and cancellation policies on synthetic quotes.
+The measurement study compares fixed limit and cancellation policies on synthetic quotes.
 The question is how price, completion and receipt timing change under declared
 spread, liquidity and delay assumptions. This is a deterministic sensitivity
 experiment, not an estimate of trading costs or a strategy performance study.
@@ -57,7 +57,7 @@ message decoding and durable `PaperCapture`. The existing session initializes
 and finally reconciles the account. The measurement coordinator schedules
 outbound requests and inbound evidence; it does not implement another matcher
 or order/account transition engine. The operational deadline/stop controller
-remains verified by milestone 4; this experiment specifies cancellation timing
+is verified by the broker contract; this experiment specifies cancellation timing
 as a fixed scenario policy.
 
 Quotes have finite independent bid/ask budgets. Matching uses the current

@@ -1,6 +1,6 @@
 # Simulated paper broker
 
-Milestone 4 uses a deterministic, in-process broker peer. Quotes, order messages,
+The offline broker uses a deterministic, in-process broker peer. Quotes, order messages,
 clock readings and failures are constructed. No network, credentials, subscription
 or observed Alpaca executions are required. This demonstrates the runtime's
 broker-protocol and recovery behavior under specified scenarios; it does not
@@ -35,7 +35,7 @@ quiet/missing/mismatched heartbeat responses and unstable snapshots.
 
 ## Scenario evidence
 
-`paper_broker_diagnostic` runs six reproducible cases:
+The broker portion of `project_demo` runs six reproducible cases:
 
 | Case | Required behavior |
 | --- | --- |
@@ -86,7 +86,7 @@ rejected without truncating evidence. Limits are 256 deadlines, 2,000 commands,
 ## Reproduction
 
 In Visual Studio, Build All, run `windows-debug-quick`, select
-`paper_broker_diagnostic.exe` and press Ctrl+F5. The printed directory contains:
+`project_demo.exe` and press Ctrl+F5. The printed directory contains a `broker/` child with:
 
 - `report.html`: position chart, expandable event chronology, cash/reservations,
   routing gates and independent broker snapshots;

@@ -1,107 +1,56 @@
-# Strategy execution integration
+# Strategy-to-order integration
 
-Milestone 3 connects the three strategy designs to the same journaled execution
-pipeline. Momentum, price-only continuation, volume-conditioned continuation and
-opening-anchor reversion run as separate cases. The registered research rules,
-fractional historical accounts and published findings are preserved.
+The three strategy families use the same whole-share target/order path. Adapters
+call the authoritative research engines; they do not refit signals, select
+thresholds or inspect future bars. Each design owns one SPY account independently.
+Concurrent strategies sharing inventory are outside scope.
 
-## Responsibilities and target policy
+`MomentumOrderAdapter`, continuation and reversion adapters consume completed
+information and actual executed inventory. `OfflinePipeline` persists targets
+before submit/cancel eligibility and matches only against declared later quotes.
+It preserves partial fills, pending cancellation, finite displayed-size budgets
+and explicit routing gates. Durable uncertain intent is not automatically resent.
+The exact paper peer/control layer additionally covers message conversion,
+stable broker IDs, deadlines and permanent stop.
 
-`MomentumOrderAdapter`, `ContinuationOrderAdapter` and `ReversionOrderAdapter`
-call the existing causal strategy engines. They do not refit alternative models
-or select thresholds. Continuation receives actual executed inventory when
-classifying enter/hold/exit actions; a partial holding retains the declared long
-target. The volume condition applies to new entries, as in the research engine.
-Reversion uses the registered candidate action and twenty completed prior sessions.
+## Account parity and model differences
 
-`WholeShareTargetPolicy` constructs a stable strategy-and-decision-time identity,
-a fixed ten-share long target or a zero-share cash target, quote-derived buy/sell
-limits, a fee ceiling and a dispatch window. It rejects stale, future, crossed
-or invalid quotes. Defaults allow two seconds of quote age and thirty seconds
-for dispatch. This window does not expire a resting broker order. Broker TIF and
-expiry remain milestone 4 work. The original momentum identities are retained.
+Constructed aligned cases use common prices, integer-compatible sizes and costs.
+They reproduce fractional/whole-share equity under those conventions. A rounding
+case retains idle cash and an expected difference. Generic equality is not claimed:
+research uses fractional notional and delayed trade-price references; execution
+uses whole shares, quote-side matching, explicit fees, rejected/unfilled quantities
+and broker reports. Historical risk accounts additionally retain corporate actions.
+Frozen strategy results are never overwritten with execution-sized returns.
 
-`ScenarioRunner` composes `JournaledRuntime`, `OfflinePipeline` and the independent
-`SimulatedBroker`. It retains client and broker checkpoints before and after
-message delivery. Restart rebuilds from the same journal and closes routing
-until reconciliation; it does not create a replacement external submission.
+## Offline replay
 
-## Constructed acceptance cases
+Run `project_demo` for eighteen constructed strategy cases and six broker cases.
+The strategy part retains 224 checks, targets, 216 saved frames, fills, independent
+broker snapshots, orders, reservations, routing gates and fractional-account
+comparisons. Each CSS radio button selects a saved checkpoint; no JavaScript or
+financial calculation runs in the viewer. The C++ report binds const results.
+Keyboard focus selects the same events as clicking the playhead.
 
-The default application produces eighteen cases and 224 assertions:
+The `strategies/` child directory includes the report, inputs, saved cases,
+journals, source inventory and manifest. Its independent verifier reconstructs
+integer accounts and strategy directions and checks aligned/rounding parity.
+The combined verifier also checks the broker child:
 
-- Each of four variants has a filled positive signal, a cash signal, an
-  incomplete-fill/cancellation-race path and its interrupted/restarted pair.
-- Partial paths buy four, then two, then one share during a cancellation race;
-  liquidation sells three and four. One-cent-per-share fees are charged by the
-  broker. Interrupted and uninterrupted fills, reports and final accounts agree.
-- A separate flat-price fee case aligns fractional and integer cost arithmetic.
-  A separate rounding case retains the difference caused by whole-share sizing.
-
-The aligned zero-fee cases buy ten shares at USD 100 and sell at USD 101 from
-USD 1,000. Both accounts finish at USD 1,010. In the fee case USD 1,000.10 funds
-ten shares at USD 100 plus one-cent-per-share fees; both finish at USD 999.90.
-The rounding case starts with USD 1,000.50: the integer account keeps USD 0.50
-idle and finishes at USD 1,010.50; fractional exposure finishes at USD 1,010.505.
-The USD -0.005 difference is expected, rather than an accounting failure.
-These deliberately aligned cases do not establish universal parity: partial
-fills, fee rounding, different sizing, corporate actions, cash treatment and
-calendar scope require separate interpretation. The frozen research accounts
-are not overwritten by execution-sized results.
+```sh
+python -B research/verify_project_demo.py <printed-demo-directory>
+```
 
 ## Bounded historical reference replay
 
-`strategy_reference_replay` first runs the same constructed cases, authenticates
-the registered protocols and verifies all 496 frozen development sessions. It
-then uses the first eligible scored date after twenty warm-up sessions, without
-choosing a date from its return or fill outcome. Four additional cases produce
-296 assertions in total. `strategy_execution_diagnostic --historical` is equivalent.
+`strategy_reference_replay` authenticates the unchanged protocol and frozen
+2022-2023 dataset, then uses the first eligible scored date after the common
+warm-up. It adds four explicitly labelled historical-bar proxy cases. Quotes
+constructed from bar prices are not observed bid/ask liquidity. The account is
+reconciled at the end; any unfilled inventory remains visible.
 
-At each decision, the target uses only the completed bar prefix. A zero-spread,
-zero-size decision quote is constructed from the last completed close, rounded
-to cents. The next minute open becomes a new quote sixty seconds later with
-assumed ten-share availability. A limit set at the earlier close fills only if
-that later quote permits it. This avoids granting the decision access to a future
-open or inventing an immediate fill. Final bar revision times are unavailable.
-All continuation decision clocks are replayed. Tracked orders are cancelled and
-reconciled at the end; any remaining inventory is reported rather than forcibly
-sold at an invented price.
-
-In the recorded first-date run all four historical cases have zero fills and
-unchanged final cash. A positive momentum signal leaves an unfilled limit;
-positive signals therefore do not imply executions. The selected date is retained.
-These quotes are constructed price references, not observed bid/ask, market depth,
-latency, or executable liquidity. This small replay tests integration and causal
-order construction. It neither measures execution quality nor rescored strategy
-profitability. No 2024-2025 price or performance data are accessed.
-
-## Interactive evidence
-
-The offline HTML report uses native HTML radio controls and CSS to select saved
-frames. Expand a case, then select numbered events or previous/next. The view
-shows the quote path and already-generated fills, client/broker balances, cash
-and share reservations, target and order states, the latest broker report and
-client transition, routing gates and restart count. Client/broker differences
-before report delivery are intentional. The raw-frame inspector exposes the
-underlying values. Quote sizes and time are synthetic or constructed, and do
-not represent market-wide order flow or measured network latency.
-
-`StrategyExecutionReport` reads const results from the C++ execution core. No
-signal, fill or account engine runs in the presentation. Exports comprise the
-HTML viewer, exact input bars, case/frame/fill/report evidence, chained journals,
-source inventory and a hashed artifact manifest. The independent Python checker
-verifies journal chains, reconstructs client reservation/account checkpoints,
-checks broker fill arithmetic and report prefixes, and recomputes signal
-conditions and Decimal account comparisons from retained inputs:
-
-```sh
-python research/verify_strategy_execution.py scratch/runs/strategy_execution_N
-```
-
-Linux and native verification are recorded in the [milestone ledger](progress.md).
-Milestone 3 is accepted for `9aeffa4`: the native build/test preset is reported
-successful and both executable outputs reproduce the Linux integration evidence.
-The attachment audit verifies the four supplied artifacts per run and compares
-journal manifest digests with checked Linux files; native journal bodies were
-not supplied. The [completion plan](completion_plan.md) defines the subsequent
-simulated broker, execution measurements, benchmarks/CI and unified report.
+The original native reference replay passes 296 assertions in twenty-two cases.
+This verifies adapters, causal boundaries and account state on one chosen date,
+not historical execution quality or another strategy performance evaluation.
+The final [verification map](verification.md) separates those claims from the
+registered research and synthetic measurements.

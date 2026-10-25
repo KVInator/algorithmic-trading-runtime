@@ -1,4 +1,4 @@
-#include "paper_execution_report.hpp"
+#include "paper_execution_diagnostic.hpp"
 #include "journal_frame.hpp"
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
@@ -19,7 +19,7 @@ template <class F> void rejects(F f) {
     bool bad = false;
     try {
         f();
-    } catch (const std::exception&) {
+    } catch (const std::exception &) {
         bad = true;
     }
     require(bad, "operation must refuse unsupported or uncertain evidence");
@@ -31,7 +31,7 @@ struct Memory {
 };
 
 class Storage : public JournalStorage {
-public:
+  public:
     explicit Storage(std::shared_ptr<Memory> data) : data_{std::move(data)} {}
 
     std::string read_all() override { return data_->bytes; }
@@ -44,11 +44,11 @@ public:
             throw JournalError("injected uncertain append/sync");
     }
 
-private:
+  private:
     std::shared_ptr<Memory> data_;
 };
 
-void prime(JournaledPaperRuntime& r) {
+void prime(JournaledPaperRuntime &r) {
     static_cast<void>(
         r.receive(R"({"stream":"authorization","data":{"status":"authorized"}})", "2026-10-26T14:00:00Z"));
     static_cast<void>(
@@ -96,7 +96,7 @@ void write_failures() {
     }
 }
 
-void invalid_evidence(const std::filesystem::path& directory) {
+void invalid_evidence(const std::filesystem::path &directory) {
     const auto bytes = read_text_file(directory / "continuous.journal");
     std::vector<Json> commands;
     std::size_t offset = 0;
@@ -112,7 +112,7 @@ void invalid_evidence(const std::filesystem::path& directory) {
     }
     PaperExecutionState before{config};
     Json first_fill;
-    for (const auto& command : commands) {
+    for (const auto &command : commands) {
         if (command.at("kind").get<std::string>() == "stream") {
             const auto raw = Json::parse(command.at("raw").get<std::string>());
             if (raw.at("stream").get<std::string>() == "trade_updates") {
@@ -204,7 +204,7 @@ void invalid_evidence(const std::filesystem::path& directory) {
     invalid_config.initial_cash_usd = "2000.0000000001";
     rejects([&] { static_cast<void>(PaperExecutionState{invalid_config}); });
     PaperExecutionState finished{config};
-    for (const auto& command : commands) {
+    for (const auto &command : commands) {
         static_cast<void>(finished.apply(command));
     }
     auto late_reject = expiry;
@@ -252,24 +252,19 @@ void invalid_evidence(const std::filesystem::path& directory) {
 }
 } // namespace
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     try {
         if (argc != 2)
             throw std::invalid_argument("paper execution tests require output root");
         const auto directory = create_unique_directory(argv[1], "paper-bridge");
         const auto result = PaperExecutionDiagnostic{directory}.run();
-        PaperExecutionReport{result}.write(directory);
+        static_cast<void>(result);
         invalid_evidence(directory);
         write_failures();
-        const auto summary = Json::parse(read_text_file(directory / "summary.json"));
-        for (const auto& a : summary.at("artifacts"))
-            require(sha256_file(directory / a.at("path").get<std::string>()) ==
-                        a.at("sha256").get<std::string>(),
-                    "artifact hashes");
         std::cout
             << "Exact paper accounting, identity, replay, corruption and uncertain-write contracts passed\n";
         return 0;
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << "Paper execution contracts failed: " << e.what() << '\n';
         return 1;
     }

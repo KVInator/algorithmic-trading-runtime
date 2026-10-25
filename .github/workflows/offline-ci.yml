@@ -26,6 +26,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Check publication and curated evidence
+        run: python -B research/verify_publication.py
       - name: Configure Release
         run: cmake -S . -B scratch/ci-build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - name: Build
@@ -37,14 +39,14 @@ jobs:
       - name: Constructed demo and independent verifier (Linux)
         if: runner.os == 'Linux'
         run: |
-          scratch/ci-build/paper_broker_diagnostic
-          python -B research/verify_paper_broker.py scratch/runs/paper_broker_0
+          scratch/ci-build/project_demo
+          python -B research/verify_project_demo.py scratch/runs/project_demo_0
       - name: Constructed demo and independent verifier (Windows)
         if: runner.os == 'Windows'
         run: |
-          & scratch/ci-build/Release/paper_broker_diagnostic.exe
+          & scratch/ci-build/Release/project_demo.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -B research/verify_paper_broker.py scratch/runs/paper_broker_0
+          python -B research/verify_project_demo.py scratch/runs/project_demo_0
       - name: Retain test logs
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -69,6 +71,8 @@ jobs:
           -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
           -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
       - name: Build execution contracts
-        run: cmake --build scratch/ci-asan --parallel 2 --target runtime_benchmark_tests execution_measurement_tests paper_broker_tests paper_execution_tests order_runtime_tests journaled_runtime_tests
+        run: cmake --build scratch/ci-asan --parallel 2 --target project_demo strategy_execution_tests runtime_benchmark_tests execution_measurement_tests paper_broker_tests paper_execution_tests order_runtime_tests journaled_runtime_tests
       - name: Sanitized execution and recovery checks
-        run: ctest --test-dir scratch/ci-asan -R '(runtime_benchmark|execution_measurement|paper_broker|paper_execution|order_runtime|journaled_runtime)_contracts' --output-on-failure
+        run: ctest --test-dir scratch/ci-asan -R '(strategy_execution|runtime_benchmark|execution_measurement|paper_broker|paper_execution|order_runtime|journaled_runtime)_contracts' --output-on-failure
+      - name: Sanitized complete demo
+        run: scratch/ci-asan/project_demo

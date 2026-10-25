@@ -1,0 +1,37 @@
+#pragma once
+
+#include "momentum_order_adapter.hpp"
+#include "strategy_execution_diagnostic.hpp"
+
+#include <utility>
+
+namespace trading::execution {
+
+struct PipelineCase {
+    std::string name;
+    std::string journal_file;
+    std::vector<TopOfBook> quotes;
+    std::vector<TargetIntent> targets;
+    std::vector<SimulatedFill> fills;
+    std::vector<BrokerReport> broker_reports;
+    std::vector<TraceEntry> runtime_trace;
+    AccountSnapshot final_account;
+    std::size_t client_restarts;
+};
+struct PipelineDiagnosticResult {
+    std::vector<PipelineCheck> checks;
+    std::vector<PipelineCase> cases;
+    std::vector<MinuteBar> rising_prefix;
+    std::vector<MinuteBar> falling_prefix;
+};
+
+class PipelineDiagnostic {
+  public:
+    explicit PipelineDiagnostic(std::filesystem::path directory) : directory_{std::move(directory)} {}
+    [[nodiscard]] PipelineDiagnosticResult run() const;
+
+  private:
+    std::filesystem::path directory_;
+};
+
+} // namespace trading::execution

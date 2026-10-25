@@ -141,7 +141,7 @@ time or OS memory observations.
 `windows-2025` runners build Release with warnings as errors. General documentation-
 only pushes under `docs/`, `README.md` and `AGENTS.md` are skipped; research
 protocols are outside that exclusion. The jobs run the full offline
-routine contracts, then create and independently verify a constructed broker
+routine contracts, then create and independently verify a constructed strategy/broker
 demo from the clean checkout. The small benchmark contract's exported evidence
 also receives independent verification. No private dataset or Alpaca secret is supplied.
 An Ubuntu ASan/UBSan job covers the order, journal, exact paper, simulated broker,

@@ -2,7 +2,7 @@
 
 Candidate SPY-MR-01. Proposed design dated 23 October 2026. Status:
 unregistered and unscored. This brief specifies a bounded experiment within
-[completion milestone 2](../docs/completion_plan.md). It is not a revision of
+[completion milestone 2](../docs/verification.md). It is not a revision of
 SPY-IM-01, SPY-TOD-01 or SPY-RISK-01.
 
 ## Question and economic interpretation

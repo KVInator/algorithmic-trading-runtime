@@ -100,36 +100,15 @@ larger candidate losses. Both block-length ranges include zero, so these results
 do not establish forecast superiority or statistically conclusive inferiority.
 All six registered forecast gates fail.
 
-## Acceptance evidence and remaining work
+## Verification
 
-GCC 13.3 Debug Build All and all twenty-two routine groups pass with warnings as
-errors. The new study group also passes ASan/UBSan with leak detection disabled.
-The independent oracle, using NumPy 2.3.5, reproduces all rolling Decimal fits,
-decisions, account/annual calculations, both outcome bootstraps, all parameter
-ranges, economic/forecast gates and artifact identities. Protocol/settings and
-the frozen study manifest retain their registered identities.
+Registered development evidence is complete. The independent oracle reconstructs
+rolling Decimal fits, frozen decisions, accounts, annual summaries, paired
+outcome uncertainty, parameter ranges and gates. Native account CSVs matched
+Linux; source differences were explained by recorded line endings. Numerical
+results and the governing protocol/settings retain their identities.
 
-Repeated runs retain eight byte-identical numerical artifacts and identical
-case metrics, ranges and gates. Intervening source changes complete the
-independent verifier, place account-path calculations in the research core and
-format the new C++ sources; trading rules and numerical exports remain unchanged.
-Final evidence is retained under
-`scratch/runs/SPY_MR_01_development_2022-2023_4`. Its ten artifact hashes verify;
-all HTML links resolve. Browser visual rendering remains unavailable in the
-current environment. The [ledger](progress.md) records exact summary/source
-identities and checkpoint status.
-
-The historical research implementation and native comparison are complete for
-`05aec9d`. On 24 October 2026 the MSVC Debug build and all twenty-two routine
-groups were reported successful. All ten uploaded artifact hashes and the
-independent numerical verifier pass. All four account CSVs plus cash are
-byte-identical to Linux; classifications, coverage counts and gates agree.
-The 171 source records comprise 166 exact matches and five explained CRLF
-variants. The [native acceptance record](progress.md#native-historical-acceptance-and-milestone-2-completion)
-contains exact identities and numerical-difference bounds. This closes
-milestone 2 while retaining the registered negative result. The earlier native sampling
-and execution checkpoints remain valid for their recorded implementations.
-Execution adapters, account parity, actual paper transport/capture, execution
-measurements, Release benchmarks/CI and the unified report remain separate open
-work. Failed economic screens complete this comparison; they do not trigger an
-additional strategy search or permit later-period performance access.
+The final [verification map](verification.md) records completion and the
+[technical report](report.pdf) places this result beside other designs and the
+execution/runtime evidence. No additional strategy search or later-period price
+access follows from the failed advancement assessment.

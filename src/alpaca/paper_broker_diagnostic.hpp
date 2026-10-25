@@ -1,5 +1,5 @@
 #pragma once
-#include "paper_transport_diagnostic.hpp"
+#include "paper_transport_result.hpp"
 
 namespace trading {
 class PaperBrokerDiagnostic {

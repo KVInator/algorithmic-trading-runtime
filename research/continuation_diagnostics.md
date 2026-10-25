@@ -118,11 +118,9 @@ distributions can depend on rare moves, so a failed concentration screen is not
 a theorem that the economic mechanism is absent. The appropriate response is
 to report that dependence and preserve the screen, not silently relax it.
 
-The next research decision should compare a mechanism-driven continuation
-proposal with daily exposure decisions informed by intraday risk. Overnight
-holding remains admissible. A slower strategy needs corporate-action and
-overnight accounting, a cash/financing convention and a genuine buy-and-hold
-benchmark; the present intraday always-long window cannot supply those roles.
+The separate registered daily-risk study supplies overnight corporate-action
+accounting and static/passive controls. Its objective differs from this intraday
+entry comparison; neither study changes the other's recorded gates.
 
 ## Findings on the frozen development sample
 
@@ -220,10 +218,5 @@ unconfirmed, depends on a positive return tail and is confounded with price
 magnitude and realized risk. The evidence supports retaining the hypothesis for
 comparison, without promotion to later testing or alteration of its gates.
 
-Two subsequent briefs should address different economic questions: continuation
-after information arrival or inventory pressure, and daily exposure sized from
-intraday risk. The first needs an information-set definition that separates
-activity from movement magnitude and risk. The second needs explicit overnight
-accounting and comparison with constant exposure and a simple volatility rule.
-Adding parameters to the current strategy because a subgroup looks attractive
-would answer neither question reliably.
+The subsequent registered reversion and daily-risk studies are reported in the
+[research index](README.md). Their results do not alter these diagnostics.

@@ -3,7 +3,7 @@
 The execution core maintains limit-order state, cash, positions and resource
 reservations under scripted broker-message delivery. Its contracts concern
 execution correctness independently of the economic results of the historical
-SPY studies. `execution_diagnostic` runs offline with synthetic prices and fills.
+SPY studies. `project_demo` runs offline with synthetic prices and fills.
 
 ## Model and ownership
 
@@ -69,77 +69,17 @@ Undelivered commands, externally canceled orders and missing terminal events
 retain reservations until explicit evidence is delivered. Late new fills after
 an accepted terminal cancellation require investigation and are quarantined.
 
-## Diagnostic and evidence
+## Verification and scope
 
-Build all targets, run the routine test preset, then run
-`execution_diagnostic.exe` with **Ctrl+F5** in Visual Studio. Linux:
+The order-runtime contract group tests exact reservations, delivery permutations,
+independent integer accounting, conflicting/duplicate identities, missing fills,
+limits and overflow. Six constructed schedules remain reusable regression fixtures.
+The final `project_demo` exposes causal strategy and broker-state replays, including
+partial fills, cancellation and interrupted paths.
 
-```sh
-cmake --build --preset linux-debug
-ctest --preset linux-debug
-./scratch/build-linux/execution_diagnostic
-```
-
-Six schedules cover partial fills, repeated event and execution IDs, delayed
-acknowledgements, cancellation races and stale rejection IDs, missing executions,
-disconnect/reconnect, resource limits, partial sales and inconsistent reports.
-Every expected transition and final integer balance is checked. Replaying each
-schedule from a new runtime must produce an identical complete trace.
-
-Each fresh `scratch/runs/execution_diagnostic_*` directory contains:
-
-| File | Purpose |
-| --- | --- |
-| `report.html` | Six event timelines, account states, reservations, gate changes and fault reasons |
-| `inputs.json` | All submitted commands, delivered reports, snapshots and expected outcomes |
-| `trace.csv` | One post-input state per logical sequence number |
-| `source_inventory.txt` | Exact configure-time per-file hashes used for the aggregate source identity |
-| `summary.json` | Expected/final balances, replay status, build identity and artifact hashes |
-
-The inventory retains the existing source-fingerprint scope: `src/` and `apps/`
-C++ files, `research/` files, `CMakeLists.txt` and `CMakePresets.json`. It is
-embedded in the binary together with its aggregate SHA-256; its file hash equals
-that aggregate. CMake also writes the inventory in the build directory. Tests
-and general documentation are outside this established fingerprint scope.
-Inventories must be compared for the same intended source revision. The first
-native inventory also explains the earlier SPY-RISK-01 aggregate difference;
-the [result record](../research/daily_risk_development_result.md#verification-and-provenance)
-retains the reconstruction and its limits.
-
-## Native verification
-
-The native MSVC 19.51.36260.0 Debug diagnostic for source revision `f5992df`
-completed with exit code zero on 23 October 2026. The accompanying build and all
-seventeen routine test groups were reported successful. The uploaded manifest's
-SHA-256 is `84a8fdeceeb61107c588d53e65710ae6cab4563eee6cf793ecb94d6a012559bc`;
-all four artifact hashes match the manifest's recorded identities.
-
-The complete `inputs.json` and 69-row `trace.csv` are byte-identical to the Linux
-diagnostic. The HTML differs only in its displayed source digest. An independent
-integer ledger reproduces cash, positions, both reservation balances,
-outstanding buys and open-order counts after every input. All six scenarios end
-with their expected balances, no open orders or reservations, and an open entry
-gate. Ten quarantined reports and seven denied commands are expected fault
-cases; their complete traces match across the two compilers.
-
-The native source inventory contains 116 entries: 108 exact local byte matches
-and eight exact matches after LF-to-CRLF conversion. All execution-core files
-match without conversion. The raw platform fingerprints differ, while the
-inventory accounts for every file within the declared source scope. The eight
-paths and the reconstruction of the earlier risk-study aggregate are retained in
-the [curated provenance record](../research/daily_risk_development_result.json).
-
-## Remaining scope
-
-Runtime contracts additionally check acknowledgement/fill delivery permutations,
-exact integer cash identities, reservation retention, full-order snapshot
-comparison, numerical overflow and invalid inputs. The order core retains an
-in-memory trace and copies account state per report to make validation atomic.
-The [journaled wrapper](journal_recovery.md) adds synchronized input persistence,
-verified replay, a restart gate and separate recovery of an incomplete tail.
-The [offline pipeline](offline_pipeline.md) adds persisted strategy targets and
-a deterministic displayed-size simulator. Real broker transport, automatic
-resend, calibrated liquidity/queue models and throughput targets remain outside
-the implemented scope.
-Passing these synthetic checks establishes neither executable strategy returns
-nor live-trading readiness.
+The order owner retains in-memory history and copies state to validate atomic
+transitions. The [journal](journal_recovery.md) adds durable commit/replay and
+separate verified-prefix recovery. The [strategy integration](strategy_execution.md)
+connects authoritative research decisions and finite displayed-size matching.
+The [benchmark](runtime_benchmark.md) records copy, persistence and replay costs.
+Current portable/native acceptance is in [verification](verification.md).

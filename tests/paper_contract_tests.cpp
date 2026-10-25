@@ -1,6 +1,4 @@
-#include "paper_contract_report.hpp"
-#include "artifact_io.hpp"
-#include "content_digest.hpp"
+#include "paper_contract_diagnostic.hpp"
 
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -21,7 +19,7 @@ template <class F> void rejects(F action) {
     bool rejected = false;
     try {
         action();
-    } catch (const std::invalid_argument&) {
+    } catch (const std::invalid_argument &) {
         rejected = true;
     }
     require(rejected, "unsupported input must fail without lossy conversion");
@@ -89,29 +87,14 @@ void requests() {
 }
 } // namespace
 
-int main(int argc, char** argv) {
+int main() {
     try {
-        if (argc != 2) {
-            throw std::invalid_argument("paper contract tests require output root");
-        }
         values();
         requests();
         const auto result = PaperContractDiagnostic{}.run();
-        const auto directory = create_unique_directory(argv[1], "paper-contract");
-        PaperContractReport{result}.write(directory);
-        const auto summary = Json::parse(read_text_file(directory / "summary.json"));
-        require(summary.at("network_requests_sent").get<int>() == 0 &&
-                    summary.at("broker_events_observed").get<int>() == 0,
-                "constructed evidence has no observed broker claim");
-        require(!summary.at("runtime_schema_changed").get<bool>(), "legacy persistence unchanged");
-        for (const auto& a : summary.at("artifacts")) {
-            require(sha256_file(directory / a.at("path").get<std::string>()) ==
-                        a.at("sha256").get<std::string>(),
-                    "report artifact identities");
-        }
         const AlpacaPaperDecoder decoder{};
         const BrokerTimestamp receipt{"2026-10-26T14:00:00Z"};
-        for (const auto& c : result.cases) {
+        for (const auto &c : result.cases) {
             if (c.name == "authorization rejection") {
                 require(!decoder.stream(c.payload, receipt).authorized, "auth denial retained");
             }
@@ -140,9 +123,9 @@ int main(int argc, char** argv) {
         rejects([&] { static_cast<void>(decoder.stream("[]", receipt)); });
         rejects([&] { static_cast<void>(decoder.stream("{", receipt)); });
         rejects([&] { static_cast<void>(decoder.stream(std::string(1024 * 1024 + 1, ' '), receipt)); });
-        std::cout << "Paper endpoint, exact decimal, timestamp, message and report contracts passed\n";
+        std::cout << "Paper endpoint, exact decimal, timestamp, message contracts passed\n";
         return 0;
-    } catch (const std::exception& error) {
+    } catch (const std::exception &error) {
         std::cerr << "Paper contract tests failed: " << error.what() << '\n';
         return 1;
     }

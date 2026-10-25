@@ -1,10 +1,14 @@
 #pragma once
 
-#include "pipeline_diagnostic.hpp"
+#include "offline_pipeline.hpp"
 #include "strategy_order_adapters.hpp"
 #include "development_dataset.hpp"
 
 namespace trading::execution {
+struct PipelineCheck {
+    std::string name;
+    bool passed;
+};
 enum class ExecutionDesign { momentum, continuation_price, continuation_volume, reversion };
 [[nodiscard]] std::string_view name(ExecutionDesign design);
 
@@ -66,15 +70,15 @@ struct StrategyExecutionResult {
 };
 
 class StrategyExecutionDiagnostic {
-public:
+  public:
     explicit StrategyExecutionDiagnostic(std::filesystem::path directory)
         : directory_{std::move(directory)} {}
 
     [[nodiscard]] StrategyExecutionResult run() const;
-    void historical(StrategyExecutionResult& result, const FrozenDevelopmentDataset& dataset) const;
+    void historical(StrategyExecutionResult &result, const FrozenDevelopmentDataset &dataset) const;
     [[nodiscard]] static StrategyExecutionInputs constructed_inputs();
 
-private:
+  private:
     std::filesystem::path directory_;
 };
 } // namespace trading::execution

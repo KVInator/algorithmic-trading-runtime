@@ -1,113 +1,73 @@
 # Repository instructions
 
-Apply the `build-pristine-code` skill throughout this workflow, including
-research, implementation, reviews, refactoring and technical documentation.
-Verify that the skill is available and read its applicable instructions before
-substantive work. The authoritative implementation is C++20
-under `src/`, built by the root CMake configuration.
-Application and reporting layers call that implementation; do not duplicate
-signal or financial calculations in presentation code.
-
-The remaining project scope and milestone dependencies are defined in
-`docs/completion_plan.md`. Preserve dated candidate briefs as research history;
-they do not supersede this completion plan. Its broker work is paper-only and
-does not authorize later-period strategy access or changes to frozen results.
-Milestone updates must identify the completed acceptance evidence, open plan
-items and the next dependency. Test counts do not define a completion percentage.
-
-## Technical language
-
-Commit messages describe the concrete change in concise, conventional language.
-Reports, comments and Markdown describe methods, evidence and limitations in an
-impersonal technical voice. Omit chat instructions, promotional quality claims
-and unsupported claims of profitability or production readiness. Preserve the
-published commit history; improve wording in subsequent work.
+Apply the available `build-pristine-code` skill to changes. C++20 under `src/`
+is authoritative for models, accounts and state transitions; applications compose
+those owners and reports bind their results. The final scope and acceptance map
+are in `docs/verification.md`; the analytical publication is `docs/report.pdf`
+and `docs/report.html`. Do not reopen completed strategy selection during cleanup.
 
 ## Research boundaries
 
-- `research/intraday_momentum_protocol.md` and
-  `research/development_data_policy.json` identify the frozen SPY-IM-01 study.
-  Preserve their bytes and all retained acquisition evidence.
-- `research/intraday_continuation_protocol.md` specifies SPY-TOD-01. Changes to
-  its signal, data eligibility, costs or gates require a declared revision before
-  scoring. Historical development uses the verified 496-session snapshot,
-  twenty warm-up sessions and 476 scored paired records.
-- Synthetic diagnostic traces are not historical strategy results. No new
-  historical score or profitable-strategy claim follows from passing contracts.
-- `research/daily_risk_protocol.md` and its JSON register SPY-RISK-01 revision 1.
-  Verify the three registered input identities before any historical score.
-  Preserve all dates, log daily-only fallback for incomplete RV5 histories, and
-  use the full date sequence for paired uncertainty. Revisions must precede
-  scoring of changed rules.
-- The frozen 2022-2023 development sample and unopened local 2024-2025 candidate
-  results have different roles. Record external-literature exposure as specified
-  in the protocol. Do not access later performance casually during a code fix.
+Preserve the exact registered bytes of:
 
-## Architecture and verification
+- `research/intraday_momentum_protocol.md` and `development_data_policy.json`;
+- `research/intraday_continuation_protocol.md`;
+- `research/daily_risk_protocol.md` and `.json`;
+- `research/intraday_reversion_protocol.md` and `.json`.
 
-Substantive domain, diagnostic and reporting workflows use cohesive classes and
-explicit composition. Results are value records; report objects borrow const
-results and must not outlive them. Keep entry points thin and numerical engines
-authoritative. Shared report text encoding belongs to `ReportText`.
-The responsibility and ownership map is in `docs/architecture.md`.
+Preserve retained acquisition, exclusion/gap evidence and study-manifest identities.
+Historical intraday studies use the verified 496-session 2022-2023 snapshot;
+continuation/reversion have twenty warm-up sessions and 476 scored records.
+Risk retains all 501 exchange dates and its fixed daily-only fallback. Dated
+failures and undefined ranges remain visible. Registered sampling budgets and
+criteria cannot be shortened or changed in a production historical run.
+Parameter ranges are descriptive, not a stationarity filter. Local 2024-2025
+strategy prices and performance remain unopened. Synthetic scenarios cannot be
+labelled historical strategy returns or observed broker executions.
 
-Build/test presets and target prerequisites are documented in `docs/running.md`.
-Windows uses `windows-x64` and `windows-debug`; Linux uses `linux-debug` for
-configure/build/test; `linux-release` supplies the optimized benchmark build.
-Full routine presets run twenty-nine groups and exclude
-optional full-period disk integration. The matching `*-quick` test presets run
-twenty-five groups, excluding four `extended` study/disk regressions. Use quick and
-relevant affected contracts during edits; changes to excluded study/storage code
-also require its extended group. Run the complete routine preset at a milestone.
-Keep warnings as errors.
+## Architecture and invariants
 
-Execution changes must conserve reservations, deduplicate events/executions and
-require exact reconciliation after contradictions or restart. Journal before
-dispatch eligibility, preserve exclusive writer ownership, reject complete-frame
-corruption and recover incomplete tails into a separate verified-prefix file.
-Never truncate damaged evidence or automatically resend uncertain durable orders.
-Legacy schema-1 journals remain readable; target inputs require schema 2.
-The paper bridge uses schema 3 with USD 1e-9 units and an explicit paper fee
-policy. Preserve legacy JSON cent keys while C++ core fields use neutral units.
-Its accounting/persistence contract is in `docs/paper_execution.md`.
-The simulated broker, logical health/dispatch gates and separate deadline/stop
-owner are specified in `docs/paper_broker.md`. No native paper-broker wire,
-current quote/calendar probe or paid feed is required. Keep historical Alpaca
-acquisition and credentials intact. Synthetic messages must never be labelled
-observed broker evidence.
-Milestone-5 measurement scheduling and signed cost conventions are defined in
-`docs/execution_measurement.md`. Keep source/receipt virtual times distinct from
-wall-clock benchmarks. The full measurement grid runs in its executable; routine
-contracts use a small constructed subset.
-Milestone-6 timing boundaries, storage modes, resource limits and CI scope are in
-`docs/runtime_benchmark.md`. Preserve measured clock samples; do not compare host
-timings as deterministic checks or confuse them with virtual delivery schedules.
-The runtime, journal and pipeline contracts in `docs/` define these invariants.
+Use cohesive classes, explicit units and ownership, thin entry points and one
+calculation per domain behavior. Result records are values; report objects borrow
+const results and must not outlive them. Text encoding belongs to `ReportText`.
+Publication code may format/display recorded evidence but cannot become another
+signal, financial-account or statistical-scoring implementation.
 
-`research/intraday_reversion_protocol.md` and its JSON register SPY-MR-01
-revision 1 after synthetic sampling/noise validation. Preserve their bytes.
-The registered historical runner authenticates protocol/settings and the frozen
-496-session snapshot before prior-only fitting/scoring. Keep all 476 scored dates,
-499 parameter refits at blocks 1/5 and 10,000 paired outcome resamples at blocks 5/10.
-`reversion_preflight` only audits inputs; the synthetic diagnostic does not authorize later-period access.
-Conditional parameter ranges are descriptive and cannot filter entries or
-establish stationarity. Preserve all registered failure dates and raw fit statuses.
+Conserve cash/share reservations, deduplicate executions, retain pending-cancel
+resources and require exact reconciliation after contradiction/restart. Synchronize
+journal inputs before publication/dispatch eligibility; preserve exclusive writers.
+Reject complete corruption; copy incomplete verified prefixes into separate files.
+Never truncate original evidence or blindly resend uncertain durable orders.
+Legacy schemas 1/2 remain readable; schema 3 declares USD 1e-9. Preserve legacy
+JSON cent meanings. Matching uses independent peer state and finite quote budgets.
+Historical Alpaca HTTP/credentials remain supported; native broker services and
+paid/current-data probes are outside scope.
 
-## Source and runtime artifacts
+## Verification and artifacts
 
-Keep generated builds, datasets, reports, local checks and Git transfer bundles
-under the ignored `scratch/` directory. `.vs/` and `CMakeUserPresets.json` remain
-local. Preserve expensive data and results during cleanup. Stage explicit source
-paths; never include credentials, data archives or generated build trees in a
-source commit. Respect the established remote and task-branch workflow.
+`docs/running.md` defines supported targets and prerequisites. Full Windows/Linux
+Debug/Release test presets run 29 routine groups, excluding optional integration.
+Matching `-quick` presets run 25 groups, excluding four extended study/disk groups.
+Run quick/affected contracts during edits and relevant extended groups when their
+code changes. Run the full routine suite at substantive checkpoints. Keep warnings
+as errors. Execution/recovery changes also require available sanitizer checks.
 
-## Authorized publication workflow
+Run `project_demo` and its independent verifier for the complete constructed
+workflow. Run the full measurement/benchmark grids only when those calculations
+change or fresh measured evidence is needed. Timings are host observations, not
+deterministic test constants. Publication changes require hash/link checks and
+rendered PDF/figure inspection. Preserve source and evidence provenance.
 
-Standing project authorization covers focused source/documentation commits,
-normal non-force pushes to `KVInator/algorithmic-trading-runtime`, and updates to
-the corresponding pull request. Continue on `research/continuation-study` for
-the current milestone. Complete verification and publish eligible work without
-requesting renewed approval for those operations. This authorization does not
-extend to merges, releases, live orders, repository visibility changes, force
-pushes or publication of credentials and local datasets. Platform approval
-controls remain applicable.
+Keep builds, private inputs, temporary analysis and full generated runs under
+ignored `scratch/`. Retain expensive existing datasets/results. Curate only small,
+permitted publication evidence outside it. Do not add obsolete launchers, duplicate
+reports, temporary exports or generic progress checklists to the final tree.
+
+## Authorized publication
+
+Standing authorization covers focused commits, normal non-force pushes to
+`KVInator/algorithmic-trading-runtime` on `research/continuation-study`, and the
+corresponding pull-request updates. Complete verified eligible work without
+renewed approval for those operations. This does not authorize merges, releases,
+visibility changes, live orders, history rewrites or publication of credentials/
+private datasets. Platform approval controls remain applicable.

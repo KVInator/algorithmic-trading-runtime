@@ -1,9 +1,9 @@
 # Alpaca paper-broker message contract
 
-This milestone-4 substep implements a bounded request/decoder boundary. It does
-not submit orders, authenticate, stream a connection or mutate `OrderRuntime`.
-Constructed diagnostic messages are API-shaped fixtures, not captured broker
-events. Milestone 3 and the registered strategy findings remain unchanged.
+The bounded request/decoder boundary preserves exact money and timestamps before
+messages enter the whole-share runtime. Constructed messages are API-shaped
+fixtures, not captured external broker events. Network transport is outside the
+supported offline broker scope; historical Alpaca acquisition is separate.
 
 ## Sources and supported scope
 
@@ -87,18 +87,10 @@ including rejected messages, while excluding credentials/authentication requests
 Only complete JSON messages enter this decoder. The offline peer supplies complete
 messages; no native socket is required.
 
-## Diagnostic and remaining dependency
+## Verification
 
-Build All and run `paper_contract_diagnostic` with Ctrl+F5. No credentials or
-market files are required. It exports constructed messages, request descriptions,
-precision examples, assertions, an HTML inspection report, source inventory and
-a hashed manifest. Expected: 56 checks across forty cases, zero network requests
-and zero observed broker events. Expected rejection cases pass when input is
-rejected explicitly.
-
-The [schema-3 execution bridge](paper_execution.md) now supplies the versioned
-nanodollar accounting and durable identity/event mapping. It reuses the order
-engine, declares a zero-fee paper convention and preserves legacy journal JSON.
-The [simulated broker workflow](paper_broker.md) supplies raw capture,
-consistent snapshots, deadlines/stop policies and synthetic lifecycle/recovery
-evidence. Observed external-broker execution is outside the current scope.
+`alpaca_paper_contracts` exercises exact decimals/timestamps, request constraints,
+accepted/rejected message shapes and precision boundaries. `project_demo` passes
+constructed peer messages through this same decoder and the schema-3 owner.
+Independent Decimal accounting and raw capture verification are part of the
+combined demo verifier. See [verification](verification.md).

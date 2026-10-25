@@ -68,7 +68,7 @@ arithmetic. It also checks every point-fit aggregate, coverage denominator,
 refit-status total and artifact identity. This verifies numerical/report
 consistency; it does not establish an adequate latent model or a valid bootstrap.
 The exact local verification run and native status are recorded in the
-[milestone ledger](../docs/progress.md).
+[milestone ledger](../docs/verification.md).
 
 These failures limit the claims of the registered historical comparison. They
 do not authorize a noise-robust replacement model, a new strategy search or later

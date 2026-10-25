@@ -91,34 +91,15 @@ credential-bearing outbound authentication messages. Rotation and archival
 transport are not implemented. State copies and full-state digest calculation
 are correctness mechanisms retained in the [milestone-6 benchmarks](runtime_benchmark.md).
 
-## Diagnostic and verification
+## Verification
 
-`paper_execution_diagnostic` writes three journals, saved frames, HTML, source
-inventory and an artifact manifest. Forty-two assertions cover continuous and
-restarted execution, exact balances, duplicate redelivery, cancellation races,
-temporary snapshot mismatch and quarantined excessive precision. Both valid
-paths finish flat at USD 1,999.9875 under the declared zero-fee convention. The
-six-share checkpoint retains USD 1,399.965; replacing it with USD 1,399.96 is refused.
-The paired final order/identity/account states agree; restart journals correctly
-retain different command histories.
+`paper_execution_contracts` retains exact subcent balances, identity conversion,
+partial fills, cancellation/restart, quarantine, invalid precision and schema
+separation. It also injects failures before append, after a partial append and
+after synchronization, checking poison/recovery behavior and uncertain durable
+intents. The final broker demonstration composes this owner with independent
+matching/account state and exposes raw messages beside saved client states.
 
-The test group additionally injects failures before append, during a partial
-append and after a complete append but before success returns. It checks poisoned
-writers, retained uncertain intents, prefix recovery, conflicting executions,
-wrong identities, unsupported/fractional/over-limit fills, malformed cumulative
-values, expiry, late acknowledgements, model/configuration mismatch, forged
-checkpoints and rejection between legacy/paper readers. Existing abrupt-process
-exit tests still cover the shared storage boundary; these new injected faults
-are not a physical power-loss test.
-
-`research/verify_paper_execution.py` independently reconstructs Decimal cash,
-position and reservations from the recorded commands/outcomes, checks duplicate
-execution economics and verifies journal chains, saved state digests and artifact
-identities. It does not claim an independent classifier for every broker event.
-
-Native acceptance for `484e2de` is recorded in the [milestone ledger](progress.md).
-The uploaded journal bodies and saved evidence reproduce Linux exactly.
-The [simulated broker](paper_broker.md) composes transport, independent snapshot
-collection, explicit deadlines and stop controls around this owner. Native
-external-broker lifecycle observation is outside the current completion scope.
-Minute-bar study inputs and registered results remain unchanged.
+Run `project_demo` and `research/verify_project_demo.py` for the combined evidence.
+The earlier three-case standalone report exporter is retired; financial and
+persistence regressions remain. See [verification](verification.md).

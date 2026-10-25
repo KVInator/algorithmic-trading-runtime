@@ -1,4 +1,5 @@
 #include "strategy_execution_diagnostic.hpp"
+#include "momentum_order_adapter.hpp"
 
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
@@ -15,7 +16,7 @@ namespace trading::execution {
 namespace {
 using Clock = std::chrono::sys_seconds;
 
-void check(std::vector<PipelineCheck>& checks, std::string label, bool passed) {
+void check(std::vector<PipelineCheck> &checks, std::string label, bool passed) {
     if (!passed) {
         throw std::logic_error("strategy execution check failed: " + label);
     }
@@ -24,10 +25,10 @@ void check(std::vector<PipelineCheck>& checks, std::string label, bool passed) {
 
 // Only selects the public adapter; signal equations remain in research engines.
 class SignalBridge {
-public:
-    SignalBridge(ExecutionDesign design, const StrategyExecutionInputs& inputs, Cents fee, bool cash = false)
+  public:
+    SignalBridge(ExecutionDesign design, const StrategyExecutionInputs &inputs, Cents fee, bool cash = false)
         : design_{design}, inputs_{inputs}, fee_{fee}, cash_{cash} {
-        for (const auto& s : inputs.history) {
+        for (const auto &s : inputs.history) {
             continuation_.append(s.request, s.bars);
             static_cast<void>(reversion_.complete(s.request, s.bars, s.request.end_exclusive()));
         }
@@ -63,7 +64,7 @@ public:
         return result;
     }
 
-    const std::vector<MinuteBar>& bars() const {
+    const std::vector<MinuteBar> &bars() const {
         if (design_ == ExecutionDesign::momentum) {
             return cash_ ? inputs_.momentum_cash : inputs_.momentum_long;
         }
@@ -73,7 +74,7 @@ public:
         return cash_ ? inputs_.continuation_cash : inputs_.continuation_long;
     }
 
-    TargetIntent target(Clock at, Shares position, const TopOfBook& quote) {
+    TargetIntent target(Clock at, Shares position, const TopOfBook &quote) {
         const auto count =
             std::chrono::duration_cast<std::chrono::minutes>(at - inputs_.current.start()).count();
         const auto prefix = std::span{bars()}.first(static_cast<std::size_t>(count));
@@ -108,16 +109,16 @@ public:
         return output.target;
     }
 
-    const std::string& reason() const noexcept { return reason_; }
+    const std::string &reason() const noexcept { return reason_; }
 
-private:
+  private:
     ContinuationVariant variant() const {
         return design_ == ExecutionDesign::continuation_volume ? ContinuationVariant::volume_conditioned
                                                                : ContinuationVariant::price_only;
     }
 
     ExecutionDesign design_;
-    const StrategyExecutionInputs& inputs_;
+    const StrategyExecutionInputs &inputs_;
     Cents fee_;
     bool cash_;
     IntradayContinuationHistory continuation_{};
@@ -126,9 +127,9 @@ private:
 };
 
 class ScenarioRunner {
-public:
+  public:
     ScenarioRunner(std::filesystem::path directory, ExecutionDesign design, std::string mode, Cents cash,
-                   Cents fee, std::vector<PipelineCheck>& checks, bool historical = false)
+                   Cents fee, std::vector<PipelineCheck> &checks, bool historical = false)
         : config_{"SPY", cash, {20, 4}}, broker_{"SPY", cash, fee}, directory_{std::move(directory)},
           checks_{checks}, result_{design,
                                    std::string{name(design)} + " / " + mode,
@@ -156,7 +157,7 @@ public:
         capture("Broker reports replayed and exact snapshot reconciled", at);
     }
 
-    RouteResult accept(const TargetIntent& target, std::string label) {
+    RouteResult accept(const TargetIntent &target, std::string label) {
         const auto r = pipeline_->accept_target(target, target.decision_at_seconds);
         capture(std::move(label) + " | " + std::string{name(r.status)} + ": " + r.reason,
                 target.decision_at_seconds);
@@ -182,7 +183,7 @@ public:
     }
 
     void capture(std::string label, std::int64_t at) {
-        const auto& trace = runtime_->trace();
+        const auto &trace = runtime_->trace();
         result_.frames.push_back({std::move(label), at, runtime_->account(), broker_.snapshot(),
                                   runtime_->orders(), runtime_->latest_target(), broker_.quote(),
                                   trace.empty() ? std::nullopt : std::optional{trace.back()},
@@ -196,7 +197,7 @@ public:
         return std::move(result_);
     }
 
-    StrategyExecutionCase simple(SignalBridge& signals, bool cash, Cents fee, bool rounding) {
+    StrategyExecutionCase simple(SignalBridge &signals, bool cash, Cents fee, bool rounding) {
         const auto e = signals.entry().time_since_epoch().count(),
                    x = signals.exit().time_since_epoch().count();
         quote({1, e, 10000, 10000, 20, 20});
@@ -239,7 +240,7 @@ public:
         return finish();
     }
 
-    StrategyExecutionCase partial(SignalBridge& signals, bool interrupted) {
+    StrategyExecutionCase partial(SignalBridge &signals, bool interrupted) {
         const auto e = signals.entry().time_since_epoch().count(),
                    x = signals.exit().time_since_epoch().count();
         quote({1, e, 9999, 10000, 20, 4});
@@ -292,7 +293,7 @@ public:
         return finish();
     }
 
-    StrategyExecutionCase historical(SignalBridge& signals) {
+    StrategyExecutionCase historical(SignalBridge &signals) {
         std::uint64_t sequence = 0;
         const auto cents = [](double p) {
             if (!std::isfinite(p) || p < .01 || p > 1e9) {
@@ -325,7 +326,7 @@ public:
             deliver(now + 60);
         }
         const auto close = signals.bars().back().start().time_since_epoch().count() + 60;
-        for (const auto& o : runtime_->orders()) {
+        for (const auto &o : runtime_->orders()) {
             if (o.status == OrderStatus::filled || o.status == OrderStatus::canceled ||
                 o.status == OrderStatus::rejected) {
                 continue;
@@ -343,18 +344,18 @@ public:
         return finish();
     }
 
-private:
+  private:
     RuntimeConfiguration config_;
     SimulatedBroker broker_;
     std::filesystem::path directory_;
-    std::vector<PipelineCheck>& checks_;
+    std::vector<PipelineCheck> &checks_;
     StrategyExecutionCase result_;
     std::unique_ptr<JournaledRuntime> runtime_;
     std::unique_ptr<OfflinePipeline> pipeline_;
     std::size_t restarts_{0};
 };
 
-std::vector<MinuteBar> bars(const HistoricalBarRequest& session, std::size_t day, int shape) {
+std::vector<MinuteBar> bars(const HistoricalBarRequest &session, std::size_t day, int shape) {
     std::array<double, 25> residuals{};
     for (std::size_t k = 1; k < 25; ++k) {
         residuals[k] = .0002 + .8 * residuals[k - 1] + .00005 * std::sin(1.73 * static_cast<double>(k + day));
@@ -434,8 +435,8 @@ StrategyExecutionResult StrategyExecutionDiagnostic::run() const {
                 ScenarioRunner{directory_, design, restart ? "restart" : "partial", 1000000, 1, result.checks}
                     .partial(partial, restart));
         }
-        const auto& a = result.cases[result.cases.size() - 2];
-        const auto& b = result.cases.back();
+        const auto &a = result.cases[result.cases.size() - 2];
+        const auto &b = result.cases.back();
         check(result.checks, std::string{name(design)} + ": interrupted/uninterrupted parity",
               a.fills == b.fills && a.reports == b.reports &&
                   a.frames.back().account == b.frames.back().account);
@@ -451,15 +452,15 @@ StrategyExecutionResult StrategyExecutionDiagnostic::run() const {
     return result;
 }
 
-void StrategyExecutionDiagnostic::historical(StrategyExecutionResult& result,
-                                             const FrozenDevelopmentDataset& dataset) const {
+void StrategyExecutionDiagnostic::historical(StrategyExecutionResult &result,
+                                             const FrozenDevelopmentDataset &dataset) const {
     if (dataset.manifest_sha256 != reversion_manifest_digest || dataset.sessions.size() != 496 ||
         dataset.protocol_revision != 2 || dataset.manifest_file != "study_manifest.json" ||
         sha256_file(contained_path(dataset.directory, dataset.manifest_file)) != reversion_manifest_digest) {
         throw std::invalid_argument(
             "historical reference replay requires the verified frozen development snapshot");
     }
-    const auto& current = dataset.sessions.at(20);
+    const auto &current = dataset.sessions.at(20);
     StrategyExecutionInputs inputs{{},           current.bars, current.bars, current.bars,
                                    current.bars, current.bars, current.bars, current.request};
     inputs.history.assign(dataset.sessions.begin(), dataset.sessions.begin() + 20);

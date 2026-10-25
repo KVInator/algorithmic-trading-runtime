@@ -6,7 +6,7 @@ engine with a declared finer unit and shares `JournalFrame` encoding.
 Every input is evaluated on a candidate core, framed with its resulting trace,
 appended and synchronized before the candidate becomes visible or an outcome
 returns. Future transport code may dispatch an applied submit/cancel only after
-that successful return. This milestone includes no broker transport or resend.
+that successful return. External dispatch belongs to the coordinating broker/session layer.
 
 ## Commit and recovery contract
 
@@ -34,7 +34,7 @@ is used. JSON decoding rejects duplicate keys, unknown shapes, excessive nesting
 fractional quantities and unsupported model/schema versions.
 
 Schema 1 remains the default for the original order/recovery diagnostic. The
-[offline pipeline](offline_pipeline.md) explicitly creates schema-2 journals,
+[offline pipeline](strategy_execution.md) explicitly creates schema-2 journals,
 which additionally persist whole-share strategy targets. The financial model
 contract remains `whole_share_limit_v1`. Recovery accepts both schemas and keeps
 the original schema when appending its restart barrier. A schema-1 writer refuses
@@ -76,83 +76,22 @@ external trusted tip. Storage guarantees depend on the filesystem and device;
 the tests cover process termination and injected I/O failures, not physical
 power loss or controller failure.
 
-## Verification and native workflow
+## Verification
 
-Build All, run the `windows-debug` routine preset, then select
-`recovery_diagnostic.exe` and **Ctrl+F5**. No market dataset or credentials are
-required. Linux:
+`journaled_runtime_contracts` runs injected I/O faults and four child processes
+that terminate with `std::_Exit`, bypassing C++ destruction. Cases stop before
+append, after synchronization but before publication, after a partial frame and
+after return. Contracts verify poison handling, exclusive writers, configuration
+mismatch, chain/sequence/checkpoint corruption, incomplete headers and legacy
+schema replay. The tests preserve the original damaged evidence.
 
-```sh
-cmake --build --preset linux-debug
-ctest --preset linux-debug
-./scratch/build-linux/recovery_diagnostic
-```
-
-The new contract group runs ordinary failure tests and four fresh child processes
-that call `std::_Exit(0)`, bypassing C++ destruction. The parent verifies restart
-after exit before append, after synchronization but before state publication,
-after a partial frame, and after the input returned. Separate injected exceptions
-cover those write boundaries, poison handling and durable-but-unacknowledged order
-intents. Contracts also exercise single-writer exclusion, wrong configurations,
-lost/repeated frames, forged checkpoints with recomputed checksums, incomplete
-headers, fractional JSON quantities and all six original delivery schedules.
-
-The diagnostic writes a fresh `scratch/runs/recovery_diagnostic_*` directory:
-
-| File | Evidence |
-| --- | --- |
-| `report.html` | Thirty-three assertions and seven pre/post-restart account checkpoints |
-| `recovery_checks.json` | Check names, outcomes, cash/positions, reservations, cancel state and record counts |
-| `restart.journal` | Partial-fill/cancel restart, duplicate execution delivery, reconciliation and final fill |
-| `torn-original.journal` | Preserved original with a constructed 28-byte incomplete tail |
-| `prefix-recovered.journal` | Verified-prefix recovery, reconciliation and confirmed cancellation |
-| `corrupt.journal` | Preserved complete-frame corruption rejected by the loader |
-| `source_inventory.txt` | Compiled configure-time source records |
-| `summary.json` | Compiler/configuration, check counts, source identity and seven artifact hashes |
-
-The visual diagnostic uses synchronized closed/reopened files and constructed
-damaged copies. The routine test group separately verifies actual abrupt process
-exits. These synthetic cases establish execution/recovery contracts rather than
-historical strategy performance. Existing study protocols, raw datasets and
-later-period boundaries remain unchanged.
-
-## Native verification
-
-The MSVC 19.51.36260.0 Debug build and all eighteen routine groups were reported
-successful on 23 October 2026 for implementation revision `52556bf`. The native
-diagnostic retains 33 passing assertions and seven checkpoints. Its uploaded
-manifest SHA-256 is
-`198d43792175a37d88880a4a971c5de05562a9b562c7c86ca4a078a60274f13d`;
-all seven artifact hashes match the recorded identities.
-
-| Valid journal | Complete frames including header | Input records | Incomplete tail |
-| --- | ---: | ---: | ---: |
-| `restart.journal` | 15 | 14 | 0 bytes |
-| `torn-original.journal` | 6 | 5 | 28 bytes |
-| `prefix-recovered.journal` | 12 | 11 | 0 bytes |
-
-Independent SHA-256, sequence and predecessor checks validate all 33 complete
-frames. An integer ledger independently reproduces cash, positions, cash/share
-reservations, outstanding buys and open-order counts after all thirty input
-records. The recovered file begins with the exact 3,540-byte complete original
-prefix, followed by a new disconnect barrier. The corrupt fixture differs from
-the valid restart journal only at byte offset five; its first frame's checksum
-fails as intended.
-
-All four journal files and `recovery_checks.json` are byte-identical to the
-verified Linux diagnostic. The HTML differs only in its source digest. The
-130-entry native source inventory contains 122 exact local byte matches and the
-same eight exact CRLF variants recorded in the earlier
-[provenance resolution](../research/daily_risk_development_result.json).
-Its aggregate SHA-256 is
-`2e04f38536468d1ea349d8f649ddaee41ac95f41c23db3b61d9709fefa044a82`.
-The eighteen-group native test result includes the four abrupt-exit contract
-cases; the uploaded diagnostic artifacts separately verify the closed/reopened
-file scenarios. Physical power-loss behavior remains outside this evidence.
+Run the normal full/quick CTest preset or select this affected group during edits.
+`project_demo` exposes the paired broker restart/reconciliation path. There is no
+separate preliminary recovery-report executable. See [verification](verification.md).
 
 ## Platform references
 
 - Microsoft: [CreateFileW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew)
-  and [FlushFileBuffers](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers).
-- Linux man-pages: [fsync](https://man7.org/linux/man-pages/man2/fsync.2.html)
+  and [FlushFileBuffers](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/flushfilebuffers).
+- Linux: [fsync](https://man7.org/linux/man-pages/man2/fsync.2.html)
   and [flock](https://man7.org/linux/man-pages/man2/flock.2.html).

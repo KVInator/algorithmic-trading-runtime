@@ -1,3 +1,4 @@
+#include "paper_transport_diagnostic.hpp"
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
 #include "paper_transport_report.hpp"
@@ -23,7 +24,7 @@ template <class F> void rejects(F action) {
     bool rejected = false;
     try {
         action();
-    } catch (const std::exception&) {
+    } catch (const std::exception &) {
         rejected = true;
     }
     require(rejected, "unsupported or uncertain operation must reject");
@@ -48,18 +49,18 @@ Json broker_order() {
 }
 
 class Wire final : public PaperWire {
-public:
+  public:
     std::deque<PaperHttpResponse> replies;
     std::deque<std::string> messages;
     std::vector<PaperRequest> requests;
-    std::function<void(const PaperRequest&)> before_reply;
+    std::function<void(const PaperRequest &)> before_reply;
     Json open_orders = Json::array();
     unsigned waits = 0;
     bool uncertain = false, health_ack = false;
     unsigned health_quiet_polls = 0, quiet_remaining = 0;
     std::function<void(std::chrono::milliseconds)> polling;
 
-    PaperHttpResponse request(const PaperRequest& request) override {
+    PaperHttpResponse request(const PaperRequest &request) override {
         requests.push_back(request);
         if (before_reply)
             before_reply(request);
@@ -133,12 +134,12 @@ public:
 
     std::size_t posts() const {
         return static_cast<std::size_t>(std::count_if(requests.begin(), requests.end(),
-                                                      [](const auto& r) { return r.method == "POST"; }));
+                                                      [](const auto &r) { return r.method == "POST"; }));
     }
 };
 
 class Fixture {
-public:
+  public:
     std::filesystem::path path;
     Wire wire;
     PaperCapture capture;
@@ -146,7 +147,7 @@ public:
     PaperSession session;
     std::int64_t now = 1;
 
-    explicit Fixture(const std::filesystem::path& directory)
+    explicit Fixture(const std::filesystem::path &directory)
         : path{directory}, capture{directory / "capture"},
           runtime{JournaledPaperRuntime::create(create_journal_file(directory / "runtime.journal"), config)},
           session{runtime, wire, capture, [this] { return PaperReceipt{timestamp, now}; },
@@ -170,7 +171,7 @@ public:
 };
 
 class Contracts {
-public:
+  public:
     explicit Contracts(std::filesystem::path root) : root_{std::move(root)} {}
 
     void run() const {
@@ -184,7 +185,7 @@ public:
         control_faults();
     }
 
-private:
+  private:
     std::filesystem::path root_;
 
     void control_faults() const {
@@ -194,7 +195,7 @@ private:
         };
 
         class Storage final : public JournalStorage {
-        public:
+          public:
             std::shared_ptr<Memory> memory;
 
             explicit Storage(std::shared_ptr<Memory> m) : memory{std::move(m)} {}
@@ -355,7 +356,7 @@ private:
             f.wire.health_ack = true;
             std::int64_t tick = 1000;
             bool advanced = false;
-            f.wire.before_reply = [&](const PaperRequest&) {
+            f.wire.before_reply = [&](const PaperRequest &) {
                 if (!advanced) {
                     tick += 30000;
                     advanced = true;
@@ -499,7 +500,7 @@ private:
         static_cast<void>(f.session.submit(intent));
         f.wire.open_orders = Json::array({broker_order()});
         bool injected = false;
-        f.wire.before_reply = [&](const PaperRequest& r) {
+        f.wire.before_reply = [&](const PaperRequest &r) {
             if (!injected && r.url.ends_with("/account")) {
                 injected = true;
                 f.wire.messages.push_back(
@@ -539,7 +540,7 @@ private:
 };
 } // namespace
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     try {
         require(argc == 2, "transport contracts require output root");
         const auto directory = create_unique_directory(argv[1], "paper-transport");
@@ -549,14 +550,14 @@ int main(int argc, char** argv) {
         const auto policy = PaperTransportDiagnostic{directory / "controls"}.run_control();
         require(policy.checks.size() == 8 && policy.cases.size() == 3, "control fault cases complete");
         const auto summary = Json::parse(read_text_file(directory / "summary.json"));
-        for (const auto& a : summary.at("artifacts"))
+        for (const auto &a : summary.at("artifacts"))
             require(sha256_file(directory / a.at("path").get<std::string>()) ==
                         a.at("sha256").get<std::string>(),
                     "reported artifact digest matches retained bytes");
         std::cout << "Paper transport framing, dispatch, capture, subscription and "
                      "restart contracts passed\n";
         return 0;
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << "Paper transport contracts failed: " << e.what() << '\n';
         return 1;
     }
