@@ -10,7 +10,7 @@ evidence rather than a completion percentage.
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
 | 2. Strategy research | Complete for `05aec9d` | Three strategy specifications have reproducible historical comparisons. Native MSVC build and all twenty-two groups are reported successful. SPY-MR-01 retains 476 dates, forty market cases and its cost-dominated finding; all ten artifacts and 171 source records verify, with identical native/Linux account paths. |
 | 3. Shared execution path | Complete for `9aeffa4` | MSVC build and routine test preset reported successful. Native eighteen-/twenty-two-case runs pass 224/296 checks; saved evidence, inputs and HTML match Linux byte-for-byte. Source differences are five explained CRLF variants. Journal manifest digests match the checked Linux bodies; native bodies were not supplied. |
-| 4. Paper broker | In progress: native bridge and read-only heartbeat accepted | Exact accounting/identity, bounded transport and durable deadline/stop foundations are implemented. The native probe verifies a matching PONG and exact flat-account reconciliation. Quote/calendar access, the reviewed operational launcher and five-session observed lifecycle/reconnect/restart evidence remain. |
+| 4. Paper broker | In progress: native bridge and read-only heartbeat accepted | Exact accounting/identity, bounded transport and durable deadline/stop foundations are implemented. Current SIP quote/calendar checks are implemented; their native acceptance is pending. Operational control composition and five-session observed lifecycle/reconnect/restart evidence remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
 | 7. Final technical publication | Not complete | Individual reports and research notes exist. The unified analytical HTML/PDF report, offline showcase and final repository presentation remain. |
@@ -779,14 +779,61 @@ subscription response originated at the provider or the old socket owner.
 Both the transport implementation and challenge mechanism changed. Earlier
 failed probes remain failed evidence; no frozen research input/result changes.
 
+## Current quote/calendar prerequisite
+
+The [current market-data boundary](paper_market_data.md) adds fixed read-only
+SIP/USD SPY quote and paper-calendar requests, validated again by the existing
+credential-bearing Windows reader. Raw attempts/responses retain receipt clocks
+before decoding. Unsupported access, HTTP 403/429 and transport failures stop
+without retry, feed substitution or order dispatch.
+
+The shared calendar now has an explicit paper role for 2026-2029. Historical
+defaults retain their original boundary; paper sessions cannot construct price
+requests. Provider holiday/early-close records are retained, and the next five
+future regular dates are provisional candidates rather than session enrollment.
+The unchanged five-session plan still requires readiness before enrolling dates.
+
+Exact numeric quote lexemes, nanosecond source times, displayed round-lot sizes,
+exchanges, tape and conditions are retained. The quote policy checks source age,
+receipt-clock consistency, current regular sessions and prices/sizes, then records
+directed cent projections. Access success and current quote usability are separate;
+off-hours or stale quotes can correctly be unusable after access succeeds.
+This is a single REST observation. Constant host UTC offset, continuous quote
+health and operational order eligibility are not established by this probe.
+
+The portable diagnostic retains six checks across four constructed cases:
+regular hours, off hours, SIP access denial and rate limiting. Contracts also
+exercise exact-price collisions under binary doubles, one-nanosecond age limits,
+clock failures, URL restrictions, DST changes and shortened sessions.
+GCC Debug Build All passes with warnings as errors. All 27 routine groups pass
+in 26.48 seconds and all 23 quick groups pass in 4.83 seconds. The new group
+also passes ASan/UBSan with leak detection disabled. Eight Windows-target C++
+syntax checks pass, including the native reader/probe; actual MSVC/service
+acceptance of these new inputs remains pending.
+
+At `scratch/runs/paper_market_1`, independent verification checks all 27 artifact
+hashes, twenty capture records, 24 session conversions against IANA New York
+time and two quote assessments using exact Decimal/nanosecond arithmetic.
+All 229 source identities match. Altered cent projections and a false DST
+conversion are rejected even after their artifact hashes are recomputed.
+The shared capture verifier still validates the prior accepted native heartbeat
+archive. Report tables/local links are checked; browser rendering is unavailable.
+
+Hygiene, formatting and diff checks pass. No network requests, session enrollment
+or historical scoring occurred.
+
 ## Next dependency
 
-Implement and verify current quote/calendar access against the declared feed,
-source/receipt clocks and session rules in the
-[five-session plan](../research/paper_capture_plan.md). Then compose the reviewed
-operational launcher with the durable control owner, explicit reviewed
-reactivation and closing-inventory handling. Native control/recovery diagnostics
-and the operational composition must pass before enrolled order sessions.
-Milestone 4 remains open for those prerequisites and five-session observed
-lifecycle/reconnect/restart capture. Milestones 1-3 remain closed; execution
-measurements, benchmarks/portable CI and final publication remain milestones 5-7.
+Build and run the current Windows quick preset, `paper_market_diagnostic` and
+`paper_market_probe`. Retain both complete folders to verify native SIP access,
+calendar conversions, source/receipt clocks and quote gates. A successful
+read-only probe does not launch orders or enroll dates; unavailable SIP access
+remains an explicit prerequisite failure.
+
+Then compose the reviewed operational launcher with the durable control owner,
+explicit reviewed reactivation and closing-inventory handling. Native control/
+recovery diagnostics and operational composition must pass before enrolled order
+sessions. Milestone 4 remains open for native market-data acceptance, those
+operational prerequisites and five-session observed lifecycle/reconnect/restart
+capture. Milestones 1-3 remain closed; execution measurements, benchmarks/portable
+CI and final publication remain milestones 5-7.

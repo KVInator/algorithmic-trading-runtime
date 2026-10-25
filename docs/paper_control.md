@@ -87,7 +87,7 @@ deadline/cancel plus operator stop, failed WebSocket PONG, and clock
 regression/recovery. The existing transport contract group also exercises
 uncertain policy append, corruption/torn tails, active-owner restart, missed
 service, the final dispatch guard and partial inventory retained during stop.
-No network requests are sent. Counts of routine groups remain 26 full/22 quick.
+No network requests are sent. Current routine selections contain 27 full/23 quick groups.
 
 The independent transport verifier also checks control-journal chains and saved
 policy state when a case includes them. Run it on the printed diagnostic folder.

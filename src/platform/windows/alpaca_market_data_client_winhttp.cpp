@@ -1,5 +1,6 @@
 #include "alpaca_market_data_client.hpp"
 #include "alpaca_corporate_action_request.hpp"
+#include "paper_market_request.hpp"
 
 #include <windows.h>
 #include <winhttp.h>
@@ -16,9 +17,7 @@ namespace trading {
 namespace {
 
 struct InternetHandleCloser {
-    void operator()(void* handle) const noexcept {
-        static_cast<void>(WinHttpCloseHandle(handle));
-    }
+    void operator()(void* handle) const noexcept { static_cast<void>(WinHttpCloseHandle(handle)); }
 };
 
 using InternetHandle = std::unique_ptr<void, InternetHandleCloser>;
@@ -35,18 +34,16 @@ InternetHandle require_handle(HINTERNET handle, const char* operation) {
     return InternetHandle{handle};
 }
 
-std::wstring widen_ascii(std::string_view value) {
-    return std::wstring{value.begin(), value.end()};
-}
+std::wstring widen_ascii(std::string_view value) { return std::wstring{value.begin(), value.end()}; }
 
 } // namespace
 
 AlpacaMarketDataClient::AlpacaMarketDataClient(AlpacaCredentials credentials)
     : credentials_{std::move(credentials)} {}
 
-MarketDataResponse AlpacaMarketDataClient::get_historical_bars(
-    const HistoricalBarRequest& bar_request,
-    const std::optional<std::string>& page_token) const {
+MarketDataResponse
+AlpacaMarketDataClient::get_historical_bars(const HistoricalBarRequest& bar_request,
+                                            const std::optional<std::string>& page_token) const {
     return get_page(false, bar_request.path(page_token));
 }
 
@@ -54,21 +51,37 @@ MarketDataResponse AlpacaMarketDataClient::get_market_calendar(const CalendarRan
     return get_page(true, range.path());
 }
 
+MarketDataResponse AlpacaMarketDataClient::get_paper_market(const PaperMarketRequest& request) const {
+    const auto [calendar, path] = validate_paper_market_request(request);
+    auto response = get_page(calendar, path);
+    const auto guard = [&](std::string_view value) {
+        if (value.find(credentials_.key()) != value.npos || value.find(credentials_.secret()) != value.npos) {
+            throw std::runtime_error("credential echo refused before market archival");
+        }
+    };
+    guard(response.body);
+    if (response.retry_after) {
+        guard(*response.retry_after);
+    }
+    return response;
+}
+
 MarketDataResponse AlpacaMarketDataClient::get_corporate_action_probe(int year) const {
     return get_page(false, CorporateActionProbeRequest{year}.path());
 }
 
-MarketDataResponse AlpacaMarketDataClient::get_corporate_actions(const CorporateActionRequest& request,
-    const std::optional<std::string>& token) const {
+MarketDataResponse
+AlpacaMarketDataClient::get_corporate_actions(const CorporateActionRequest& request,
+                                              const std::optional<std::string>& token) const {
     return get_page(false, request.path(token));
 }
 
 MarketDataResponse AlpacaMarketDataClient::get_page(bool calendar, const std::string& request_path) const {
     const auto path = widen_ascii(request_path);
-    auto session = require_handle(
-        WinHttpOpen(L"AlgorithmicTradingRuntime/0.1", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
-                    WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0),
-        "WinHttpOpen");
+    auto session =
+        require_handle(WinHttpOpen(L"AlgorithmicTradingRuntime/0.1", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
+                                   WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0),
+                       "WinHttpOpen");
 
     if (!WinHttpSetTimeouts(session.get(), 10000, 10000, 10000, 20000)) {
         throw_windows_error("WinHttpSetTimeouts");
@@ -79,28 +92,27 @@ MarketDataResponse AlpacaMarketDataClient::get_page(bool calendar, const std::st
                        INTERNET_DEFAULT_HTTPS_PORT, 0),
         "WinHttpConnect");
 
-    auto request = require_handle(
-        WinHttpOpenRequest(connection.get(), L"GET", path.c_str(), nullptr,
-                           WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE),
-        "WinHttpOpenRequest");
+    auto request =
+        require_handle(WinHttpOpenRequest(connection.get(), L"GET", path.c_str(), nullptr, WINHTTP_NO_REFERER,
+                                          WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE),
+                       "WinHttpOpenRequest");
 
     DWORD redirect_policy = WINHTTP_OPTION_REDIRECT_POLICY_NEVER;
-    if (!WinHttpSetOption(request.get(), WINHTTP_OPTION_REDIRECT_POLICY,
-                          &redirect_policy, sizeof(redirect_policy))) {
+    if (!WinHttpSetOption(request.get(), WINHTTP_OPTION_REDIRECT_POLICY, &redirect_policy,
+                          sizeof(redirect_policy))) {
         throw_windows_error("WinHttpSetOption redirect policy");
     }
 
-    const std::wstring headers =
-        L"APCA-API-KEY-ID: " + widen_ascii(credentials_.key()) +
-        L"\r\nAPCA-API-SECRET-KEY: " + widen_ascii(credentials_.secret()) +
-        L"\r\nAccept: application/json\r\n";
+    const std::wstring headers = L"APCA-API-KEY-ID: " + widen_ascii(credentials_.key()) +
+                                 L"\r\nAPCA-API-SECRET-KEY: " + widen_ascii(credentials_.secret()) +
+                                 L"\r\nAccept: application/json\r\n";
 
     if (headers.size() > std::numeric_limits<DWORD>::max()) {
         throw std::length_error("authentication headers exceed the WinHTTP size limit");
     }
 
-    if (!WinHttpSendRequest(request.get(), headers.c_str(),
-                            static_cast<DWORD>(headers.size()), WINHTTP_NO_REQUEST_DATA, 0, 0, 0)) {
+    if (!WinHttpSendRequest(request.get(), headers.c_str(), static_cast<DWORD>(headers.size()),
+                            WINHTTP_NO_REQUEST_DATA, 0, 0, 0)) {
         throw_windows_error("WinHttpSendRequest");
     }
     if (!WinHttpReceiveResponse(request.get(), nullptr)) {
@@ -110,17 +122,26 @@ MarketDataResponse AlpacaMarketDataClient::get_page(bool calendar, const std::st
     DWORD status = 0;
     DWORD status_size = sizeof(status);
     if (!WinHttpQueryHeaders(request.get(), WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
-                             WINHTTP_HEADER_NAME_BY_INDEX, &status, &status_size,
-                             WINHTTP_NO_HEADER_INDEX)) {
+                             WINHTTP_HEADER_NAME_BY_INDEX, &status, &status_size, WINHTTP_NO_HEADER_INDEX)) {
         throw_windows_error("WinHttpQueryHeaders");
     }
 
     std::array<char, 4096> buffer{};
     std::string body;
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds{20};
     while (true) {
+        const auto remaining =
+            std::chrono::ceil<std::chrono::milliseconds>(deadline - std::chrono::steady_clock::now()).count();
+        if (remaining <= 0) {
+            throw std::runtime_error("market-data body response deadline");
+        }
+        DWORD receive_timeout = static_cast<DWORD>(remaining);
+        if (!WinHttpSetOption(request.get(), WINHTTP_OPTION_RECEIVE_TIMEOUT, &receive_timeout,
+                              sizeof(receive_timeout))) {
+            throw_windows_error("WinHttpSetOption market-data body timeout");
+        }
         DWORD bytes_read = 0;
-        if (!WinHttpReadData(request.get(), buffer.data(),
-                             static_cast<DWORD>(buffer.size()), &bytes_read)) {
+        if (!WinHttpReadData(request.get(), buffer.data(), static_cast<DWORD>(buffer.size()), &bytes_read)) {
             throw_windows_error("WinHttpReadData");
         }
         if (bytes_read == 0) {

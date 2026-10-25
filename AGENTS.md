@@ -53,9 +53,9 @@ The responsibility and ownership map is in `docs/architecture.md`.
 
 Build/test presets and target prerequisites are documented in `docs/running.md`.
 Windows uses `windows-x64` and `windows-debug`; Linux uses `linux-debug` for
-configure/build/test. Full routine presets run twenty-six groups and exclude
+configure/build/test. Full routine presets run twenty-seven groups and exclude
 optional full-period disk integration. The matching `*-quick` test presets run
-twenty-two groups, excluding four `extended` study/disk regressions. Use quick and
+twenty-three groups, excluding four `extended` study/disk regressions. Use quick and
 relevant affected contracts during edits; changes to excluded study/storage code
 also require its extended group. Run the complete routine preset at a milestone.
 Keep warnings as errors.
@@ -73,6 +73,10 @@ The separate deadline/stop owner and its serialized health/dispatch gates are
 specified in `docs/paper_control.md`; native operational callers must use it.
 The WebSocket PING/PONG model, pinned libcurl transport and optional real-wire
 contracts are documented in `docs/websocket_heartbeat.md`.
+Current quote/calendar access and exact quote eligibility are documented in
+`docs/paper_market_data.md`. Calendar paper mode is explicit; preserve historical
+default bounds and reject historical bar requests from paper sessions. Quote
+usability does not authorize orders or enroll operational sessions.
 The runtime, journal and pipeline contracts in `docs/` define these invariants.
 
 `research/intraday_reversion_protocol.md` and its JSON register SPY-MR-01

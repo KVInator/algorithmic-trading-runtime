@@ -9,11 +9,11 @@ working directory. Each diagnostic or study writes a new directory under
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
 **Test > Run Test Preset > windows-debug-quick** for everyday edits. Select an
-executable and use **Ctrl+F5**. The quick preset runs twenty-two groups. Use
-**windows-debug** for the complete twenty-six-group routine suite at milestones.
+executable and use **Ctrl+F5**. The quick preset runs twenty-three groups. Use
+**windows-debug** for the complete twenty-seven-group routine suite at milestones.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
-has a matching twenty-six-group test preset. Financial/artifact validation stays
+has a matching twenty-seven-group test preset. Financial/artifact validation stays
 enabled. `windows-debug-full` additionally runs the optional 497-session
 synthetic disk integration test.
 
@@ -37,7 +37,7 @@ ctest --preset linux-debug -R '(intraday_reversion|offline_pipeline)_contracts' 
 Quick presets exist for `windows-debug`, `windows-release` and `linux-debug` as
 `windows-debug-quick`, `windows-release-quick` and `linux-debug-quick`. Each inherits
 its existing full preset and excludes `integration` and `extended` labels. Full
-presets retain all twenty-six routine groups; no test is shortened or removed.
+presets retain all twenty-seven routine groups; no test is shortened or removed.
 
 | Extended group excluded from quick runs | MSVC Debug time supplied on 24 October 2026 |
 | --- | ---: |
@@ -77,6 +77,7 @@ branches. Local datasets remain in place.
 
 | Target | Expected evidence |
 | --- | --- |
+| `paper_market_diagnostic` | Six checks in four constructed quote/calendar access cases, exact quote gates and raw capture; zero network requests |
 | `paper_control_diagnostic` | Eight checks in three constructed deadline/stop/stream-health cases, separate durable policy journals; zero network requests |
 | `paper_transport_diagnostic` | 24 checks in seven deterministic transport cases, durable raw capture and retained schema-3 state; zero network requests |
 | `paper_execution_diagnostic` | 42 assertions, three schema-3 journals, exact subcent cash, identities, partial fills, cancellation/restart and quarantine; zero network requests |
@@ -114,6 +115,21 @@ defines deadlines, stop/recovery and health limits. Keep the complete output
 directory printed by both programs. The [transport contract](paper_transport.md)
 explains request limits, capture privacy, snapshot limitations and native
 acceptance. Probe success does not complete the observed-order milestone.
+
+## Read-only current quote/calendar probe
+
+After Build All and `windows-debug-quick` (23 groups), run
+`paper_market_diagnostic.exe`, then `paper_market_probe.exe` with Ctrl+F5.
+The native probe reuses Windows credentials and makes only current paper-calendar
+and explicit SIP/USD SPY latest-quote GETs. No orders or enrollment occur.
+
+Read-only access can pass while a weekend/off-hours/stale quote is correctly
+unusable. The report separately retains access status, `quote_usable`, clocks,
+denials and exact directed cent projections. HTTP 403/429, malformed responses
+and transport failures remain failed evidence; no retry or feed substitution
+occurs. Retain complete folders from both programs. The
+[market-data contract](paper_market_data.md) defines bounds and interpretation.
+Do not run historical acquisition targets for this check.
 
 ## Historical and acquisition targets
 
@@ -227,4 +243,4 @@ The first configure/build also downloads the SHA-256-pinned libcurl source and
 builds its static WebSocket library. Windows uses Schannel; no separate curl or
 OpenSSL installation is needed there. The optional `paper_websocket_loopback`
 CTest group uses Python, when found, and is labeled `integration`; it does not
-change the 26-group full routine or 22-group quick selections.
+change the 27-group full routine or 23-group quick selections.

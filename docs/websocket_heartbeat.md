@@ -59,7 +59,7 @@ framing path, supplementing the constructed session/policy cases.
 
 When Python is available, CTest registers `paper_websocket_loopback` as optional
 `integration`. It uses only Python's standard library as a local peer and never
-contacts a broker. Full routine/quick selections remain 26/22; the optional wire
+contacts a broker. Current full routine/quick selections contain 27/23 groups; the optional wire
 test runs separately. Windows Build All compiles its C++ client without requiring
 Python. The first configure/build fetches and builds the pinned static library;
 subsequent builds reuse it. No separate curl installation is required.

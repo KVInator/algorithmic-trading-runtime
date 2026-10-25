@@ -4,6 +4,7 @@ from decimal import localcontext
 import hashlib
 import json
 from pathlib import Path
+import re
 import sys
 
 from verify_paper_execution import PaperExecutionVerifier
@@ -52,6 +53,14 @@ class PaperTransportVerifier:
                     assert request["time_in_force"] == "day" and not request["extended_hours"]
                 else:
                     assert body == b""
+            elif row["kind"] == "market_request":
+                assert body == b""
+                assert row[
+                    "detail"
+                ] == "GET https://data.alpaca.markets/v2/stocks/SPY/quotes/latest?feed=sip&currency=USD" or re.fullmatch(
+                    r"GET https://paper-api\.alpaca\.markets/v2/calendar\?start=202[6-9]-\d{2}-\d{2}&end=202[6-9]-\d{2}-\d{2}&date_type=TRADING",
+                    row["detail"],
+                )
             elif row["kind"] == "websocket_ping":
                 assert 0 < len(body) <= 125
                 challenge = body
@@ -63,7 +72,7 @@ class PaperTransportVerifier:
             elif row["kind"] == "connection":
                 assert body == b""
             else:
-                assert row["kind"] in ["http_response", "stream"]
+                assert row["kind"] in ["http_response", "market_response", "stream"]
             self.records += 1
 
     def control(self, journal):

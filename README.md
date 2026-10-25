@@ -46,6 +46,9 @@ The [control owner](docs/paper_control.md) adds durable deadlines/stopping
 and WebSocket PING/PONG health checks; native
 read-only PONG/reconciliation acceptance is recorded. Operational control
 composition and observed order/recovery capture remain open.
+The [current quote/calendar boundary](docs/paper_market_data.md) adds a read-only
+SIP access probe, exact price/time gates and provisional session candidates;
+native acceptance remains pending.
 The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
 and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
 
@@ -59,7 +62,7 @@ requires access to that dependency. Project warnings are treated as errors.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
 4. For everyday edits, run **Test > Run Test Preset > windows-debug-quick**
-   (twenty-two groups). Use **windows-debug** for all twenty-six groups at milestones
+   (twenty-three groups). Use **windows-debug** for all twenty-seven groups at milestones
    and affected extended groups when changing study/storage code.
 5. Select **strategy_execution_diagnostic.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.

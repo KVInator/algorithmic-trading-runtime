@@ -57,12 +57,12 @@ automatically resent.
 
 The [runtime](execution_runtime.md), [journal](journal_recovery.md) and
 [pipeline](offline_pipeline.md) contracts define transitions, fault handling,
-versions and resource limits. Native paper connection acceptance and observed
-execution measurements remain open.
+versions and resource limits. Native read-only connection/heartbeat acceptance
+is recorded in the [ledger](progress.md); observed execution measurements remain open.
 
 The [paper-broker contract](alpaca_paper_contract.md) preserves broker precision
 without changing the current cent ledger or journal schemas. The versioned exact
-accounting bridge is described below; observed transport/reconciliation remains open.
+accounting bridge is described below; observed order/recovery evidence remains open.
 
 The [paper execution owner](paper_execution.md) composes that same order core
 with exact broker conversion, durable identity mapping and a schema-3 journal.
@@ -86,3 +86,12 @@ wire retains WinHTTP for REST and composes that socket with credentials. Health
 checks correlate PING/PONG payloads without changing subscriptions. The
 [heartbeat contract](websocket_heartbeat.md) specifies the versioned control
 model, pinned dependency and real loopback verification.
+
+`PaperMarketProbe` composes read-only request descriptions, the existing Windows
+market-data reader and durable capture. `PaperQuoteDecoder` retains numeric
+lexemes through the shared JSON parser and exact broker value types.
+`PaperQuotePolicy` owns freshness/calendar gates and directed cent projections;
+reports present saved outcomes. The shared calendar's explicit paper role adds
+current dates while preserving historical defaults and refusing price requests
+from paper sessions. The [current market-data contract](paper_market_data.md)
+separates service access, quote usability and operational order eligibility.
