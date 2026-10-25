@@ -210,6 +210,7 @@ void SimulatedPaperWire::close() noexcept {
     messages_.clear();
     pong_.reset();
 }
+void SimulatedPaperWire::advance_to(std::int64_t source_seconds) { broker_.advance_to(source_seconds); }
 void SimulatedPaperWire::on_quote(const execution::TopOfBook &quote) {
     if (quote.bid_cents > 1000000 || quote.ask_cents > 1000000 || quote.bid_shares > 1000 ||
         quote.ask_shares > 1000)

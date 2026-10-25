@@ -9,7 +9,7 @@ Completion follows acceptance evidence, not test counts or strategy profitabilit
 | 2. Strategy research | Complete | Preserve registered findings and unopened later-period performance |
 | 3. Strategy/execution integration | Complete | Preserve adapters and historical reference-price distinctions |
 | 4. Simulated broker protocol | Complete | Native diagnostic independently verified; Windows build and tests reported successful |
-| 5. Simulated execution measurements | Open | Matched policy schedules, quote/fill/delay/censoring tables and plots |
+| 5. Simulated execution measurements | Implemented; Linux verification complete | Native Windows build, quick tests and `execution_measurement` archive |
 | 6. Implementation benchmarks and CI | Open | Release workloads, latency/throughput/recovery measurements, portable CI and sanitizer evidence |
 | 7. Unified technical report | Open | Standalone HTML/PDF, integrated figures, curated evidence and final repository presentation |
 
@@ -108,6 +108,64 @@ remain retained. The accepted diagnostic need not be repeated unless its
 implementation changes.
 
 Milestone 4 is complete under the revised offline scope.
-Next: milestone 5's matched execution-policy measurements and quote/fill visuals,
-then milestone 6 benchmarks/CI and milestone 7 report/presentation. No additional
-strategy search or service-access investigation is needed.
+Next: native acceptance of milestone 5, followed by milestone 6 benchmarks/CI
+and milestone 7 report/presentation. No additional strategy search or
+service-access investigation is needed.
+
+## Execution measurement checkpoint, 25 October 2026
+
+The [measurement contract](execution_measurement.md) defines 36 synthetic
+workloads, four fixed limit/deadline policies and 144 independent account cases.
+The report retains 108 matched policy comparisons and 120 one-factor assumption
+comparisons. Source and receipt clocks are integer virtual seconds; processing
+latency benchmarks remain milestone 6. Advancing source time does not refresh
+quote liquidity. All matching, account transitions and persistence reuse the
+existing broker, decoder and schema-3 ledger.
+
+Economic sums retain exact signed half-cents. Executed shortfall decomposes into
+spread and timing; unfilled shares receive a separate common-terminal-midpoint
+opportunity mark. Incomplete orders retain null completion times and an explicit
+censoring reason/interval ending at cancellation confirmation or the observation
+horizon. Policy-driven cancellation is informative censoring; no independent-
+censoring survival estimate is fitted.
+
+| Policy | Filled shares / requested | Completed cases / 36 | Total shortfall, bps of requested notional |
+| --- | ---: | ---: | ---: |
+| Cross limit, 5-second cancel | 72.22% | 20 | 3.5889 |
+| Cross limit, 11-second cancel | 76.67% | 24 | 3.5889 |
+| Same-side limit, 5-second cancel | 14.44% | 0 | 3.7667 |
+| Same-side limit, 11-second cancel | 20.00% | 0 | 3.6000 |
+
+These are equally weighted deterministic workload summaries, not empirical fill
+probabilities or universal policy rankings. The larger fill coverage under the
+longer cross deadline does not change its total marked shortfall in this grid.
+Passive limits trade less, with substantial incomplete quantities. The report
+shows canceled/rejected counts, conditional timing sample counts and cost
+components beside these aggregates.
+
+The independent verifier checks all 6,294 artifact hashes, 6,002 captured records,
+144 Decimal ledgers, 2,078 journal inputs, 206 measured fills, finite quote budgets,
+source/receipt times against raw bytes, censoring endpoints, paired comparisons,
+assumption sensitivities and CSV/summary arithmetic. Analytical C++ controls cover
+signed costs, buy/sell symmetry, half-cent midpoints, no-fill observations, clock
+validation and finite liquidity across clock advancement. The short contract
+runs sixteen cases twice and compares saved states and metrics; it does not run
+the full 144-case demonstration on every edit.
+
+The report adds a policy cost-component figure, 144 bid/ask/limit/fill plots and
+expandable source/receipt and client-state tables. SVG charts are structurally
+validated and representative charts rendered for inspection. Headless browser
+interaction testing is unavailable because its browser executable is absent.
+No new production dependency or JavaScript is introduced.
+
+Linux Debug builds with warnings as errors. All 28 routine groups pass in
+22.71 seconds and all 24 quick groups in 6.03 seconds in this environment.
+Affected ASan/UBSan groups and six Windows-target syntax checks pass. Independent
+checks also reject forged censoring intervals and opportunity-cost values.
+Repository hygiene and diff checks pass. Leak detection remains unavailable in this environment. Actual
+native acceptance remains pending: Build All, `windows-debug-quick`, then
+`execution_measurement.exe` with Ctrl+F5 and retain the printed directory.
+
+After native acceptance, milestones 1-5 are complete. Remaining scope is measured
+Release performance/resource limits and portable CI, then the integrated HTML/PDF
+report and final repository presentation.

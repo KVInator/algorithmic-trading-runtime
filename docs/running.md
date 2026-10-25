@@ -9,11 +9,11 @@ working directory. Each diagnostic or study writes a new directory under
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
 **Test > Run Test Preset > windows-debug-quick** for everyday edits. Select an
-executable and use **Ctrl+F5**. The quick preset runs twenty-three groups. Use
-**windows-debug** for the complete twenty-seven-group routine suite at milestones.
+executable and use **Ctrl+F5**. The quick preset runs twenty-four groups. Use
+**windows-debug** for the complete twenty-eight-group routine suite at milestones.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
-has a matching twenty-seven-group test preset. Financial/artifact validation stays
+has a matching twenty-eight-group test preset. Financial/artifact validation stays
 enabled. `windows-debug-full` additionally runs the optional 497-session
 synthetic disk integration test.
 
@@ -37,7 +37,7 @@ ctest --preset linux-debug -R '(intraday_reversion|offline_pipeline)_contracts' 
 Quick presets exist for `windows-debug`, `windows-release` and `linux-debug` as
 `windows-debug-quick`, `windows-release-quick` and `linux-debug-quick`. Each inherits
 its existing full preset and excludes `integration` and `extended` labels. Full
-presets retain all twenty-seven routine groups; no test is shortened or removed.
+presets retain all twenty-eight routine groups; no test is shortened or removed.
 
 | Extended group excluded from quick runs | MSVC Debug time supplied on 24 October 2026 |
 | --- | ---: |
@@ -77,6 +77,7 @@ branches. Local datasets remain in place.
 
 | Target | Expected evidence |
 | --- | --- |
+| `execution_measurement` | 144 synthetic account cases, 108 paired comparisons, exact cost decomposition, source/receipt timing, censoring and quote/fill visuals; zero network requests |
 | `paper_broker_diagnostic` | Six synthetic broker cases: partial/full fills, cancellation races, duplicate delivery, uncertain response, paired restart, exact reconciliation and durable deadline/stop; zero network requests |
 | `paper_execution_diagnostic` | 42 assertions, three schema-3 journals, exact subcent cash, identities, partial fills, cancellation/restart and quarantine; zero network requests |
 | `paper_contract_diagnostic` | 56 checks, forty constructed API-shaped cases, exact decimal/time boundaries and paper-only request descriptions; zero network requests |
@@ -113,6 +114,20 @@ The [broker contract](paper_broker.md) defines the scenarios, ownership, simulat
 health/deadline policy and recovery evidence. Historical Alpaca acquisition below
 remains available. Native paper-broker and current quote/calendar probes have
 been retired; no subscription-dependent run is part of milestone 4.
+
+## Simulated execution measurements
+
+Run **execution_measurement.exe** with Ctrl+F5 after Build All and
+`windows-debug-quick`. Expected: 144 cases, 108 paired comparisons and zero
+network requests. Open the printed `report.html`, then retain the complete folder.
+
+```sh
+python -B research/verify_execution_measurement.py <printed-report-directory>
+```
+
+The [measurement contract](execution_measurement.md) defines matched policies,
+virtual clock ordering, the half-cent cost decomposition and censoring. The full
+grid is an explicit executable workload, not part of every quick test run.
 
 ## Historical and acquisition targets
 

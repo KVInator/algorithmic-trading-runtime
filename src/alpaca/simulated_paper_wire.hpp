@@ -16,6 +16,7 @@ class SimulatedPaperWire final : public PaperWire {
     [[nodiscard]] std::optional<std::string> take_pong() override;
     [[nodiscard]] std::optional<std::string> poll(std::chrono::milliseconds) override;
     void close() noexcept override;
+    void advance_to(std::int64_t source_seconds);
     void on_quote(const execution::TopOfBook &quote);
     void complete_cancels();
     void lose_next_submit_response() noexcept;

@@ -29,6 +29,7 @@ struct SimulatedFill {
 class SimulatedBroker {
 public:
     SimulatedBroker(std::string symbol, Cents cash_units, Cents fee_per_share_cents);
+    void advance_to(std::int64_t now_seconds);
     [[nodiscard]] bool on_quote(const TopOfBook& quote);
     [[nodiscard]] bool submit(const OrderRequest& request, std::int64_t now_seconds);
     [[nodiscard]] bool cancel(const std::string& order_id, const std::string& cancel_id, std::int64_t now_seconds);

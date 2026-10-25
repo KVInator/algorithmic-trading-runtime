@@ -29,6 +29,7 @@ void SimulatedBroker::advance_time(std::int64_t now) {
     if (now <= 0 || now < now_) { throw std::invalid_argument("simulated broker clock cannot regress"); }
     now_ = now;
 }
+void SimulatedBroker::advance_to(std::int64_t now) { advance_time(now); }
 void SimulatedBroker::report(const std::string& id, ReportKind kind, std::string execution, Shares quantity,
                              Cents price, Cents fee, Shares cumulative, std::string cancel_id) {
     reports_.push_back({"SIM-E" + std::to_string(reports_.size() + 1), id, kind, std::move(execution),

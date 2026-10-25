@@ -53,9 +53,9 @@ The responsibility and ownership map is in `docs/architecture.md`.
 
 Build/test presets and target prerequisites are documented in `docs/running.md`.
 Windows uses `windows-x64` and `windows-debug`; Linux uses `linux-debug` for
-configure/build/test. Full routine presets run twenty-seven groups and exclude
+configure/build/test. Full routine presets run twenty-eight groups and exclude
 optional full-period disk integration. The matching `*-quick` test presets run
-twenty-three groups, excluding four `extended` study/disk regressions. Use quick and
+twenty-four groups, excluding four `extended` study/disk regressions. Use quick and
 relevant affected contracts during edits; changes to excluded study/storage code
 also require its extended group. Run the complete routine preset at a milestone.
 Keep warnings as errors.
@@ -74,6 +74,10 @@ owner are specified in `docs/paper_broker.md`. No native paper-broker wire,
 current quote/calendar probe or paid feed is required. Keep historical Alpaca
 acquisition and credentials intact. Synthetic messages must never be labelled
 observed broker evidence.
+Milestone-5 measurement scheduling and signed cost conventions are defined in
+`docs/execution_measurement.md`. Keep source/receipt virtual times distinct from
+wall-clock benchmarks. The full measurement grid runs in its executable; routine
+contracts use a small constructed subset.
 The runtime, journal and pipeline contracts in `docs/` define these invariants.
 
 `research/intraday_reversion_protocol.md` and its JSON register SPY-MR-01

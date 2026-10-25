@@ -5,8 +5,8 @@ system preserves market-data evidence, evaluates specified trading rules and
 connects causal strategy decisions to a journaled order runtime and deterministic
 broker simulator.
 
-The project is in progress. The simulated broker checkpoint, execution
-measurements, performance benchmarks and final analytical report are tracked in
+The project is in progress. Simulated execution measurements, performance
+benchmarks and the final analytical report are tracked in
 the [completion plan](docs/completion_plan.md) and [milestone ledger](docs/progress.md).
 Historical research retains Alpaca as its data source. The broker demonstration
 runs offline without credentials, subscriptions or purchases.
@@ -48,6 +48,11 @@ fills, cancellations, lost responses, duplicate delivery, deadlines, permanent
 stop and exact reconciliation across restart. Saved event tables expose client
 and independently maintained broker state. Native broker connections and current
 quote probes are outside scope; synthetic results are not observed executions.
+The [execution measurement study](docs/execution_measurement.md) compares four
+fixed limit/deadline policies across 36 matched synthetic workloads, including
+buy/sell directions and spread, size and delay sensitivities. Signed costs,
+unfilled opportunity, source/receipt delays and censored completion times remain
+separate, with independent verification and quote/fill visuals.
 The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
 and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
 
@@ -61,9 +66,9 @@ requires access to that dependency. Project warnings are treated as errors.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
 4. For everyday edits, run **Test > Run Test Preset > windows-debug-quick**
-   (twenty-three groups). Use **windows-debug** for all twenty-seven groups at milestones
+   (twenty-four groups). Use **windows-debug** for all twenty-eight groups at milestones
    and affected extended groups when changing study/storage code.
-5. Select **paper_broker_diagnostic.exe** and press **Ctrl+F5** for an offline example
+5. Select **execution_measurement.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.
 6. Open the printed `report.html` and retain its evidence directory.
 

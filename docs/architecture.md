@@ -79,3 +79,14 @@ saved frames. Report objects display those frames without applying transitions.
 The independent Python verifier reconstructs cash, positions and quote budgets.
 Historical Alpaca transport and credentials remain separate from this offline
 broker path.
+
+## Execution measurements
+
+`ExecutionMeasurementStudy` defines matched synthetic workloads and composes a
+private asynchronous replay coordinator from the existing peer, ledger and
+capture objects. `ExecutionQuality` owns half-cent cost sums, ratios and timing
+validation. Advancing the simulator clock does not refresh quote liquidity.
+`ExecutionMeasurementReport` borrows completed results for CSV/JSON and HTML/SVG
+inspection. The independent verifier checks matching, costs, raw timing evidence
+and journals. No signal engine or historical result is changed. Conventions are
+specified in [the measurement contract](execution_measurement.md).
