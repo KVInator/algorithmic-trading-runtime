@@ -56,6 +56,12 @@ separate, with independent verification and quote/fill visuals.
 The [runtime](docs/execution_runtime.md), [journal](docs/journal_recovery.md)
 and [pipeline](docs/offline_pipeline.md) contracts define the execution invariants.
 
+The [Release benchmark](docs/runtime_benchmark.md) compares direct processing,
+additional candidate copying, volatile/synchronized journals and warm recovery
+across 120 trial rows. Reports retain raw timing distributions, timed-call rates,
+process resources, journal occupancy and analytical account/order parity. Measured
+costs and host limitations are recorded in the [milestone ledger](docs/progress.md).
+
 ## Build and run
 
 Windows requires Visual Studio 2026 with MSVC, a Windows SDK and C++ CMake tools.

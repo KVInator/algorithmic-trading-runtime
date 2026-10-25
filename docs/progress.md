@@ -10,7 +10,7 @@ Completion follows acceptance evidence, not test counts or strategy profitabilit
 | 3. Strategy/execution integration | Complete | Preserve adapters and historical reference-price distinctions |
 | 4. Simulated broker protocol | Complete | Native diagnostic independently verified; Windows build and tests reported successful |
 | 5. Simulated execution measurements | Complete | Native archive independently verified; Windows build and tests reported successful |
-| 6. Implementation benchmarks and CI | In progress | Release benchmark implemented and Linux verified; hosted CI and native Release measurements pending |
+| 6. Implementation benchmarks and CI | Implementation and hosted CI verified | Native workstation Release benchmark archive pending |
 | 7. Unified technical report | Open | Standalone HTML/PDF, integrated figures, curated evidence and final repository presentation |
 
 ## Retained research findings
@@ -218,7 +218,31 @@ Linux Debug passes all 29 routine groups in 24.82 seconds and 25 quick groups in
 6.69 seconds. Six affected ASan/UBSan groups pass in 7.58 seconds with local leak
 detection disabled under the existing process-inspection restriction. Five
 Windows-target syntax checks pass. Two SVG figures parse and render correctly.
-The Release full suite passes all 29 groups in 6.53 seconds. Repository hygiene
-and diff checks pass. Clean-checkout hosted workflow outcomes remain pending;
-configuration alone does not establish passing CI. Native workstation Release benchmark evidence
-remains an explicit checkpoint.
+The local Release full suite passes all 29 groups in 6.53 seconds. Repository
+hygiene and diff checks pass.
+
+The [final hosted workflow](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40177057941)
+for `fbc62db` passes on clean Windows and Linux checkouts. Both Release jobs pass
+all 29 routine groups: MSVC 19.51.36260.0 in 26.78 seconds and Ubuntu in 4.77
+seconds. Each independently verifies the small benchmark export (sixteen artifact
+hashes, eight rows) and constructed broker demo (325 hashes, 309 capture records,
+six Decimal ledgers, 100 journal inputs and finite quote budgets). The hosted
+ASan/UBSan job passes six groups in 11.64 seconds with leak detection enabled.
+Node 24 action pins run without deprecation warnings. General documentation-only
+pushes are excluded; code, workflow and research-protocol changes remain covered.
+The CI logs are retained under `scratch/verification/ci-final-*.log`.
+
+The final local 120-row grid in `scratch/runs/runtime_benchmark_2/` additionally
+retains configured common/configuration C++ flags, C++20 and the warning policy.
+Its Release flags are `-O3 -DNDEBUG`. All independent checks pass; timings remain
+host observations. Its manifest SHA-256 is
+`e70d91b6e8d2df67cff9cc8a5e6f7a75a880846256078a7d21578520c0c38d0e`;
+source-inventory identity is
+`7c4ad64e387e6a7692810e27d648ee0a8c489c0c21c61df4caf40facb0d4a452`.
+The CSV verifier also rejects a recomputed-hash throughput forgery.
+
+Native workstation Release benchmark evidence remains the milestone-6 checkpoint.
+Run `windows-release`, its full 29-group test preset and `runtime_benchmark.exe`;
+retain the complete 120-row output directory. Milestone 7 remains the unified
+HTML/PDF report, integrated figures, curated reproduction evidence and final
+repository presentation. No additional strategy search or broker service is needed.
