@@ -93,7 +93,7 @@ class PublicationVerifier:
                     if key.endswith("href"):
                         assert value.startswith("#"), "External SVG dependency"
         broken = []
-        docs = [self.root / "README.md", self.root / "AGENTS.md"]
+        docs = [self.root / "README.md"]
         docs += list((self.root / "docs").glob("*.md")) + list(
             (self.root / "research").glob("*.md")
         )

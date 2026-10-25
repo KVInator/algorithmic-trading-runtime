@@ -3,8 +3,7 @@
 The final [technical report](../docs/report.pdf) and
 [evidence snapshot](../docs/evidence/manifest.json) consolidate methods and findings.
 Protocol files are immutable pre-scoring records; their original milestone/status
-wording is historical. Current completion is recorded in
-[verification](../docs/verification.md).
+wording is historical. The report describes the completed implementations and evidence.
 
 | Study | Governing records | Recorded finding |
 | --- | --- | --- |

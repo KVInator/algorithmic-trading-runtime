@@ -85,9 +85,9 @@ after return. Contracts verify poison handling, exclusive writers, configuration
 mismatch, chain/sequence/checkpoint corruption, incomplete headers and legacy
 schema replay. The tests preserve the original damaged evidence.
 
-Run the normal full/quick CTest preset or select this affected group during edits.
-`project_demo` exposes the paired broker restart/reconciliation path. There is no
-separate preliminary recovery-report executable. See [verification](verification.md).
+The optional regression suite includes the abrupt-exit and corruption cases.
+`project_demo` exposes the paired broker restart/reconciliation path. Build and
+verification procedures are in the [runbook](running.md).
 
 ## Platform references
 

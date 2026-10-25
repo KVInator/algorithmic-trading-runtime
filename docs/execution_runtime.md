@@ -82,4 +82,3 @@ transitions. The [journal](journal_recovery.md) adds durable commit/replay and
 separate verified-prefix recovery. The [strategy integration](strategy_execution.md)
 connects authoritative research decisions and finite displayed-size matching.
 The [benchmark](runtime_benchmark.md) records copy, persistence and replay costs.
-Current portable/native acceptance is in [verification](verification.md).

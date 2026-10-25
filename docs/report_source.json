@@ -684,11 +684,11 @@
         },
         {
           "type": "code",
-          "text": "cmake --preset linux-release\ncmake --build --preset linux-release\nctest --preset linux-release --output-on-failure\nscratch/build-linux-release/project_demo\npython -B research/verify_project_demo.py scratch/runs/project_demo_0"
+          "text": "cmake --preset linux-release\ncmake --build --preset linux-release\nscratch/build-linux-release/project_demo\npython -B research/verify_project_demo.py scratch/runs/project_demo_0"
         },
         {
           "type": "paragraph",
-          "text": "In Visual Studio 2026, open the repository folder, select windows-x64 and windows-release, Build All, then use the windows-release test preset. Select project_demo.exe and Ctrl+F5. Everyday edits use windows-debug-quick or windows-release-quick. The full suite retains 29 routine contract groups; quick presets exclude four extended study/disk groups. Benchmark execution is a separate 120-row run, not the routine smoke fixture."
+          "text": "In Visual Studio 2026, select main, pull, choose windows-x64 and windows-release, and Build All. Run project_demo.exe with Ctrl+F5. Normal presets build applications without regression targets. Optional verification uses BUILD_TESTING=ON; CI enables all 29 routine contract groups. Four extended study/disk groups can be excluded for shorter local checks. The 120-row benchmark is a separate workload."
         },
         {
           "type": "code",
@@ -761,12 +761,12 @@
         {
           "type": "reference",
           "text": "[5] Frozen intraday momentum protocol revision 2, data policy and continuation protocol revision 1. Governing local definitions and prior-use declarations.",
-          "url": "https://github.com/KVInator/algorithmic-trading-runtime/tree/research/continuation-study/research"
+          "url": "https://github.com/KVInator/algorithmic-trading-runtime/tree/main/research"
         },
         {
           "type": "reference",
           "text": "[6] Frozen SPY-MR-01 and SPY-RISK-01 revision-1 protocols/settings. These records govern the exact implemented rules and failure screens.",
-          "url": "https://github.com/KVInator/algorithmic-trading-runtime/tree/research/continuation-study/research"
+          "url": "https://github.com/KVInator/algorithmic-trading-runtime/tree/main/research"
         },
         {
           "type": "reference",
@@ -781,7 +781,7 @@
         {
           "type": "reference",
           "text": "[9] Project source, operational contracts and curated evidence manifest. Exact source-document and native-output hashes accompany the publication.",
-          "url": "https://github.com/KVInator/algorithmic-trading-runtime/tree/research/continuation-study/docs/evidence"
+          "url": "https://github.com/KVInator/algorithmic-trading-runtime/tree/main/docs/evidence"
         },
         {
           "type": "reference",

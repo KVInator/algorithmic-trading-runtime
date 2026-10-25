@@ -1,11 +1,10 @@
 name: Offline C++ verification
 on:
   push:
-    branches: [master, research/continuation-study]
+    branches: [main]
     paths-ignore:
       - docs/**
       - README.md
-      - AGENTS.md
   workflow_dispatch:
 permissions:
   contents: read

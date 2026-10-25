@@ -93,4 +93,4 @@ messages; no native socket is required.
 accepted/rejected message shapes and precision boundaries. `project_demo` passes
 constructed peer messages through this same decoder and the schema-3 owner.
 Independent Decimal accounting and raw capture verification are part of the
-combined demo verifier. See [verification](verification.md).
+combined demo verifier.

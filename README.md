@@ -8,8 +8,7 @@ host**. Python provides independent numerical checks and publication rendering.
 
 **Read the [technical report (PDF)](docs/report.pdf) or download the
 [self-contained HTML report](docs/report.html)** for the full mathematics,
-results, assumptions and interactive saved-event replay. The
-[verification record](docs/verification.md) maps the completed roadmap to evidence.
+results, assumptions and interactive saved-event replay.
 
 ## Research findings
 
@@ -164,26 +163,26 @@ low-latency target, rotation or compaction is claimed.
 
 ## Build and reproduce
 
-Windows: Visual Studio 2026 with C++/CMake tools. Open the folder, select
-**windows-x64 / windows-release**, **Build All**, then run the **windows-release**
-test preset. Select **project_demo.exe** and press **Ctrl+F5**. Open its printed
-`report.html`. Everyday edits use the matching `-quick` test preset.
+Windows: Visual Studio 2026 with C++/CMake tools. Open the folder, select configure
+preset **windows-x64** and build preset **windows-release**, then **Build All**.
+Select **project_demo.exe** and press **Ctrl+F5**. Open its printed
+`report.html`. Normal presets build the applications without regression targets.
 
 Linux requires CMake 3.25+, a C++20 compiler and OpenSSL development headers:
 
 ```sh
 cmake --preset linux-release
 cmake --build --preset linux-release
-ctest --preset linux-release --output-on-failure
 scratch/build-linux-release/project_demo
 python -B research/verify_project_demo.py scratch/runs/project_demo_0
 ```
 
-Use the actual printed suffix. **29 routine contract groups** cover data,
-chronology, statistics, accounting and recovery. **25 quick groups** exclude four
-extended study/disk regressions. Windows/Linux CI performs clean Release builds
-and independent offline verification; Ubuntu additionally runs ASan/UBSan with
-leak detection. No performance threshold is imposed on shared CI hosts.
+Use the actual printed suffix. Optional regression verification is enabled with
+`BUILD_TESTING=ON`; its targets and configuration live under `tests/`.
+**29 routine contract groups** cover data, chronology, statistics, accounting and
+recovery. Windows/Linux CI enables that suite and independently verifies the demo;
+Ubuntu additionally runs ASan/UBSan with leak detection. No performance threshold
+is imposed on shared CI hosts. Optional verification commands are in the runbook.
 
 The [runbook](docs/running.md) covers execution measurements, benchmarks,
 historical acquisition/reproduction and rebuilding the publication. Independent
@@ -205,8 +204,7 @@ reproduction requires the retained private input evidence; the distributed
 
 The [architecture](docs/architecture.md) explains ownership and units.
 Generated builds, private data and full run directories stay under ignored
-`scratch/`. The final tree removes superseded launchers, report exporters,
-proposal comparisons and progress checklists; their history remains in Git.
+`scratch/`.
 
 The evidence is limited by one ETF, two inspected development years,
 finalized historical bars, assumed costs, long/cash scope, observation-model

@@ -116,7 +116,7 @@ rejection after fill and no cancellation request.
 
 ## Reproduction and evidence
 
-In Visual Studio, Build All, run `windows-debug-quick`, select
+In Visual Studio, Build All, select
 `execution_measurement.exe` and press Ctrl+F5. No credentials, data download or
 subscription is needed. The full 144-case experiment runs only in this executable;
 routine contracts use a small matched subset and analytical metric controls.

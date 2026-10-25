@@ -108,7 +108,6 @@ outcome uncertainty, parameter ranges and gates. Native account CSVs matched
 Linux; source differences were explained by recorded line endings. Numerical
 results and the governing protocol/settings retain their identities.
 
-The final [verification map](verification.md) records completion and the
-[technical report](report.pdf) places this result beside other designs and the
+The [technical report](report.pdf) places this result beside other designs and the
 execution/runtime evidence. No additional strategy search or later-period price
 access follows from the failed advancement assessment.

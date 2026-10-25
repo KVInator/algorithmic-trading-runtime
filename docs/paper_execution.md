@@ -101,5 +101,4 @@ intents. The final broker demonstration composes this owner with independent
 matching/account state and exposes raw messages beside saved client states.
 
 Run `project_demo` and `research/verify_project_demo.py` for the combined evidence.
-The earlier three-case standalone report exporter is retired; financial and
-persistence regressions remain. See [verification](verification.md).
+Financial and persistence regressions are available in the optional verification suite.

@@ -85,7 +85,7 @@ rejected without truncating evidence. Limits are 256 deadlines, 2,000 commands,
 
 ## Reproduction
 
-In Visual Studio, Build All, run `windows-debug-quick`, select
+In Visual Studio, Build All, select
 `project_demo.exe` and press Ctrl+F5. The printed directory contains a `broker/` child with:
 
 - `report.html`: position chart, expandable event chronology, cash/reservations,

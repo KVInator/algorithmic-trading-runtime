@@ -9,17 +9,14 @@ with project warnings as errors.
 
 Open the repository folder in Visual Studio 2026 with C++/CMake tools and a Windows
 SDK. Select `windows-x64` and `windows-release`, then **Build > Build All**.
-Choose **Test > Run Test Preset > windows-release** for all 29 routine groups.
 Select **project_demo.exe**, then **Ctrl+F5**, and open its printed HTML report.
 
-Everyday changes use `windows-debug` and **windows-debug-quick**, or the matching
-Release quick preset. Quick presets run 25 groups, excluding four `extended`
-study/disk groups. Changes to dataset/batch/risk code also require the affected
-extended group; use the full preset at checkpoints. `windows-debug-full`
-additionally includes the optional full-period synthetic disk integration test.
+Normal presets build applications without regression executables. `windows-debug`
+is available for debugging; `windows-release` supplies optimized measurements.
 A first Release build compiles its own configuration under `scratch/build/Release`.
 
-**Git > Pull** updates the existing tracking branch. Reconfiguration refreshes
+Select **main** in Visual Studio's branch selector, then **Git > Pull**.
+Reconfiguration refreshes
 supported targets. Private datasets and previous run directories remain local.
 
 ## Linux
@@ -29,12 +26,10 @@ Requirements: CMake 3.25+, a C++20 compiler, Make and OpenSSL development librar
 ```sh
 cmake --preset linux-release
 cmake --build --preset linux-release
-ctest --preset linux-release --output-on-failure
 scratch/build-linux-release/project_demo
 python -B research/verify_project_demo.py scratch/runs/project_demo_0
 ```
 
-`linux-debug` and `linux-release` each have full and `-quick` test presets.
 Use the actual printed output suffix. The full 144-case execution grid and
 120-row benchmark are separate runnable workloads, not repeated by every edit:
 
@@ -44,6 +39,23 @@ python -B research/verify_execution_measurement.py <printed-directory>
 scratch/build-linux-release/runtime_benchmark
 python -B research/verify_runtime_benchmark.py <printed-directory>
 ```
+
+## Optional regression verification
+
+`tests/` contains the financial, chronology, storage and recovery regressions.
+Its CMake configuration is loaded only with `BUILD_TESTING=ON`; normal application
+presets set it to `OFF`. CI enables and runs all 29 routine groups automatically.
+For a local Linux verification build:
+
+```sh
+cmake --preset linux-release -DBUILD_TESTING=ON
+cmake --build --preset linux-release
+ctest --test-dir scratch/build-linux-release -LE integration --output-on-failure
+```
+
+Excluding `integration|extended` instead selects the 25 shorter groups. The
+integration-labelled full-period synthetic disk case is separate. Reapplying the
+normal configure preset restores the application-only configuration.
 
 ## Supported entry points
 
@@ -100,8 +112,8 @@ links, embedded-view controls and static asset boundaries without private data.
 
 ## CI
 
-`.github/workflows/offline-ci.yml` runs on code/research/workflow pushes to the
-working/default branches or manual dispatch. Standard Windows/Linux Release
+`.github/workflows/offline-ci.yml` runs on code/research/workflow pushes to
+`main` or manual dispatch. Standard Windows/Linux Release
 jobs build the full project, run routine contracts and independently verify the
 offline demo and small benchmark export. Ubuntu ASan/UBSan covers execution and
 recovery with leak detection. General documentation-only edits are skipped;

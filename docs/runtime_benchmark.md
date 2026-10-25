@@ -105,12 +105,10 @@ automatic resend follows from local once-only accounting.
 
 ## Reproduction and artifacts
 
-In Visual Studio, pull the task branch, select **windows-release**, **Build All**,
-then **Test > Run Test Preset > windows-release-quick**. Select
+In Visual Studio, select **main**, pull, select **windows-release** and **Build All**. Select
 **runtime_benchmark.exe** and use **Ctrl+F5**. Confirm the console says `Release`
 and 120 rows. Retain the complete printed directory; timings vary across hosts.
-For milestone regression use the full **windows-release** test preset once.
-The quick benchmark contract uses two round trips and eight modes, rather than
+The optional benchmark contract uses two round trips and eight modes, rather than
 running the full performance grid on every edit. No data or credentials are needed.
 
 Linux:
@@ -118,7 +116,6 @@ Linux:
 ```sh
 cmake --preset linux-release
 cmake --build --preset linux-release
-ctest --preset linux-release --output-on-failure
 scratch/build-linux-release/runtime_benchmark
 python -B research/verify_runtime_benchmark.py scratch/runs/runtime_benchmark_0
 ```
@@ -136,10 +133,9 @@ time or OS memory observations.
 
 ## Offline CI
 
-`.github/workflows/offline-ci.yml` runs on pushes to `master` and
-`research/continuation-study`, or manual dispatch. Standard `ubuntu-24.04` and
+`.github/workflows/offline-ci.yml` runs on pushes to `main`, or manual dispatch. Standard `ubuntu-24.04` and
 `windows-2025` runners build Release with warnings as errors. General documentation-
-only pushes under `docs/`, `README.md` and `AGENTS.md` are skipped; research
+only pushes under `docs/` and `README.md` are skipped; research
 protocols are outside that exclusion. The jobs run the full offline
 routine contracts, then create and independently verify a constructed strategy/broker
 demo from the clean checkout. The small benchmark contract's exported evidence

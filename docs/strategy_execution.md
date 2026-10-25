@@ -52,5 +52,5 @@ reconciled at the end; any unfilled inventory remains visible.
 The original native reference replay passes 296 assertions in twenty-two cases.
 This verifies adapters, causal boundaries and account state on one chosen date,
 not historical execution quality or another strategy performance evaluation.
-The final [verification map](verification.md) separates those claims from the
-registered research and synthetic measurements.
+The [technical report](report.pdf) distinguishes this adapter evidence from
+registered research and synthetic execution measurements.

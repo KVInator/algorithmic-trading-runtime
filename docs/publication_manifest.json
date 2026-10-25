@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "renderer": "research/build_report.py",
-  "demo_summary_sha256": "81d387d10b3ff731660a997c497092946a879a352001b14bc0fab620b536c303",
+  "demo_summary_sha256": "d0b1d1a56981ba23183597e000eedc4e811f8d5e1e0f39f835a93754cc8be4cb",
   "artifacts": [
     {
       "path": "research/build_report.py",
@@ -13,7 +13,7 @@
     },
     {
       "path": "docs/report_source.json",
-      "sha256": "19da83510b8134fb250c7439b998b9b0ab236f7631505b062b1284e52b29e566"
+      "sha256": "3ea9f5817d20482313db481366895cc1557817066573e3508cce16dd4d94a849"
     },
     {
       "path": "docs/evidence/manifest.json",
@@ -21,11 +21,11 @@
     },
     {
       "path": "docs/report.html",
-      "sha256": "13ead4d1f193407ed80ea445b21eccc869296eb513f3f8e381cf8d3cb103446d"
+      "sha256": "38eefc20f9b7b8a66ac359dbe4721ea15937e2d875cc0c77309d237a30252117"
     },
     {
       "path": "docs/report.pdf",
-      "sha256": "9a47781e7adb5425c5da549aed76c9001098c1f1fa7d6016df353ec4026abff5"
+      "sha256": "3cadd4723c1f801efb517d76a83094fbdd2273390854a42e6217b1483d767460"
     },
     {
       "path": "docs/figures/broker_lifecycle.svg",

@@ -62,11 +62,6 @@ The builder's medians, unit conversions and figures are display transformations,
 not another research/accounting implementation. Full run directories, build trees
 and private observations remain under ignored `scratch/`.
 
-Retired standalone probes, preliminary report exporters and proposal/checklist
-files are preserved in Git history. Scientific controls and failure regressions
-remain when they protect the final supported models and runtime. Verification and
-roadmap acceptance are recorded in [the final evidence map](verification.md).
-
 Six scenario/control generators used only by regressions live in `tests/support/`
 and are compiled only into their consuming test targets. Production libraries
 retain the final runtime, broker, research and public-demo responsibilities.
