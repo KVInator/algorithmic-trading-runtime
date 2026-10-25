@@ -5,8 +5,7 @@ system preserves market-data evidence, evaluates specified trading rules and
 connects causal strategy decisions to a journaled order runtime and deterministic
 broker simulator.
 
-The project is in progress. Simulated execution measurements, performance
-benchmarks and the final analytical report are tracked in
+The project is in progress. Implementation benchmarks, portable CI and the final analytical report are tracked in
 the [completion plan](docs/completion_plan.md) and [milestone ledger](docs/progress.md).
 Historical research retains Alpaca as its data source. The broker demonstration
 runs offline without credentials, subscriptions or purchases.
@@ -66,7 +65,7 @@ requires access to that dependency. Project warnings are treated as errors.
 2. Select configure preset **windows-x64** and build preset **windows-debug**.
 3. Select **Build > Build All**.
 4. For everyday edits, run **Test > Run Test Preset > windows-debug-quick**
-   (twenty-four groups). Use **windows-debug** for all twenty-eight groups at milestones
+   (twenty-five groups). Use **windows-debug** for all twenty-nine groups at milestones
    and affected extended groups when changing study/storage code.
 5. Select **execution_measurement.exe** and press **Ctrl+F5** for an offline example
    requiring neither market data nor credentials.
@@ -102,7 +101,9 @@ Expensive acquisition evidence is retained locally outside source distribution.
 The routine suite uses constructed observations, including full-calendar study
 fixtures and crash/recovery cases. Historical reproduction additionally requires
 the retained acquisition datasets. Broker integration uses an offline protocol
-peer and does not establish external service connectivity. GitHub CI is not configured yet.
+peer and does not establish external service connectivity. The offline GitHub workflow builds Release on Linux and Windows, runs the routine
+contracts and independently verifies a constructed demo. A separate Ubuntu job
+checks ASan/UBSan. See [benchmark and CI procedures](docs/runtime_benchmark.md).
 
 The frozen intraday sample contains 496 complete sessions and 193,440 bars. Its
 [data policy](research/development_data_policy.json) preserves all five excluded

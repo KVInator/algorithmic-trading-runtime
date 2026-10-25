@@ -10,7 +10,7 @@ Completion follows acceptance evidence, not test counts or strategy profitabilit
 | 3. Strategy/execution integration | Complete | Preserve adapters and historical reference-price distinctions |
 | 4. Simulated broker protocol | Complete | Native diagnostic independently verified; Windows build and tests reported successful |
 | 5. Simulated execution measurements | Complete | Native archive independently verified; Windows build and tests reported successful |
-| 6. Implementation benchmarks and CI | Open | Release workloads, latency/throughput/recovery measurements, portable CI and sanitizer evidence |
+| 6. Implementation benchmarks and CI | In progress | Release benchmark implemented and Linux verified; hosted CI and native Release measurements pending |
 | 7. Unified technical report | Open | Standalone HTML/PDF, integrated figures, curated evidence and final repository presentation |
 
 ## Retained research findings
@@ -178,6 +178,47 @@ The runner now flushes a start message, account progress every sixteen cases and
 a report-writing message. Progress callbacks do not change calculations or saved
 case results; contracts compare runs with and without an observer.
 
-Milestones 1-5 are complete. Remaining scope is measured
-Release performance/resource limits and portable CI, then the integrated HTML/PDF
-report and final repository presentation.
+Milestones 1-5 are complete. Milestone-6 implementation and verification follow.
+The integrated HTML/PDF report and final repository presentation remain milestone 7.
+
+## Implementation benchmark checkpoint, 25 October 2026
+
+`RuntimeBenchmark` composes typed/core and schema-3 paper inputs with the existing
+owners and platform storage. Three sizes, five fresh-state repetitions and eight
+modes produce 120 Release rows. Every accepted row passes the analytical
+round-trip balance, terminal-order and duplicate/recovery checks. The independent
+verifier checks all 100 artifact hashes, fifteen complete mode groups, raw
+quantiles/rates, nested append timings, journals and CSV arithmetic. Recomputed-
+hash forgeries of a quantile, final cash and recovery gate are rejected.
+
+The first Linux Release run uses GCC 12.2.0, an OS-reported AMD EPYC 9V74 and nine
+logical processors in this hosted environment. At 128 round trips:
+
+| Mode | Median trial p50 | Trial p50 range | Median timed-call rate |
+| --- | ---: | ---: | ---: |
+| Core | 24.818 us | 23.105-38.248 us | 34,471 inputs/s |
+| Additional candidate copy | 97.787 us | 87.643-103.306 us | 9,577 inputs/s |
+| Schema-2 volatile journal | 110.517 us | 104.317-113.732 us | 8,740 inputs/s |
+| Schema-2 synchronized journal | 421.287 us | 343.199-479.530 us | 2,298 inputs/s |
+| Schema-3 volatile paper journal | 1.282 ms | 1.220-1.358 ms | 793 inputs/s |
+| Schema-3 synchronized paper journal | 1.682 ms | 1.600-1.805 ms | 584 inputs/s |
+| Schema-2 warm recovery | 51.745 ms | 50.219-54.156 ms | 19.3 recoveries/s |
+| Schema-3 warm recovery | 1.167 s | 1.054-1.233 s | 0.86 recoveries/s |
+
+Typed/paper synchronized journals occupy 650,192/976,805 bytes before recovery,
+with largest frames 752/1,294 bytes. The process-wide peak observed across this
+run is 15.918 MiB; it is not an isolated runtime allocation measurement. Clock
+probe p50/p99 is 20/31 ns. Raw timings, environment and build/source identities
+remain in `scratch/runs/runtime_benchmark_0/`. Copying and schema-3 state handling
+have visible costs; no low-latency claim, cap-scale extrapolation or optimization
+is made. The [benchmark contract](runtime_benchmark.md) defines exact boundaries,
+resource limits, once-only accounting conditions and external dispatch ambiguity.
+
+Linux Debug passes all 29 routine groups in 24.82 seconds and 25 quick groups in
+6.69 seconds. Six affected ASan/UBSan groups pass in 7.58 seconds with local leak
+detection disabled under the existing process-inspection restriction. Five
+Windows-target syntax checks pass. Two SVG figures parse and render correctly.
+The Release full suite passes all 29 groups in 6.53 seconds. Repository hygiene
+and diff checks pass. Clean-checkout hosted workflow outcomes remain pending;
+configuration alone does not establish passing CI. Native workstation Release benchmark evidence
+remains an explicit checkpoint.

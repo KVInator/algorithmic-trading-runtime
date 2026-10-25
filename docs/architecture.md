@@ -90,3 +90,15 @@ validation. Advancing the simulator clock does not refresh quote liquidity.
 inspection. The independent verifier checks matching, costs, raw timing evidence
 and journals. No signal engine or historical result is changed. Conventions are
 specified in [the measurement contract](execution_measurement.md).
+
+## Implementation benchmarks
+
+`RuntimeBenchmark` composes prebuilt typed inputs and raw synthetic paper messages
+with the existing core, journal owners and platform storage. Its private trial
+owner measures direct calls, candidate copying, volatile/synchronized journals and
+recovery without changing runtime transitions. `LatencyDistribution` summarizes
+retained steady-clock samples. Small platform functions expose OS-reported process
+memory and public CPU descriptors. `RuntimeBenchmarkReport` borrows the resulting
+records; it never replays the financial model. The independent verifier reconstructs
+the analytical round trips and saved journals. See [the benchmark contract](runtime_benchmark.md)
+for timing boundaries, limitations and the offline CI jobs.

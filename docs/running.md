@@ -9,11 +9,11 @@ working directory. Each diagnostic or study writes a new directory under
 On Windows, open the repository folder in Visual Studio 2026. Select
 `windows-x64` and `windows-debug`, then **Build > Build All** and
 **Test > Run Test Preset > windows-debug-quick** for everyday edits. Select an
-executable and use **Ctrl+F5**. The quick preset runs twenty-four groups. Use
-**windows-debug** for the complete twenty-eight-group routine suite at milestones.
+executable and use **Ctrl+F5**. The quick preset runs twenty-five groups. Use
+**windows-debug** for the complete twenty-nine-group routine suite at milestones.
 
 `windows-release` builds optimized targets under `scratch/build/Release/` and
-has a matching twenty-eight-group test preset. Financial/artifact validation stays
+has a matching twenty-nine-group test preset. Financial/artifact validation stays
 enabled. `windows-debug-full` additionally runs the optional 497-session
 synthetic disk integration test.
 
@@ -34,10 +34,10 @@ A focused check can select existing groups without changing the full preset:
 ctest --preset linux-debug -R '(intraday_reversion|offline_pipeline)_contracts' --output-on-failure
 ```
 
-Quick presets exist for `windows-debug`, `windows-release` and `linux-debug` as
-`windows-debug-quick`, `windows-release-quick` and `linux-debug-quick`. Each inherits
+Quick presets exist for `windows-debug`, `windows-release`, `linux-debug` and
+`linux-release`, each with a `-quick` suffix. Each inherits
 its existing full preset and excludes `integration` and `extended` labels. Full
-presets retain all twenty-eight routine groups; no test is shortened or removed.
+presets retain all twenty-nine routine groups; no test is shortened or removed.
 
 | Extended group excluded from quick runs | MSVC Debug time supplied on 24 October 2026 |
 | --- | ---: |
@@ -69,6 +69,10 @@ synthetic accounting
 and file/reload workloads; its elapsed time is not a core-event latency benchmark.
 Windows HTTP and Credential Manager adapters are not built on Linux.
 
+`linux-release` supplies matching configure/build/full and quick test presets under
+`scratch/build-linux-release/`. See [runtime benchmarks and CI](runtime_benchmark.md)
+for the Release performance run, timing boundaries and offline workflow jobs.
+
 Visual Studio **Git > Pull** updates the checked-out tracking branch, currently
 `research/continuation-study`. **Git > Fetch** retrieves unavailable remote
 branches. Local datasets remain in place.
@@ -77,6 +81,7 @@ branches. Local datasets remain in place.
 
 | Target | Expected evidence |
 | --- | --- |
+| `runtime_benchmark` | 120 Release trial rows across direct/candidate-copy, volatile/synchronized journal and restart modes; latency, throughput, resource and parity evidence; zero network requests |
 | `execution_measurement` | 144 synthetic account cases, 108 paired comparisons, exact cost decomposition, source/receipt timing, censoring and quote/fill visuals; zero network requests |
 | `paper_broker_diagnostic` | Six synthetic broker cases: partial/full fills, cancellation races, duplicate delivery, uncertain response, paired restart, exact reconciliation and durable deadline/stop; zero network requests |
 | `paper_execution_diagnostic` | 42 assertions, three schema-3 journals, exact subcent cash, identities, partial fills, cancellation/restart and quarantine; zero network requests |
