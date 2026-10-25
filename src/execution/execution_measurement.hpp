@@ -1,5 +1,6 @@
 #pragma once
 #include "simulated_paper_wire.hpp"
+#include <functional>
 
 namespace trading::execution {
 struct ExecutionFillObservation {
@@ -59,10 +60,12 @@ struct ExecutionMeasurementResult {
 };
 class ExecutionMeasurementStudy {
   public:
+    using Progress = std::function<void(std::size_t completed, std::size_t total)>;
     [[nodiscard]] static std::vector<ExecutionWorkload> workloads();
     [[nodiscard]] static std::vector<ExecutionPolicy> policies();
     [[nodiscard]] ExecutionMeasurementResult run(const std::filesystem::path &directory,
                                                  const std::vector<ExecutionWorkload> &workloads,
-                                                 const std::vector<ExecutionPolicy> &policies) const;
+                                                 const std::vector<ExecutionPolicy> &policies,
+                                                 const Progress &progress = {}) const;
 };
 } // namespace trading::execution

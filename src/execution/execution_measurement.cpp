@@ -433,10 +433,10 @@ std::vector<ExecutionPolicy> ExecutionMeasurementStudy::policies() {
     return {
         {"cross_5s", true, 5}, {"cross_11s", true, 11}, {"passive_5s", false, 5}, {"passive_11s", false, 11}};
 }
-ExecutionMeasurementResult
-ExecutionMeasurementStudy::run(const std::filesystem::path &directory,
-                               const std::vector<ExecutionWorkload> &workloads,
-                               const std::vector<ExecutionPolicy> &policies) const {
+ExecutionMeasurementResult ExecutionMeasurementStudy::run(const std::filesystem::path &directory,
+                                                          const std::vector<ExecutionWorkload> &workloads,
+                                                          const std::vector<ExecutionPolicy> &policies,
+                                                          const Progress &progress) const {
     require(!workloads.empty() && workloads.size() <= 36 && policies.size() == 4,
             "measurement study requires 1-36 workloads and four policies");
     std::set<std::string> workload_ids, policy_ids;
@@ -456,6 +456,9 @@ ExecutionMeasurementStudy::run(const std::filesystem::path &directory,
         require(std::find(defined_policies.begin(), defined_policies.end(), p) != defined_policies.end(),
                 "policy label differs from its declared rule");
     ExecutionMeasurementResult result;
+    const auto total = workloads.size() * policies.size();
+    if (progress)
+        progress(0, total);
     for (const auto &w : workloads) {
         Json cell = Json::array();
         for (const auto &p : policies) {
@@ -463,6 +466,8 @@ ExecutionMeasurementStudy::run(const std::filesystem::path &directory,
             cell.push_back(c);
             result.cases.push_back(std::move(c));
         }
+        if (progress)
+            progress(result.cases.size(), total);
         const auto baseline = std::find_if(
             cell.begin(), cell.end(), [](const auto &c) { return c.at("policy").at("id") == "cross_11s"; });
         for (const auto &c : cell)

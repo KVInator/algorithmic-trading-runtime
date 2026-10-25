@@ -119,7 +119,9 @@ been retired; no subscription-dependent run is part of milestone 4.
 
 Run **execution_measurement.exe** with Ctrl+F5 after Build All and
 `windows-debug-quick`. Expected: 144 cases, 108 paired comparisons and zero
-network requests. Open the printed `report.html`, then retain the complete folder.
+network requests. The console prints a start message, progress every sixteen
+cases and a report-writing message. Open the printed `report.html`, then retain
+the complete folder.
 
 ```sh
 python -B research/verify_execution_measurement.py <printed-report-directory>

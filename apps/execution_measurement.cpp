@@ -4,11 +4,18 @@
 
 int main() {
     try {
+        std::cout << "Execution measurement | matched synthetic limit and cancellation policies starting"
+                  << std::endl;
         const auto directory = trading::create_unique_directory(
             std::filesystem::path{TRADING_PROJECT_ROOT} / "scratch/runs", "execution_measurement");
         const auto result = trading::execution::ExecutionMeasurementStudy{}.run(
             directory, trading::execution::ExecutionMeasurementStudy::workloads(),
-            trading::execution::ExecutionMeasurementStudy::policies());
+            trading::execution::ExecutionMeasurementStudy::policies(),
+            [](std::size_t completed, std::size_t total) {
+                if (completed % 16 == 0 || completed == total)
+                    std::cout << "Replaying account cases: " << completed << '/' << total << std::endl;
+            });
+        std::cout << "Writing figures, metrics and artifact manifest" << std::endl;
         trading::ExecutionMeasurementReport{result}.write(directory);
         std::cout
             << "Execution measurement | matched synthetic limit and cancellation policies\nAccount cases: "

@@ -9,7 +9,7 @@ Completion follows acceptance evidence, not test counts or strategy profitabilit
 | 2. Strategy research | Complete | Preserve registered findings and unopened later-period performance |
 | 3. Strategy/execution integration | Complete | Preserve adapters and historical reference-price distinctions |
 | 4. Simulated broker protocol | Complete | Native diagnostic independently verified; Windows build and tests reported successful |
-| 5. Simulated execution measurements | Implemented; Linux verification complete | Native Windows build, quick tests and `execution_measurement` archive |
+| 5. Simulated execution measurements | Complete | Native archive independently verified; Windows build and tests reported successful |
 | 6. Implementation benchmarks and CI | Open | Release workloads, latency/throughput/recovery measurements, portable CI and sanitizer evidence |
 | 7. Unified technical report | Open | Standalone HTML/PDF, integrated figures, curated evidence and final repository presentation |
 
@@ -108,9 +108,8 @@ remain retained. The accepted diagnostic need not be repeated unless its
 implementation changes.
 
 Milestone 4 is complete under the revised offline scope.
-Next: native acceptance of milestone 5, followed by milestone 6 benchmarks/CI
-and milestone 7 report/presentation. No additional strategy search or
-service-access investigation is needed.
+Milestone 5 evidence follows below. No additional strategy search or service-
+access investigation is needed.
 
 ## Execution measurement checkpoint, 25 October 2026
 
@@ -162,10 +161,23 @@ Linux Debug builds with warnings as errors. All 28 routine groups pass in
 22.71 seconds and all 24 quick groups in 6.03 seconds in this environment.
 Affected ASan/UBSan groups and six Windows-target syntax checks pass. Independent
 checks also reject forged censoring intervals and opportunity-cost values.
-Repository hygiene and diff checks pass. Leak detection remains unavailable in this environment. Actual
-native acceptance remains pending: Build All, `windows-debug-quick`, then
-`execution_measurement.exe` with Ctrl+F5 and retain the printed directory.
+Repository hygiene and diff checks pass. Leak detection remains unavailable in
+this environment.
 
-After native acceptance, milestones 1-5 are complete. Remaining scope is measured
+The uploaded MSVC 19.51.36260.0 Debug `execution_measurement_0` archive for
+`e2062a1` passes the full independent verifier. All 6,294 artifact hashes and all
+matching, ledger, timing, censoring and sensitivity checks pass. Of its artifacts,
+6,293 are byte-identical to the Linux run; only the source inventory differs.
+Its 222 records contain 218 exact source matches and four explained CRLF
+variants, without unexplained differences. The Windows build and tests were
+reported successful. Native summary SHA-256:
+`7c0a07c2f8bf6bf719d1d3c8f73c4683f34b47a1ee7250027a318574951368aa`.
+Verification evidence remains under `scratch/verification/native-measurement-20261025/`.
+
+The runner now flushes a start message, account progress every sixteen cases and
+a report-writing message. Progress callbacks do not change calculations or saved
+case results; contracts compare runs with and without an observer.
+
+Milestones 1-5 are complete. Remaining scope is measured
 Release performance/resource limits and portable CI, then the integrated HTML/PDF
 report and final repository presentation.

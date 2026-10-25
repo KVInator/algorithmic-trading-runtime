@@ -107,8 +107,19 @@ int main(int argc, char **argv) {
         const auto root = trading::create_unique_directory(argv[1], "execution-measurement");
         const auto all = ExecutionMeasurementStudy::workloads();
         const std::vector<ExecutionWorkload> selected{all.at(0), all.at(3), all.at(12), all.at(18)};
-        const auto a =
-            ExecutionMeasurementStudy{}.run(root / "first", selected, ExecutionMeasurementStudy::policies());
+        std::size_t observed = 0;
+        bool started = false;
+        const auto a = ExecutionMeasurementStudy{}.run(
+            root / "first", selected, ExecutionMeasurementStudy::policies(),
+            [&](std::size_t completed, std::size_t total) {
+                require(total == 16 && completed <= total && completed >= observed,
+                        "progress must report bounded nondecreasing completion");
+                if (!started)
+                    require(completed == 0, "progress starts before account replay");
+                started = true;
+                observed = completed;
+            });
+        require(started && observed == 16, "progress must report completed replay");
         const auto b =
             ExecutionMeasurementStudy{}.run(root / "second", selected, ExecutionMeasurementStudy::policies());
         require(a.cases.size() == 16 && a.comparisons.size() == 12 && a.cases == b.cases &&
