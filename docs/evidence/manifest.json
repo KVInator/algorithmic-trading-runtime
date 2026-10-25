@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "curation_source_commit": "5b6c1c1de9fdb198f3feae94cf3c02308e819e69",
   "method": "Selected recorded summary statistics and synthetic saved-state fields; no historical strategy recalculation. CSV timing rows are copied verbatim. Broker nanodollars are divided by 1e9 only for display. Original study daily paths are not redistributed or reconstructed.",
   "historical_sources": [
@@ -64,5 +64,6 @@
       "path": "runtime_windows.csv",
       "sha256": "6497ab40316bf2dcccd74ce339099cf75571230aac0c25e1ee988a639752337c"
     }
-  ]
+  ],
+  "text_hash_encoding": "utf-8-lf"
 }

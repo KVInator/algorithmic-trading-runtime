@@ -69,9 +69,10 @@ These are process-wide sequential observations, including fixtures, evidence and
 allocator retention; they do not isolate per-case allocations or transient copies.
 Unavailable readings remain null. The report retains OS, CPU descriptor, logical
 processor count, compiler, build configuration and source inventory.
-The manifest/evidence also retain common and configuration-specific CMake C++
-flags, the C++20 standard and the warnings-as-errors setting. Target warning
-options remain specified by the retained root CMake source. Compiler/linker
+The manifest/evidence also retain common and configuration-specific compiler
+flags, the C++20 standard and the warnings-as-errors setting. Warning
+options for new builds are specified by `build.py`; archived runs retain their
+original settings. Compiler/linker
 defaults and externally injected launcher/environment options are not a captured
 toolchain image.
 
@@ -105,18 +106,16 @@ automatic resend follows from local once-only accounting.
 
 ## Reproduction and artifacts
 
-In Visual Studio, select **main**, pull, select **windows-release** and **Build All**. Select
-**runtime_benchmark.exe** and use **Ctrl+F5**. Confirm the console says `Release`
-and 120 rows. Retain the complete printed directory; timings vary across hosts.
-The optional benchmark contract uses two round trips and eight modes, rather than
-running the full performance grid on every edit. No data or credentials are needed.
+Open `Runtime.sln` in Visual Studio, select **Release | x64** and **Build
+Solution**. Launch `scratch/native/Release/runtime_benchmark.exe`, or select it
+in the project's **Debugging > Command** property and press **Ctrl+F5**. Confirm
+the console says `Release` and 120 rows. No data or credentials are needed.
 
 Linux:
 
 ```sh
-cmake --preset linux-release
-cmake --build --preset linux-release
-scratch/build-linux-release/runtime_benchmark
+python -B build.py --configuration Release --target runtime_benchmark
+scratch/native/Release/runtime_benchmark
 python -B research/verify_runtime_benchmark.py scratch/runs/runtime_benchmark_0
 ```
 
@@ -131,26 +130,9 @@ duplicates, terminal order parity, recovery closure, distributions/rates, nested
 append timings and CSV agreement. It cannot independently reproduce elapsed
 time or OS memory observations.
 
-## Offline CI
+The complete benchmark is an explicit local workload. Its verifier checks saved
+financial and artifact invariants; elapsed-time values vary with the host and
+are not a pass/fail speed threshold.
 
-`.github/workflows/offline-ci.yml` runs on pushes to `main`, or manual dispatch. Standard `ubuntu-24.04` and
-`windows-2025` runners build Release with warnings as errors. General documentation-
-only pushes under `docs/` and `README.md` are skipped; research
-protocols are outside that exclusion. The jobs run the full offline
-routine contracts, then create and independently verify a constructed strategy/broker
-demo from the clean checkout. The small benchmark contract's exported evidence
-also receives independent verification. No private dataset or Alpaca secret is supplied.
-An Ubuntu ASan/UBSan job covers the order, journal, exact paper, simulated broker,
-measurement and benchmark contract groups. It enables leak detection on the hosted
-runner. Integration-labelled full-period disk runs stay separate.
-
-nlohmann/json 3.12.0 remains pinned by archive SHA-256. Actions are pinned to full
-commit identities using Node 24, with read-only workflow permissions. Superseded runs on the
-same branch are canceled. Test logs are retained for three days. No benchmark
-speed threshold runs in CI: shared-host timing is unsuitable for such a gate.
-Hosted-runner availability and the account's included quota remain external
-constraints; this workflow adds no paid runner, service or subscription.
-
-References: [GitHub workflow security](https://docs.github.com/en/actions/reference/security/secure-use),
-[steady clock](https://en.cppreference.com/w/cpp/chrono/steady_clock),
+References: [steady clock](https://en.cppreference.com/w/cpp/chrono/steady_clock),
 [Microsoft process memory counters](https://learn.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-process_memory_counters).

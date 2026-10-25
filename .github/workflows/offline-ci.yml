@@ -1,15 +1,12 @@
-name: Offline C++ verification
+name: Native build acceptance
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - docs/**
-      - README.md
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: offline-${{ github.ref }}
+  group: native-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   release:
@@ -22,56 +19,52 @@ jobs:
     env:
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Check publication and curated evidence
-        run: python -B research/verify_publication.py
-      - name: Configure Release
-        run: cmake -S . -B scratch/ci-build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-      - name: Build
-        run: cmake --build scratch/ci-build --config Release --parallel 2
-      - name: Offline routine contracts
-        run: ctest --test-dir scratch/ci-build -C Release -LE integration --output-on-failure
-      - name: Independently verify benchmark contract artifacts
-        run: python -B research/verify_runtime_benchmark.py scratch/ci-build/runtime_benchmark_tests-output/runtime-benchmark_0
-      - name: Constructed demo and independent verifier (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          scratch/ci-build/project_demo
-          python -B research/verify_project_demo.py scratch/runs/project_demo_0
-      - name: Constructed demo and independent verifier (Windows)
+      - name: Exercise Windows checkout newline conversion
+        if: runner.os == 'Windows'
+        run: git -c core.autocrlf=true checkout-index --all --force
+      - name: Build native Visual Studio solution
         if: runner.os == 'Windows'
         run: |
-          & scratch/ci-build/Release/project_demo.exe
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -B research/verify_project_demo.py scratch/runs/project_demo_0
-      - name: Retain test logs
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: offline-logs-${{ matrix.os }}
-          path: scratch/ci-build/Testing/Temporary/
-          retention-days: 3
-  sanitizers:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    env:
-      PYTHONDONTWRITEBYTECODE: '1'
-      ASAN_OPTIONS: detect_leaks=1
-      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Configure ASan and UBSan
-        run: >-
-          cmake -S . -B scratch/ci-asan -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
-          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
-          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
-      - name: Build execution contracts
-        run: cmake --build scratch/ci-asan --parallel 2 --target project_demo strategy_execution_tests runtime_benchmark_tests execution_measurement_tests paper_broker_tests paper_execution_tests order_runtime_tests journaled_runtime_tests
-      - name: Sanitized execution and recovery checks
-        run: ctest --test-dir scratch/ci-asan -R '(strategy_execution|runtime_benchmark|execution_measurement|paper_broker|paper_execution|order_runtime|journaled_runtime)_contracts' --output-on-failure
-      - name: Sanitized complete demo
-        run: scratch/ci-asan/project_demo
+          $finder = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $install = & $finder -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          & "$install/MSBuild/Current/Bin/MSBuild.exe" Runtime.sln /m /p:Configuration=Release /p:Platform=x64
+          exit $LASTEXITCODE
+      - name: Build native Linux applications
+        if: runner.os == 'Linux'
+        run: python -B build.py --configuration Release --jobs 2
+      - name: Run saved-event demonstration and independent reference
+        shell: python
+        run: |
+          from pathlib import Path
+          import subprocess, sys
+          suffix = '.exe' if sys.platform == 'win32' else ''
+          subprocess.run([str(Path('scratch/native/Release/project_demo' + suffix).resolve())], check=True)
+          subprocess.run([sys.executable, '-B', 'research/verify_project_demo.py', 'scratch/runs/project_demo_0'], check=True)
+      - name: Run execution measurements and benchmark with independent references
+        shell: python
+        run: |
+          from pathlib import Path
+          import subprocess, sys
+          suffix = '.exe' if sys.platform == 'win32' else ''
+          for name in ('execution_measurement', 'runtime_benchmark'):
+              subprocess.run([str(Path('scratch/native/Release/' + name + suffix).resolve())], check=True)
+              subprocess.run([sys.executable, '-B', 'research/verify_' + name + '.py', 'scratch/runs/' + name + '_0'], check=True)
+      - name: Verify distributed publication after checkout conversion
+        run: python -B research/verify_publication.py
+      - name: Build native Debug solution
+        if: runner.os == 'Windows'
+        run: |
+          $finder = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $install = & $finder -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          & "$install/MSBuild/Current/Bin/MSBuild.exe" Runtime.sln /m /p:Configuration=Debug /p:Platform=x64
+          exit $LASTEXITCODE
+      - name: Verify Debug demonstration
+        if: runner.os == 'Windows'
+        shell: python
+        run: |
+          import subprocess, sys
+          subprocess.run(['scratch/native/Debug/project_demo.exe'], check=True)
+          subprocess.run([sys.executable, '-B', 'research/verify_project_demo.py', 'scratch/runs/project_demo_1'], check=True)

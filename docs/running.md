@@ -2,60 +2,70 @@
 
 Paths are anchored to the source root. Runnable studies and demos create a new
 `scratch/runs/<name>_<suffix>/` directory and preserve earlier outputs. Initial
-configuration downloads nlohmann/json 3.12.0 with a pinned SHA-256. Builds are C++20
+builds acquire nlohmann/json 3.12.0 with a pinned archive SHA-256. Builds use C++20
 with project warnings as errors.
 
 ## Windows
 
-Open the repository folder in Visual Studio 2026 with C++/CMake tools and a Windows
-SDK. Select `windows-x64` and `windows-release`, then **Build > Build All**.
-Select **project_demo.exe**, then **Ctrl+F5**, and open its printed HTML report.
+Install Visual Studio 2022 or 2026 with **Desktop development with C++**, a Windows
+SDK and Python 3.10+ with its `py` launcher. Pull `main`, then open **Runtime.sln**.
+Select **Release | x64** and **Build > Build Solution**. **Ctrl+F5** runs the default
+`project_demo` application. Open its printed HTML report.
 
-Normal presets build applications without regression executables. `windows-debug`
-is available for debugging; `windows-release` supplies optimized measurements.
-A first Release build compiles its own configuration under `scratch/build/Release`.
+The solution calls `build.py`; it does not maintain another source list or build
+algorithm. **Debug | x64** builds with symbols and disabled optimization for
+stepping through code. Both configurations write to `scratch/native/`, with
+separate object and executable directories. A first build compiles the shared
+core once and links the applications. Later builds reuse matching source/header
+fingerprints. Source-inventory changes can invalidate all objects.
 
-Select **main** in Visual Studio's branch selector, then **Git > Pull**.
-Reconfiguration refreshes
-supported targets. Private datasets and previous run directories remain local.
+Other applications can be launched directly from `scratch/native/Release/`.
+To run one with the Visual Studio debugger, open **Runtime > Properties >
+Configuration Properties > Debugging > Command** and select its `.exe`.
+The working directory is the repository root. **Clean Solution** removes only
+that configuration's native outputs; private datasets and run directories remain.
+
+For a terminal build, the driver discovers the installed x64 MSVC toolchain:
+
+```sh
+py -3 build.py --configuration Release --target project_demo --run
+```
 
 ## Linux
 
-Requirements: CMake 3.25+, a C++20 compiler, Make and OpenSSL development libraries.
+Requirements: Python 3.10+, GCC/Clang with C++20, `ar` and OpenSSL development
+headers/libraries. Set `CXX` to a compiler executable when choosing Clang.
 
 ```sh
-cmake --preset linux-release
-cmake --build --preset linux-release
-scratch/build-linux-release/project_demo
+python -B build.py --configuration Release
+scratch/native/Release/project_demo
 python -B research/verify_project_demo.py scratch/runs/project_demo_0
 ```
 
-Use the actual printed output suffix. The full 144-case execution grid and
-120-row benchmark are separate runnable workloads, not repeated by every edit:
+Use the actual printed suffix. The full 144-case execution grid and 120-row
+benchmark are separate runnable workloads:
 
 ```sh
-scratch/build-linux-release/execution_measurement
+scratch/native/Release/execution_measurement
 python -B research/verify_execution_measurement.py <printed-directory>
-scratch/build-linux-release/runtime_benchmark
+scratch/native/Release/runtime_benchmark
 python -B research/verify_runtime_benchmark.py <printed-directory>
 ```
 
-## Optional regression verification
+`--target <name>` selects one application; `--jobs <count>` controls compilation
+parallelism. `--rebuild` clears only the selected configuration before compiling;
+`--clean` clears it without compiling. An offline installation can supply an
+existing nlohmann/json 3.12.0 include directory with `--json-include <path>`.
+The default downloaded dependency remains under `scratch/dependencies/`.
 
-`tests/` contains the financial, chronology, storage and recovery regressions.
-Its CMake configuration is loaded only with `BUILD_TESTING=ON`; normal application
-presets set it to `OFF`. CI enables and runs all 29 routine groups automatically.
-For a local Linux verification build:
+## Scientific verification
 
-```sh
-cmake --preset linux-release -DBUILD_TESTING=ON
-cmake --build --preset linux-release
-ctest --test-dir scratch/build-linux-release -LE integration --output-on-failure
-```
-
-Excluding `integration|extended` instead selects the 25 shorter groups. The
-integration-labelled full-period synthetic disk case is separate. Reapplying the
-normal configure preset restores the application-only configuration.
+The final repository retains independent `research/verify_*.py` entry points
+for the published studies, saved ledgers, execution measurements, benchmarks
+and publication. They inspect exported results through separate arithmetic and
+replay references. Run the relevant verifier after changing its financial or
+persistence contract. There is no committed unit-test tree or hosted workflow;
+these checks are explicit local commands.
 
 ## Supported entry points
 
@@ -107,16 +117,10 @@ The builder reads `docs/report_source.json` and hash-checked `docs/evidence/`.
 It formats recorded data and descriptive summaries; it does not fit models,
 score strategies or change financial conventions. Review regenerated figures and
 PDF pages before publishing. The publication manifest records source/evidence and
-output hashes. `research/verify_publication.py` checks these identities, local
+output hashes. Distributed publication text uses UTF-8 with LF-normalized
+checksums so Git newline conversion does not alter its logical identity; PDFs
+use raw-byte checksums. Registered protocols are restored to their exact
+registered LF bytes by the build only when their content is otherwise identical.
+Acquisition pages, run journals and original result identities retain raw-byte
+hashes. `research/verify_publication.py` checks these identities, local
 links, embedded-view controls and static asset boundaries without private data.
-
-## CI
-
-`.github/workflows/offline-ci.yml` runs on code/research/workflow pushes to
-`main` or manual dispatch. Standard Windows/Linux Release
-jobs build the full project, run routine contracts and independently verify the
-offline demo and small benchmark export. Ubuntu ASan/UBSan covers execution and
-recovery with leak detection. General documentation-only edits are skipped;
-research protocols remain covered. Actions are commit-pinned with read-only
-permissions. No credentials, paid runner or timing gate is used. Hosted availability
-and the account's included quota remain external constraints.

@@ -1,3 +1,4 @@
 /scratch/
 /.vs/
 /CMakeUserPresets.json
+/*.vcxproj.user

@@ -1,11 +1,12 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "text_hash_encoding": "utf-8-lf",
   "renderer": "research/build_report.py",
-  "demo_summary_sha256": "d0b1d1a56981ba23183597e000eedc4e811f8d5e1e0f39f835a93754cc8be4cb",
+  "demo_summary_sha256": "34216fab4aeb7c5bb8c28f26d10535f696c836bb8bfb558e058defa163ab6a51",
   "artifacts": [
     {
       "path": "research/build_report.py",
-      "sha256": "8759051e928905e538086fa7cf92daddcf4ec551c32a22b543ab4673dc6bdaa2"
+      "sha256": "b38c28c511d4707a6f7813b82a5dcd6652bb5c16a0ef2ad047d1ef5f9a671a99"
     },
     {
       "path": "research/report_requirements.txt",
@@ -13,19 +14,19 @@
     },
     {
       "path": "docs/report_source.json",
-      "sha256": "3ea9f5817d20482313db481366895cc1557817066573e3508cce16dd4d94a849"
+      "sha256": "e794a30e496b08e1952afb221bc60aa58778b555db828a85d5f5413c95a42c18"
     },
     {
       "path": "docs/evidence/manifest.json",
-      "sha256": "c5bf36c750adac686bd0e537d59ad2dceabf62c621716fde93bbe2ff64282026"
+      "sha256": "cb27ca2034b414459b0b0f58be6f6f4629cb4cad4856be6d3cfada157c54b2dc"
     },
     {
       "path": "docs/report.html",
-      "sha256": "38eefc20f9b7b8a66ac359dbe4721ea15937e2d875cc0c77309d237a30252117"
+      "sha256": "59c32d540bf5d6ebc3d4b81c24c6f78e7539bc4e938df36a5b76fea2b579154e"
     },
     {
       "path": "docs/report.pdf",
-      "sha256": "3cadd4723c1f801efb517d76a83094fbdd2273390854a42e6217b1483d767460"
+      "sha256": "4a67ca9a6e625452fa5e9289fddb4bef7024dd2e23cc3547c5c1803bcaf1d835"
     },
     {
       "path": "docs/figures/broker_lifecycle.svg",

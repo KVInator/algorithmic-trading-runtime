@@ -27,13 +27,12 @@ that successful return. External dispatch belongs to the coordinating broker/ses
 
 New files also begin with a durable disconnect. Event IDs, execution IDs,
 cancellation correlation, terminal orders, reservations, denied commands and
-quarantined reports are reconstructed from the input sequence. The original
-six delivery schedules replay with identical pre-restart traces through this
-wrapper. No second order/accounting implementation or serialized-state shortcut
-is used. JSON decoding rejects duplicate keys, unknown shapes, excessive nesting,
+quarantined reports are reconstructed from the input sequence. Recovery uses
+this same order/accounting implementation, without a serialized-state shortcut.
+JSON decoding rejects duplicate keys, unknown shapes, excessive nesting,
 fractional quantities and unsupported model/schema versions.
 
-Schema 1 remains the default for the original order/recovery diagnostic. The
+Schema 1 stores typed order inputs. The
 [offline pipeline](strategy_execution.md) explicitly creates schema-2 journals,
 which additionally persist whole-share strategy targets. The financial model
 contract remains `whole_share_limit_v1`. Recovery accepts both schemas and keeps
@@ -73,21 +72,16 @@ copies suit the current correctness diagnostic, not an established throughput
 target. Checksums detect corruption and chain discontinuities; they are not
 authentication and cannot detect removal of an entire valid suffix without an
 external trusted tip. Storage guarantees depend on the filesystem and device;
-the tests cover process termination and injected I/O failures, not physical
-power loss or controller failure.
+the demonstrated replay paths do not establish physical power-loss or
+controller-failure recovery.
 
 ## Verification
 
-`journaled_runtime_contracts` runs injected I/O faults and four child processes
-that terminate with `std::_Exit`, bypassing C++ destruction. Cases stop before
-append, after synchronization but before publication, after a partial frame and
-after return. Contracts verify poison handling, exclusive writers, configuration
-mismatch, chain/sequence/checkpoint corruption, incomplete headers and legacy
-schema replay. The tests preserve the original damaged evidence.
-
-The optional regression suite includes the abrupt-exit and corruption cases.
-`project_demo` exposes the paired broker restart/reconciliation path. Build and
-verification procedures are in the [runbook](running.md).
+`project_demo` exposes paired uninterrupted and restarted broker paths. Its
+independent Python verifier checks saved frames, checkpoints, account identities
+and reconciliation closure. Build and verification procedures are in the
+[runbook](running.md). These scenarios establish their declared replay outcomes;
+they do not exhaust every filesystem failure or crash boundary.
 
 ## Platform references
 

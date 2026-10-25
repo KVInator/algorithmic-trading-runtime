@@ -684,19 +684,19 @@
         },
         {
           "type": "code",
-          "text": "cmake --preset linux-release\ncmake --build --preset linux-release\nscratch/build-linux-release/project_demo\npython -B research/verify_project_demo.py scratch/runs/project_demo_0"
+          "text": "python -B build.py --configuration Release\nscratch/native/Release/project_demo\npython -B research/verify_project_demo.py scratch/runs/project_demo_0"
         },
         {
           "type": "paragraph",
-          "text": "In Visual Studio 2026, select main, pull, choose windows-x64 and windows-release, and Build All. Run project_demo.exe with Ctrl+F5. Normal presets build applications without regression targets. Optional verification uses BUILD_TESTING=ON; CI enables all 29 routine contract groups. Four extended study/disk groups can be excluded for shorter local checks. The 120-row benchmark is a separate workload."
+          "text": "In Visual Studio 2022 or 2026 with Desktop development with C++ and Python 3.10+, open Runtime.sln, select Release | x64 and Build Solution. Ctrl+F5 runs project_demo. Debug | x64 supports stepping through code. The solution delegates to build.py; outputs are under scratch/native/<configuration>. The 120-row benchmark is a separate workload."
         },
         {
           "type": "code",
-          "text": "scratch/build-linux-release/execution_measurement\nscratch/build-linux-release/runtime_benchmark\npython -B research/verify_execution_measurement.py <printed-directory>\npython -B research/verify_runtime_benchmark.py <printed-directory>\npython -B research/build_report.py --demo <project-demo-directory>"
+          "text": "scratch/native/Release/execution_measurement\nscratch/native/Release/runtime_benchmark\npython -B research/verify_execution_measurement.py <printed-directory>\npython -B research/verify_runtime_benchmark.py <printed-directory>\npython -B research/build_report.py --demo <project-demo-directory>"
         },
         {
           "type": "paragraph",
-          "text": "Offline builds/demos need no broker credentials, private dataset or subscription. Initial configuration fetches pinned nlohmann/json; Linux also requires OpenSSL development headers. Publication dependencies are pinned in research/report_requirements.txt. Full historical reproduction separately requires the retained acquisition pages, checkpoints, calendars, manifests and corporate-action references. The distributed summary snapshot does not recreate unavailable daily paths or independently replace that acquisition evidence."
+          "text": "Offline builds/demos need no broker credentials, private dataset or subscription. The first build fetches pinned nlohmann/json; Linux also requires OpenSSL development headers. Publication dependencies are pinned in research/report_requirements.txt. Full historical reproduction separately requires the retained acquisition pages, checkpoints, calendars, manifests and corporate-action references. The distributed summary snapshot does not recreate unavailable daily paths or independently replace that acquisition evidence."
         },
         {
           "type": "paragraph",
@@ -704,7 +704,7 @@
         },
         {
           "type": "paragraph",
-          "text": "Windows and Linux CI build Release and run offline contracts, independent benchmark exports and the constructed demo. Focused Ubuntu ASan/UBSan covers execution/recovery with leak detection. Workflow actions and the JSON archive are pinned. Host timings have no CI speed threshold. Checksums detect corruption, not malicious rewriting or complete valid-suffix removal without a trusted external tip. File synchronization is not a tested physical power-loss guarantee."
+          "text": "The final source tree retains the applications and independent scientific verifiers. Verification is invoked explicitly; there is no hosted workflow or unit-test tree. Distributed publication text has UTF-8/LF-normalized hashes; binary PDFs and original input/run evidence retain raw-byte hashes. Checksums detect corruption, not malicious rewriting or complete valid-suffix removal without a trusted external tip. File synchronization is not a tested physical power-loss guarantee."
         }
       ]
     },

@@ -163,26 +163,25 @@ low-latency target, rotation or compaction is claimed.
 
 ## Build and reproduce
 
-Windows: Visual Studio 2026 with C++/CMake tools. Open the folder, select configure
-preset **windows-x64** and build preset **windows-release**, then **Build All**.
-Select **project_demo.exe** and press **Ctrl+F5**. Open its printed
-`report.html`. Normal presets build the applications without regression targets.
+Windows requires Visual Studio 2022 or 2026 with **Desktop development with C++**,
+a Windows SDK and Python 3.10+ with the `py` launcher. Open **Runtime.sln**, select
+**Release | x64**, then **Build > Build Solution**. Press **Ctrl+F5** to run
+`project_demo` and open its printed `report.html`. Select **Debug | x64** when
+stepping through code. Executables are written to `scratch/native/<configuration>/`.
 
-Linux requires CMake 3.25+, a C++20 compiler and OpenSSL development headers:
+Linux requires Python 3.10+, GCC/Clang with C++20, `ar` and OpenSSL development headers:
 
 ```sh
-cmake --preset linux-release
-cmake --build --preset linux-release
-scratch/build-linux-release/project_demo
+python -B build.py --configuration Release
+scratch/native/Release/project_demo
 python -B research/verify_project_demo.py scratch/runs/project_demo_0
 ```
 
-Use the actual printed suffix. Optional regression verification is enabled with
-`BUILD_TESTING=ON`; its targets and configuration live under `tests/`.
-**29 routine contract groups** cover data, chronology, statistics, accounting and
-recovery. Windows/Linux CI enables that suite and independently verifies the demo;
-Ubuntu additionally runs ASan/UBSan with leak detection. No performance threshold
-is imposed on shared CI hosts. Optional verification commands are in the runbook.
+Use the actual printed suffix. The first build acquires checksum-pinned
+nlohmann/json 3.12.0; subsequent builds reuse the local headers and current
+objects. `build.py --target project_demo --run` builds and runs one application.
+The native solution delegates to this same compiler driver, so there is one
+build definition for the shared core and applications.
 
 The [runbook](docs/running.md) covers execution measurements, benchmarks,
 historical acquisition/reproduction and rebuilding the publication. Independent
@@ -199,8 +198,9 @@ reproduction requires the retained private input evidence; the distributed
 | `src/research`, `src/accounting` | Authoritative causal models, statistics and fractional accounts |
 | `src/execution` | Whole-share runtime, journals, adapters and deterministic broker/replay scenarios |
 | `src/reporting`, `apps` | Result-bound exports and thin composition roots |
-| `tests`, `research/verify_*.py` | Contract regressions and independent references |
+| `research/verify_*.py` | Independent numerical, accounting and artifact references |
 | `docs` | Technical report, curated figures/evidence and operational contracts |
+| `Runtime.sln`, `Runtime.vcxproj`, `build.py` | Native Visual Studio entry point and shared compiler driver |
 
 The [architecture](docs/architecture.md) explains ownership and units.
 Generated builds, private data and full run directories stay under ignored

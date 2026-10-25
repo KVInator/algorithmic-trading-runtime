@@ -71,11 +71,10 @@ an accepted terminal cancellation require investigation and are quarantined.
 
 ## Verification and scope
 
-The order-runtime contract group tests exact reservations, delivery permutations,
-independent integer accounting, conflicting/duplicate identities, missing fills,
-limits and overflow. Six constructed schedules remain reusable regression fixtures.
-The final `project_demo` exposes causal strategy and broker-state replays, including
-partial fills, cancellation and interrupted paths.
+The final `project_demo` exposes causal strategy and broker-state replays,
+including partial fills, cancellation, exact reservations, duplicate messages
+and interrupted paths. `research/verify_project_demo.py` independently checks
+the saved accounting, message identities and paired recovery outcomes.
 
 The order owner retains in-memory history and copies state to validate atomic
 transitions. The [journal](journal_recovery.md) adds durable commit/replay and

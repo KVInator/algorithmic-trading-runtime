@@ -1,9 +1,0 @@
-* text=auto eol=lf
-
-# These pre-existing byte identities are bound into frozen study evidence.
-/research/intraday_momentum_protocol.md -text
-/research/development_data_policy.json -text
-
-# Published outputs preserve renderer bytes, including SVG path whitespace.
-/docs/report.pdf binary
-/docs/figures/*.svg -whitespace

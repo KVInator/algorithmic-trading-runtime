@@ -625,7 +625,7 @@ std::filesystem::path ContinuationStudyReport::write(const FrozenDevelopmentData
         {"frozen_march_manifest_sha256", dataset.march_manifest_sha256}, {"data_policy_sha256", dataset.data_policy_sha256},
         {"input_dataset_protocol_sha256", dataset.protocol_sha256}, {"continuation_protocol_sha256_at_build", continuation_protocol_sha256()},
         {"source_files_sha256_at_build", TRADING_SOURCE_SHA256}, {"compiler", TRADING_BUILD_COMPILER}, {"build_configuration", TRADING_BUILD_CONFIGURATION},
-        {"source_digest_method", "SHA-256 of sorted relative-path:SHA-256(file-bytes) LF records; src/apps C++ files, research files and root CMake configuration"},
+        {"source_digest_method", "SHA-256 of sorted relative-path:SHA-256(file-bytes) LF records; src/apps C++ files, research files and native build definition"},
         {"return_unit", "decimal fraction; one basis point = 0.0001"}, {"cash_return", 0},
         {"exposure_unit", "minutes held / (390 * scored sessions); control holds 355 minutes per session"},
         {"turnover_unit", "buy plus sell reference notional / start-of-day equity"},

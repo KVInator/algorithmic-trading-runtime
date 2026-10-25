@@ -60,33 +60,48 @@ class PublicationVerifier:
     def __init__(self, root):
         self.root = Path(root).resolve()
 
+    @staticmethod
+    def published_bytes(path):
+        if path.suffix == ".pdf":
+            return path.read_bytes()
+        return path.read_text(encoding="utf-8").encode("utf-8")
+
     def verify(self):
         manifest = json.loads(
-            (self.root / "docs/publication_manifest.json").read_text()
+            (self.root / "docs/publication_manifest.json").read_text(encoding="utf-8")
         )
+        assert manifest["schema_version"] == 2
+        assert manifest["text_hash_encoding"] == "utf-8-lf"
         for item in manifest["artifacts"]:
             path = (self.root / item["path"]).resolve()
             assert path.is_relative_to(self.root)
             assert (
-                hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
+                hashlib.sha256(self.published_bytes(path)).hexdigest() == item["sha256"]
             ), item["path"]
         evidence_dir = self.root / "docs/evidence"
-        evidence = json.loads((evidence_dir / "manifest.json").read_text())
+        evidence = json.loads(
+            (evidence_dir / "manifest.json").read_text(encoding="utf-8")
+        )
+        assert evidence["schema_version"] == 2
+        assert evidence["text_hash_encoding"] == "utf-8-lf"
         for item in evidence["curated_artifacts"]:
             path = (evidence_dir / item["path"]).resolve()
             assert path.is_relative_to(evidence_dir)
-            assert hashlib.sha256(path.read_bytes()).hexdigest() == item["sha256"]
-        data = json.loads((evidence_dir / "results.json").read_text())
+            assert (
+                hashlib.sha256(self.published_bytes(path)).hexdigest() == item["sha256"]
+            )
+        data = json.loads((evidence_dir / "results.json").read_text(encoding="utf-8"))
         assert data["later_strategy_prices_opened"] is False
         assert data["reversion"]["sessions"] == data["continuation"]["sessions"] == 476
         assert data["execution"]["case_count"] == 144
         document = StaticDocument()
-        document.feed((self.root / "docs/report.html").read_text())
+        document.feed((self.root / "docs/report.html").read_text(encoding="utf-8"))
         assert document.iframe_count == 2 and document.image_count >= 8
         assert max(document.child_control_counts) == 216
-        assert (self.root / "docs/report.pdf").read_bytes().startswith(b"%PDF-")
+        pdf = (self.root / "docs/report.pdf").read_bytes()
+        assert pdf.startswith(b"%PDF-") and b"\0" in pdf[:8000]
         for path in (self.root / "docs/figures").glob("*.svg"):
-            svg = ET.fromstring(path.read_text())
+            svg = ET.fromstring(path.read_text(encoding="utf-8"))
             assert svg.tag.endswith("svg") and "viewBox" in svg.attrib
             for node in svg.iter():
                 for key, value in node.attrib.items():
@@ -98,7 +113,9 @@ class PublicationVerifier:
             (self.root / "research").glob("*.md")
         )
         for path in docs:
-            for raw in re.findall(r"\[[^\]]*\]\(([^)]+)\)", path.read_text()):
+            for raw in re.findall(
+                r"\[[^\]]*\]\(([^)]+)\)", path.read_text(encoding="utf-8")
+            ):
                 if urlparse(raw).scheme or raw.startswith("#"):
                     continue
                 target = unquote(raw.split("#", 1)[0])

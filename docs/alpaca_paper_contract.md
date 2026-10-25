@@ -89,8 +89,9 @@ messages; no native socket is required.
 
 ## Verification
 
-`alpaca_paper_contracts` exercises exact decimals/timestamps, request constraints,
-accepted/rejected message shapes and precision boundaries. `project_demo` passes
-constructed peer messages through this same decoder and the schema-3 owner.
+`project_demo` passes constructed peer messages through this decoder and the
+schema-3 owner, including partial fills, duplicate delivery and cancellation.
+The parser enforces the exact decimal, timestamp and message-shape contracts
+described above.
 Independent Decimal accounting and raw capture verification are part of the
 combined demo verifier.

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AF4DCC38-D710-41E5-95CE-0378A43C357F}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+    <RootNamespace>TradingRuntime</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(ProjectDir)scratch\native\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)scratch\native\$(Configuration)\ide\</IntDir>
+    <NMakeBuildCommandLine>py -3 &quot;$(ProjectDir)build.py&quot; --configuration $(Configuration)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>py -3 &quot;$(ProjectDir)build.py&quot; --configuration $(Configuration) --rebuild</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>py -3 &quot;$(ProjectDir)build.py&quot; --configuration $(Configuration) --clean</NMakeCleanCommandLine>
+    <NMakeOutput>$(OutDir)project_demo.exe</NMakeOutput>
+    <NMakeIncludeSearchPath>$(ProjectDir)src\accounting;$(ProjectDir)src\alpaca;$(ProjectDir)src\execution;$(ProjectDir)src\market;$(ProjectDir)src\reporting;$(ProjectDir)src\research;$(ProjectDir)src\storage;$(ProjectDir)src\platform\windows;$(OutDir)generated;$(ProjectDir)scratch\dependencies\json-3.12.0\include;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeForcedIncludes>$(OutDir)generated\trading_build_config.hpp;$(NMakeForcedIncludes)</NMakeForcedIncludes>
+    <AdditionalOptions>/std:c++20</AdditionalOptions>
+    <LocalDebuggerCommand>$(OutDir)project_demo.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <ItemDefinitionGroup><ClCompile><LanguageStandard>stdcpp20</LanguageStandard></ClCompile></ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\**\*.cpp" Exclude="src\platform\posix\**;src\platform\openssl\**" />
+    <ClCompile Include="apps\*.cpp" />
+    <ClInclude Include="src\**\*.hpp" />
+    <ClInclude Include="apps\*.hpp" />
+    <None Include="build.py" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

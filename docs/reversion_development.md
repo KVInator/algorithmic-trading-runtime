@@ -40,12 +40,6 @@ one fails. No decision rule, threshold, window or cost changes after scoring.
 
 ## Verification and reproduction
 
-Build All and the routine preset include `reversion_study_contracts`. Constructed
-cases check prior-only chronology, rejection of early/duplicate history commits,
-missing-anchor rollout, future-input noninterference, controls, cost/delay parity,
-zero paired differences, cash/undefined Sharpe, masked bootstrap failures,
-strict gate boundaries and protocol tampering.
-
 Run `reversion_development` without command-line options using the retained
 2022-2023 frozen input evidence. It writes a new directory under `scratch/runs/`.
 No source dataset or previous report is overwritten. No 2024-2025 price or

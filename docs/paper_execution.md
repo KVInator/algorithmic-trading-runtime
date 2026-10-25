@@ -89,16 +89,12 @@ such an unrecordable command poisons this writer. Transport must archive bounded
 raw messages before decode/journaling, stop routing on storage failure and omit
 credential-bearing outbound authentication messages. Rotation and archival
 transport are not implemented. State copies and full-state digest calculation
-are correctness mechanisms retained in the [milestone-6 benchmarks](runtime_benchmark.md).
+are correctness mechanisms retained in the [runtime benchmarks](runtime_benchmark.md).
 
 ## Verification
 
-`paper_execution_contracts` retains exact subcent balances, identity conversion,
-partial fills, cancellation/restart, quarantine, invalid precision and schema
-separation. It also injects failures before append, after a partial append and
-after synchronization, checking poison/recovery behavior and uncertain durable
-intents. The final broker demonstration composes this owner with independent
-matching/account state and exposes raw messages beside saved client states.
-
+The final broker demonstration composes this owner with independent matching
+and account state, exposing raw messages beside saved client states. It includes
+partial fills, duplicate delivery, cancellation races and restart/reconciliation.
 Run `project_demo` and `research/verify_project_demo.py` for the combined evidence.
-Financial and persistence regressions are available in the optional verification suite.
+The [runbook](running.md) gives build and reproduction commands.

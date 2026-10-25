@@ -51,17 +51,14 @@ and [benchmark](runtime_benchmark.md) notes specify the detailed contracts.
 
 ## Source and publication provenance
 
-CMake embeds a configure-time inventory for `src/`, `apps/`, `research/`, the root
-CMake source and presets. Reports retain its aggregate and records. Source
-changes alter provenance even when numerical results are unchanged. Tests and
-general documentation are outside this established fingerprint scope.
+`build.py` embeds a build-time inventory for `src/`, `apps/`, `research/`, the
+compiler driver and native Visual Studio solution/project. Reports retain its
+aggregate and records. Source changes alter provenance even when numerical
+results are unchanged. General documentation is outside this fingerprint scope.
+Original archived runs retain their original source inventories and toolchains.
 
 The publication binds curated result summaries, runtime CSVs and saved C++ views.
 Its separate manifest identifies source content, evidence and rendered outputs.
 The builder's medians, unit conversions and figures are display transformations,
 not another research/accounting implementation. Full run directories, build trees
 and private observations remain under ignored `scratch/`.
-
-Six scenario/control generators used only by regressions live in `tests/support/`
-and are compiled only into their consuming test targets. Production libraries
-retain the final runtime, broker, research and public-demo responsibilities.

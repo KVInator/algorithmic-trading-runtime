@@ -41,17 +41,28 @@ class Evidence:
     def __init__(self, root: Path):
         self.root = root
         directory = root / "docs/evidence"
-        self.manifest = json.loads((directory / "manifest.json").read_text())
+        self.manifest = json.loads(
+            (directory / "manifest.json").read_text(encoding="utf-8")
+        )
         for record in self.manifest["curated_artifacts"]:
             path = (directory / record["path"]).resolve()
             if not path.is_relative_to(directory.resolve()):
                 raise ValueError("Evidence path escapes its directory")
-            if hashlib.sha256(path.read_bytes()).hexdigest() != record["sha256"]:
+            if (
+                hashlib.sha256(
+                    path.read_text(encoding="utf-8").encode("utf-8")
+                ).hexdigest()
+                != record["sha256"]
+            ):
                 raise ValueError(f'Evidence digest differs: {record["path"]}')
-        self.results = json.loads((directory / "results.json").read_text())
+        self.results = json.loads(
+            (directory / "results.json").read_text(encoding="utf-8")
+        )
         self.runtime = {}
         for platform in ("windows", "linux"):
-            with (directory / f"runtime_{platform}.csv").open(newline="") as stream:
+            with (directory / f"runtime_{platform}.csv").open(
+                newline="", encoding="utf-8"
+            ) as stream:
                 self.runtime[platform] = list(csv.DictReader(stream))
 
 
@@ -454,7 +465,9 @@ class Publication:
         self.root = root
         self.demo = demo
         self.evidence = Evidence(root)
-        self.content = json.loads((root / "docs/report_source.json").read_text())
+        self.content = json.loads(
+            (root / "docs/report_source.json").read_text(encoding="utf-8")
+        )
         self.temporary = root / "scratch/finalization/publication"
         self.figures = Figures(self.evidence, self.temporary)
         self.math_count = 0
@@ -720,7 +733,7 @@ class Publication:
             ("Strategy decisions and execution", "strategies"),
             ("Broker lifecycle and recovery", "broker"),
         ]:
-            view = (self.demo / sub / "report.html").read_text()
+            view = (self.demo / sub / "report.html").read_text(encoding="utf-8")
             view = re.sub(r'<a href="(?!#)[^"]+">([^<]+)</a>', r"<span>\1</span>", view)
             parts.append(
                 "<details><summary>"
@@ -734,8 +747,9 @@ class Publication:
         parts.append(
             "</section></main><footer>Curated development summaries and synthetic diagnostics. Full data access and result interpretation are specified in the reproduction section.</footer></html>"
         )
-        (self.root / "docs/report.html").write_text("".join(parts))
+        (self.root / "docs/report.html").write_text("".join(parts), encoding="utf-8")
         rl_config.invariant = 1
+        rl_config.useA85 = 0
         doc = SimpleDocTemplate(
             str(self.root / "docs/report.pdf"),
             pagesize=(595.276, 841.89),
@@ -758,7 +772,8 @@ class Publication:
         ]
         files.extend(sorted((self.root / "docs/figures").glob("*.svg")))
         manifest = {
-            "schema_version": 1,
+            "schema_version": 2,
+            "text_hash_encoding": "utf-8-lf",
             "renderer": "research/build_report.py",
             "demo_summary_sha256": hashlib.sha256(
                 (self.demo / "summary.json").read_bytes()
@@ -766,13 +781,17 @@ class Publication:
             "artifacts": [
                 {
                     "path": str(path.relative_to(self.root)),
-                    "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                    "sha256": hashlib.sha256(
+                        path.read_bytes()
+                        if path.suffix == ".pdf"
+                        else path.read_text(encoding="utf-8").encode("utf-8")
+                    ).hexdigest(),
                 }
                 for path in files
             ],
         }
         (self.root / "docs/publication_manifest.json").write_text(
-            json.dumps(manifest, indent=2) + "\n"
+            json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
         )
         print("Published self-contained HTML, paginated PDF and eight evidence figures")
 
