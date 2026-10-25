@@ -142,8 +142,12 @@ python research/verify_paper_transport.py scratch/runs/paper_transport_0
 Native Windows runs of both executables and the read-only connection/baseline
 path are accepted for `e06b419`; see the [ledger](progress.md). Both complete native output
 archives verify, including raw bodies, capture chains and runtime journals.
-Before operational orders, verify the new control owner natively and implement
-the quote/calendar and reviewed launcher prerequisites in the fixed
+The replacement PING/PONG path is accepted for `03515a6` from the complete
+`paper_transport_probe_3` archive, including an identical challenge/PONG payload
+and subsequent exact reconciliation. This adds one native transport round trip,
+not sustained order-stream or lifecycle evidence.
+Before operational orders, verify the current control/launcher composition and
+implement the quote/calendar prerequisites in the fixed
 [five-session plan](../research/paper_capture_plan.md). Retain observed lifecycle
 and reconnect/restart evidence. Milestone 4 remains in progress.
 

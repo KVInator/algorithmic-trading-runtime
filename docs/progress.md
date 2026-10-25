@@ -1,6 +1,6 @@
 # Completion milestone ledger
 
-Updated 24 October 2026. The [completion plan](completion_plan.md) governs scope
+Updated 25 October 2026. The [completion plan](completion_plan.md) governs scope
 and acceptance. This ledger distinguishes implemented foundations, completed
 substeps and open end-to-end milestones; contract counts are verification
 evidence rather than a completion percentage.
@@ -10,7 +10,7 @@ evidence rather than a completion percentage.
 | 1. Native integration checkpoint | Complete for `370f274` | MSVC build and twenty routine groups reported successful. All eight pipeline artifacts, 83 complete journal frames, eighty account checkpoints and the 151-file source inventory are verified against current Linux evidence. |
 | 2. Strategy research | Complete for `05aec9d` | Three strategy specifications have reproducible historical comparisons. Native MSVC build and all twenty-two groups are reported successful. SPY-MR-01 retains 476 dates, forty market cases and its cost-dominated finding; all ten artifacts and 171 source records verify, with identical native/Linux account paths. |
 | 3. Shared execution path | Complete for `9aeffa4` | MSVC build and routine test preset reported successful. Native eighteen-/twenty-two-case runs pass 224/296 checks; saved evidence, inputs and HTML match Linux byte-for-byte. Source differences are five explained CRLF variants. Journal manifest digests match the checked Linux bodies; native bodies were not supplied. |
-| 4. Paper broker | In progress: native bridge accepted | Exact decimal/time decoding, a bounded SPY/DAY-limit contract and paper-only request descriptions are implemented. A schema-3 exact accounting/identity bridge now reuses the core; native bridge verification is complete; transport, TIF/expiry, stop/capture and observed reconciliation remain. |
+| 4. Paper broker | In progress: native bridge and read-only heartbeat accepted | Exact accounting/identity, bounded transport and durable deadline/stop foundations are implemented. The native probe verifies a matching PONG and exact flat-account reconciliation. Quote/calendar access, the reviewed operational launcher and five-session observed lifecycle/reconnect/restart evidence remain. |
 | 5. Execution measurement | Not implemented | Quote/event capture, timestamp alignment, execution-cost/fill/delay tables and the declared paper observation window remain. |
 | 6. C++ performance and CI | Partially implemented verification foundation | Existing contract and sanitizer checks are available. Formal transition/invariant explanation, Release benchmarks and portable CI remain. |
 | 7. Final technical publication | Not complete | Individual reports and research notes exist. The unified analytical HTML/PDF report, offline showcase and final repository presentation remain. |
@@ -744,14 +744,49 @@ and correlated PING/PONG payloads. All 219 source identities match. The verifier
 continues to validate the previously supplied schema-1 native control archive.
 No historical strategy result or frozen input is changed.
 
+## Native PING/PONG acceptance
+
+For `03515a6`, the supplied Windows configuration completes with pinned libcurl
+8.23.0 and Schannel. The updated native executable runs successfully. The complete
+native quick transcript records all 22 groups passing in 13.88 seconds. Missing
+Perl prevents optional dependency manuals; missing Libssh2 does not prevent the configured
+HTTP/WebSocket build. Neither message is a failed configuration or test.
+
+The complete `paper_transport_probe_3` archive verifies all 39 artifact hashes,
+34 chained capture records, one Decimal ledger and seven financial inputs.
+Its 219 source records have 215 exact matches and four explained CRLF variants,
+with no unexplained differences. The summary SHA-256 is
+`50db8e09532b98d0920ed566568a891be370c845948d7a6b031b676777fcb0d8`;
+the source-inventory SHA-256 is
+`ffd5eef2f6e6dd60da82b640780c630ca1fc47cccdef6f9d8b725a8649c0dd86`.
+Verification copies are retained under
+`scratch/verification/probe3-native-20261025`.
+
+Capture 17 contains the WebSocket PING challenge, capture 18 records send
+completion, and capture 19 contains an identical PONG payload marked matched.
+The local monotonic challenge-to-PONG interval is 340 ms, within the unchanged
+five-second budget. It includes local capture/processing time. All thirteen REST
+requests are GETs returning HTTP 200. Two account/position/open-order collections
+before the challenge and two afterward match the exact ledger. Capture 32
+records completed reconciliation; capture 33 records normal closure. The saved
+accepted checkpoint precedes that final durable disconnect.
+
+No submit/cancel command or trade update appears. The read-only native socket
+and heartbeat substep is accepted for this implementation. This is one observed
+round trip, not sustained availability or observed order/recovery evidence.
+The successful replacement does not identify whether the earlier missing
+subscription response originated at the provider or the old socket owner.
+Both the transport implementation and challenge mechanism changed. Earlier
+failed probes remain failed evidence; no frozen research input/result changes.
+
 ## Next dependency
 
-Build the pinned socket dependency and run the updated read-only native probe.
-It must receive an actual matching WebSocket PONG and reconcile before native
-health acceptance can close. The first build downloads/builds libcurl; later
-builds reuse it. No extra curl installation is required on Windows. Preserve
-the complete probe folder. Milestone 4 remains open for native heartbeat
-acceptance, quote/calendar access, the reviewed launcher and five-session
-observed lifecycle/reconnect/restart capture. Milestones 1-3 remain closed;
-execution measurements, benchmarks/portable CI and final publication remain
-milestones 5-7.
+Implement and verify current quote/calendar access against the declared feed,
+source/receipt clocks and session rules in the
+[five-session plan](../research/paper_capture_plan.md). Then compose the reviewed
+operational launcher with the durable control owner, explicit reviewed
+reactivation and closing-inventory handling. Native control/recovery diagnostics
+and the operational composition must pass before enrolled order sessions.
+Milestone 4 remains open for those prerequisites and five-session observed
+lifecycle/reconnect/restart capture. Milestones 1-3 remain closed; execution
+measurements, benchmarks/portable CI and final publication remain milestones 5-7.

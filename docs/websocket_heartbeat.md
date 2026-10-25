@@ -64,9 +64,23 @@ test runs separately. Windows Build All compiles its C++ client without requirin
 Python. The first configure/build fetches and builds the pinned static library;
 subsequent builds reuse it. No separate curl installation is required.
 
-Native acceptance still requires the updated read-only probe. It must capture
-an actual matching PONG and exact reconciliation. Its console now identifies
-PING/PONG explicitly. Complete run directories remain the reproduction evidence.
+The complete Windows `paper_transport_probe_3` archive accepts the read-only
+heartbeat path for `03515a6`. Its recorded challenge and matching PONG have
+identical payloads, with 340 ms between their local monotonic receipts. This
+includes local capture/processing time and is not a network-only latency measure.
+All thirteen REST requests are GETs with HTTP 200; two snapshot collections
+before the challenge and two afterward match the exact flat-account ledger.
+The connection closes normally after the accepted checkpoint.
+
+Independent verification checks artifact/capture hashes, financial inputs and
+source identities. The native quick-test transcript reports 22/22 groups passing.
+The [ledger](progress.md#native-pingpong-acceptance) records counts, archive
+identities and remaining operational dependencies.
+
+This is one observed native round trip, not sustained-connection or observed
+order-lifecycle evidence. Both the heartbeat mechanism and WebSocket owner
+changed, so the successful run does not isolate the cause of the old missing
+subscription acknowledgment. Failed captures remain part of the evidence.
 
 ## Primary references
 

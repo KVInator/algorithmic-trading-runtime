@@ -94,9 +94,14 @@ policy state when a case includes them. Run it on the printed diagnostic folder.
 The HTML presents saved control and execution state; no financial logic is
 reimplemented in reporting.
 
-On Windows, Build All and run `windows-debug-quick`, then select
-`paper_control_diagnostic.exe` with Ctrl+F5. Run the read-only
-`paper_transport_probe.exe` again to exercise the new PING/PONG
-round trip and subsequent reconciliation against the service. It still submits
-and cancels no orders. Retain each complete run directory. Native acceptance
-of these new controls remains pending.
+The complete native `paper_transport_probe_3` archive accepts a matching PONG
+and subsequent exact reconciliation for `03515a6`; see the
+[ledger](progress.md#native-pingpong-acceptance). It submits and cancels no orders
+and does not exercise operational deadlines, stopping or restart against orders.
+The current native quick-test transcript reports all 22 groups passing.
+
+On Windows, `paper_control_diagnostic.exe` with Ctrl+F5 retains constructed
+deadline/stop/recovery evidence. The earlier schema-1 native diagnostic is
+accepted for its recorded implementation; a schema-2 native diagnostic archive
+has not been supplied. Operational policy composition and observed recovery
+remain prerequisites to completing the paper milestone. Retain complete runs.
