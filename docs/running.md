@@ -244,3 +244,11 @@ builds its static WebSocket library. Windows uses Schannel; no separate curl or
 OpenSSL installation is needed there. The optional `paper_websocket_loopback`
 CTest group uses Python, when found, and is labeled `integration`; it does not
 change the 27-group full routine or 23-group quick selections.
+
+Dependency examples, command-line tools and manuals are disabled in the scoped
+libcurl configuration. They must not appear as executable startup targets.
+After pulling a CMake change, allow generation to finish before reopening the
+Visual Studio startup-target chooser. Project executables retain their names,
+including `paper_market_diagnostic.exe` and `paper_market_probe.exe`.
+Previously generated files can remain under the build directory; target discovery
+uses the regenerated CMake model and does not require deleting datasets or runs.

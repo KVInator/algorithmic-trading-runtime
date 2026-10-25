@@ -822,6 +822,20 @@ archive. Report tables/local links are checked; browser rendering is unavailable
 Hygiene, formatting and diff checks pass. No network requests, session enrollment
 or historical scoring occurred.
 
+## Dependency startup-target visibility
+
+The pinned libcurl project enables example executables independently of its
+command-line tool. The dependency recipe now disables examples and unused
+manuals explicitly, and uses the supported SSH dependency-option names.
+Regeneration removes example targets from the CMake executable model, including
+when old cache entries request those optional targets. The static WebSocket
+library and project executable targets remain available.
+
+The regenerated Linux file-API model contains no curl example targets. The
+production-socket loopback and market contracts pass in 0.54 seconds; hygiene
+and diff checks pass. Native chooser refresh follows CMake regeneration.
+This build-configuration correction does not close a paper-execution substep.
+
 ## Next dependency
 
 Build and run the current Windows quick preset, `paper_market_diagnostic` and
