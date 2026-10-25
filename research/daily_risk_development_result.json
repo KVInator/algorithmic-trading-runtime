@@ -1,0 +1,483 @@
+{
+  "schema_version": 1,
+  "study": "SPY-RISK-01",
+  "protocol_revision": 1,
+  "status": "not_advanced_under_registered_design",
+  "kind": "curated_native_development_result",
+  "native_created_utc": "2026-10-23T04:37:42Z",
+  "native_run_directory": "scratch/runs/SPY_RISK_01_development_2022-2023_0",
+  "native_summary_sha256": "c36a5fc56f55bab1f9d7685ffd689b68d06d5cfb56b1e229475d0bbd56341af2",
+  "registration_commit": "c75ff8aad733e60318ae11803c940b3f63934a19",
+  "local_checkout_commit_at_verification": "e90f64a393381a30b15c86449e9d71c776f120ac",
+  "native_build": {
+    "compiler": "MSVC 19.51.36260.0",
+    "configuration": "Debug",
+    "source_sha256": "291931d8d07a0a992c72cf7f9223c249d20c0b7fc57509f2c1d8f524d6a3e5bc"
+  },
+  "registered_identities": {
+    "protocol_md_sha256_colon_json_sha256": "28e935174043745098b3f53d7eb71669fe54c8fc6d510a68c568da28874c8a3a:3a37f24f29e661c606c32af81b3daf5b5e909520aaaeaf5eafe7efd0340f51d2",
+    "development_manifest_sha256": "70fdd01093b9026cc4e673def25718e547c0052b728163bac9bdf30b9c25126e",
+    "acquisition_manifest_sha256": "d1f500c927480e7a7013df86e476785b66afdfa5d54c2f97e757957f34ce2808",
+    "issuer_reference_sha256": "d753b529129a27a9db03dff41f36b52557ce558e90f5dc5f8ca0f1ccd25da66a"
+  },
+  "sample": {
+    "calibration_sessions": 252,
+    "development_sessions": 501,
+    "account_cases": 40,
+    "primary_delay_minutes": 1,
+    "primary_cost_bps_per_side": 1,
+    "eligible_primary_forecast_records": 479,
+    "daily_only_fallback_dates": 20
+  },
+  "static_weight": 0.769802415781899,
+  "primary": {
+    "cer_over_daily": -0.015430002476139753,
+    "cer_over_static": 0.0057232435004474485,
+    "forecast_records": 479,
+    "qlike_increment": 0.007813068616005722
+  },
+  "primary_account_statistics": [
+    {
+      "account": "intraday_risk",
+      "annualized_mean_std_zero_reference": 0.13325524744829936,
+      "cer": -0.0027486396377989987,
+      "compounded_return": 0.017072250348584284,
+      "cost_bps": 1.0,
+      "cost_usd": 72.3047793168813,
+      "daily_return_5th_percentile": -0.011259799611809895,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.1635242743910541,
+      "mean_bottom_five_returns": -0.020669926470307853,
+      "mean_closing_liquid_stock_weight": 0.6279032398015383,
+      "mean_daily_return": 5.6108136749040394e-05,
+      "period": "all",
+      "sample_daily_standard_deviation": 0.006684082430123895,
+      "sessions": 501,
+      "traded_notional_usd": 723047.7931688131,
+      "turnover_equity_units": 7.71137756868203,
+      "worst_daily_return": -0.02444825627013658
+    },
+    {
+      "account": "intraday_risk",
+      "annualized_mean_std_zero_reference": -1.2733078355953262,
+      "cer": -0.1613841083621367,
+      "compounded_return": -0.13781662398121342,
+      "cost_bps": 1.0,
+      "cost_usd": 32.67656917922512,
+      "daily_return_5th_percentile": -0.012535147120414702,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.1635242743910541,
+      "mean_bottom_five_returns": -0.020669926470307853,
+      "mean_closing_liquid_stock_weight": 0.4670071097590981,
+      "mean_daily_return": -0.0005657815619661677,
+      "period": "2022",
+      "sample_daily_standard_deviation": 0.0070536783054427074,
+      "sessions": 251,
+      "traded_notional_usd": 326765.6917922511,
+      "turnover_equity_units": 3.53050469000713,
+      "worst_daily_return": -0.02444825627013658
+    },
+    {
+      "account": "intraday_risk",
+      "annualized_mean_std_zero_reference": 1.7302671604599196,
+      "cer": 0.15674889741642398,
+      "compounded_return": 0.17964725212519417,
+      "cost_bps": 1.0,
+      "cost_usd": 39.62821013765618,
+      "daily_return_5th_percentile": -0.010007018674178813,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.08852208485859803,
+      "mean_bottom_five_returns": -0.01446639254594575,
+      "mean_closing_liquid_stock_weight": 0.789442954364149,
+      "mean_daily_return": 0.0006804853942591094,
+      "period": "2023",
+      "sample_daily_standard_deviation": 0.006243180816803285,
+      "sessions": 250,
+      "traded_notional_usd": 396282.10137656174,
+      "turnover_equity_units": 4.180872878674895,
+      "worst_daily_return": -0.015692918415597168
+    },
+    {
+      "account": "daily_only",
+      "annualized_mean_std_zero_reference": 0.27777804781226567,
+      "cer": 0.012681362838340754,
+      "compounded_return": 0.04762436514023172,
+      "cost_bps": 1.0,
+      "cost_usd": 102.15617316710122,
+      "daily_return_5th_percentile": -0.01149322680711462,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.13355624662027532,
+      "mean_bottom_five_returns": -0.018274755543104027,
+      "mean_closing_liquid_stock_weight": 0.6130349421376579,
+      "mean_daily_return": 0.0001140971813752859,
+      "period": "all",
+      "sample_daily_standard_deviation": 0.006520445433106125,
+      "sessions": 501,
+      "traded_notional_usd": 1021561.7316710112,
+      "turnover_equity_units": 10.733267183466436,
+      "worst_daily_return": -0.021634515551083644
+    },
+    {
+      "account": "daily_only",
+      "annualized_mean_std_zero_reference": -1.019146586816462,
+      "cer": -0.12637340146572504,
+      "compounded_return": -0.1081466253395994,
+      "cost_bps": 1.0,
+      "cost_usd": 43.39504135258524,
+      "daily_return_5th_percentile": -0.012255606293507693,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.13355624662027532,
+      "mean_bottom_five_returns": -0.01824852415995639,
+      "mean_closing_liquid_stock_weight": 0.44650047976511587,
+      "mean_daily_return": -0.00043318915323337776,
+      "period": "2022",
+      "sample_daily_standard_deviation": 0.00674747353284855,
+      "sessions": 251,
+      "traded_notional_usd": 433950.4135258524,
+      "turnover_equity_units": 4.671317906376012,
+      "worst_daily_return": -0.021634515551083644
+    },
+    {
+      "account": "daily_only",
+      "annualized_mean_std_zero_reference": 1.685527922800902,
+      "cer": 0.15245653599690528,
+      "compounded_return": 0.1746598655178555,
+      "cost_bps": 1.0,
+      "cost_usd": 58.76113181451599,
+      "daily_return_5th_percentile": -0.010612298870610753,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.08961394821888402,
+      "mean_bottom_five_returns": -0.014156024363511998,
+      "mean_closing_liquid_stock_weight": 0.7802355423596921,
+      "mean_daily_return": 0.0006635726613223842,
+      "period": "2023",
+      "sample_daily_standard_deviation": 0.00624960838060598,
+      "sessions": 250,
+      "traded_notional_usd": 587611.3181451594,
+      "turnover_equity_units": 6.061949277090421,
+      "worst_daily_return": -0.01574151814952074
+    },
+    {
+      "account": "static_risk_budget",
+      "annualized_mean_std_zero_reference": 0.16731200404032037,
+      "cer": -0.008471883138246447,
+      "compounded_return": 0.02791990291465951,
+      "cost_bps": 1.0,
+      "cost_usd": 22.864159347515784,
+      "daily_return_5th_percentile": -0.015110527986194278,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.1916118261313543,
+      "mean_bottom_five_returns": -0.029823031226014752,
+      "mean_closing_liquid_stock_weight": 0.7682703244327658,
+      "mean_daily_return": 9.91631700112064e-05,
+      "period": "all",
+      "sample_daily_standard_deviation": 0.009408568927424147,
+      "sessions": 501,
+      "traded_notional_usd": 228641.59347515804,
+      "turnover_equity_units": 2.339580377620539,
+      "worst_daily_return": -0.03348398254537044
+    },
+    {
+      "account": "static_risk_budget",
+      "annualized_mean_std_zero_reference": -0.7302815496735914,
+      "cer": -0.18710993362809175,
+      "compounded_return": -0.14107282018748624,
+      "cost_bps": 1.0,
+      "cost_usd": 12.290151192145375,
+      "daily_return_5th_percentile": -0.020146545725576614,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.1916118261313543,
+      "mean_bottom_five_returns": -0.029823031226014752,
+      "mean_closing_liquid_stock_weight": 0.7697027031324875,
+      "mean_daily_return": -0.0005376299135600712,
+      "period": "2022",
+      "sample_daily_standard_deviation": 0.011686739581233098,
+      "sessions": 251,
+      "traded_notional_usd": 122901.5119214538,
+      "turnover_equity_units": 1.2854462306642296,
+      "worst_daily_return": -0.03348398254537044
+    },
+    {
+      "account": "static_risk_budget",
+      "annualized_mean_std_zero_reference": 1.8581451103773063,
+      "cer": 0.17105627234708692,
+      "compounded_return": 0.19674860346022882,
+      "cost_bps": 1.0,
+      "cost_usd": 10.574008155370404,
+      "daily_return_5th_percentile": -0.010524255389330633,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.07712517388969775,
+      "mean_bottom_five_returns": -0.013422530758188556,
+      "mean_closing_liquid_stock_weight": 0.7668322162182448,
+      "mean_daily_return": 0.0007385034259167691,
+      "period": "2023",
+      "sample_daily_standard_deviation": 0.006309183485507979,
+      "sessions": 250,
+      "traded_notional_usd": 105740.08155370402,
+      "turnover_equity_units": 1.0541341469563115,
+      "worst_daily_return": -0.015352463980471742
+    },
+    {
+      "account": "passive_equity",
+      "annualized_mean_std_zero_reference": 0.15752252203057238,
+      "cer": -0.025230043986183823,
+      "compounded_return": 0.023776809624888706,
+      "cost_bps": 1.0,
+      "cost_usd": 19.965890238278668,
+      "daily_return_5th_percentile": -0.01961018160435457,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.24420362106496896,
+      "mean_bottom_five_returns": -0.03849430245941863,
+      "mean_closing_liquid_stock_weight": 0.9863721686598235,
+      "mean_daily_return": 0.00012028318650830506,
+      "period": "all",
+      "sample_daily_standard_deviation": 0.012121672290452919,
+      "sessions": 501,
+      "traded_notional_usd": 199658.90238278668,
+      "turnover_equity_units": 1.9698275962482295,
+      "worst_daily_return": -0.043054618383384535
+    },
+    {
+      "account": "passive_equity",
+      "annualized_mean_std_zero_reference": -0.7323840367968356,
+      "cer": -0.26176909166125134,
+      "compounded_return": -0.18411173323100827,
+      "cost_bps": 1.0,
+      "cost_usd": 9.999000099990003,
+      "daily_return_5th_percentile": -0.02601214390285783,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.24420362106496896,
+      "mean_bottom_five_returns": -0.03849430245941863,
+      "mean_closing_liquid_stock_weight": 0.995238681146266,
+      "mean_daily_return": -0.000696701799586304,
+      "period": "2022",
+      "sample_daily_standard_deviation": 0.015101091288704788,
+      "sessions": 251,
+      "traded_notional_usd": 99990.00099990002,
+      "turnover_equity_units": 0.9999000099990002,
+      "worst_daily_return": -0.043054618383384535
+    },
+    {
+      "account": "passive_equity",
+      "annualized_mean_std_zero_reference": 1.8555793384003416,
+      "cer": 0.2125422680185765,
+      "compounded_return": 0.25480026043168924,
+      "cost_bps": 1.0,
+      "cost_usd": 9.966890138288667,
+      "daily_return_5th_percentile": -0.013423861815344346,
+      "delay_minutes": 1,
+      "maximum_daily_close_drawdown": 0.09732759791854151,
+      "mean_bottom_five_returns": -0.01713516138168345,
+      "mean_closing_liquid_stock_weight": 0.9774701901234346,
+      "mean_daily_return": 0.0009405361125472926,
+      "period": "2023",
+      "sample_daily_standard_deviation": 0.00804629993893168,
+      "sessions": 250,
+      "traded_notional_usd": 99668.90138288666,
+      "turnover_equity_units": 0.9699275862492294,
+      "worst_daily_return": -0.01961018160435457
+    }
+  ],
+  "bootstrap": [
+    {
+      "block_length": 20,
+      "cer_over_daily_95": {
+        "lower": -0.032881676941701854,
+        "upper": 0.004182726677818437
+      },
+      "cer_over_static_95": {
+        "lower": -0.06385421939571927,
+        "upper": 0.07158088844423385
+      },
+      "qlike_increment_95": {
+        "lower": -0.024392955665568847,
+        "upper": 0.0337423515681412
+      },
+      "replicates": 10000,
+      "resampled_date_records": 501,
+      "seed": 2026102220,
+      "undefined_loss_replicates": 0
+    },
+    {
+      "block_length": 40,
+      "cer_over_daily_95": {
+        "lower": -0.03154120718454371,
+        "upper": 0.0037859782285950077
+      },
+      "cer_over_static_95": {
+        "lower": -0.053409899334463065,
+        "upper": 0.062195552166159525
+      },
+      "qlike_increment_95": {
+        "lower": -0.028630920649129917,
+        "upper": 0.03109618065083556
+      },
+      "replicates": 10000,
+      "resampled_date_records": 501,
+      "seed": 2026102240,
+      "undefined_loss_replicates": 0
+    }
+  ],
+  "forecast_statistics": [
+    {
+      "delay_minutes": 1,
+      "eligible_records": 479,
+      "endpoint_qlike_increment": 0.015150028871616431,
+      "qlike_increment": 0.007813068616005722,
+      "squared_error_increment": 7.759225714889587e-10
+    },
+    {
+      "delay_minutes": 2,
+      "eligible_records": 479,
+      "endpoint_qlike_increment": 0.01634570671805915,
+      "qlike_increment": 0.007324950188624224,
+      "squared_error_increment": 7.387029041740668e-10
+    }
+  ],
+  "gates": [
+    {
+      "name": "positive_primary_CER_over_daily",
+      "passed": false
+    },
+    {
+      "name": "positive_primary_CER_over_static",
+      "passed": true
+    },
+    {
+      "name": "positive_primary_QLIKE_increment",
+      "passed": true
+    },
+    {
+      "name": "positive_lower_CER_daily_block_20",
+      "passed": false
+    },
+    {
+      "name": "positive_lower_CER_static_block_20",
+      "passed": false
+    },
+    {
+      "name": "positive_lower_QLIKE_block_20",
+      "passed": false
+    },
+    {
+      "name": "positive_lower_CER_daily_block_40",
+      "passed": false
+    },
+    {
+      "name": "positive_lower_CER_static_block_40",
+      "passed": false
+    },
+    {
+      "name": "positive_lower_QLIKE_block_40",
+      "passed": false
+    },
+    {
+      "name": "positive_CER_over_daily_2022",
+      "passed": false
+    },
+    {
+      "name": "positive_CER_over_static_2022",
+      "passed": true
+    },
+    {
+      "name": "positive_CER_over_daily_2023",
+      "passed": true
+    },
+    {
+      "name": "positive_CER_over_static_2023",
+      "passed": false
+    },
+    {
+      "name": "positive_CER_over_daily_at_2bp",
+      "passed": false
+    },
+    {
+      "name": "positive_CER_over_static_at_2bp",
+      "passed": true
+    }
+  ],
+  "sensitivity": {
+    "one_minute_zero_cost_CER_over_daily": -0.015582020042049905,
+    "positive_CER_over_daily_after_single_month_omission": 0,
+    "month_omission_cases": 24
+  },
+  "artifacts": [
+    {
+      "file": "report.html",
+      "sha256": "075da6724f584d98643155ad8a85bd342bc8385fe052eaebc3c0fb8018381465"
+    },
+    {
+      "file": "measurements.csv",
+      "sha256": "053ac18f33a7d7895772be2b5c35252f997781fc30c27364a9e9ee2dbbf75550"
+    },
+    {
+      "file": "features.csv",
+      "sha256": "cf602f639206f8fe3fbcec79729c0622e3ef60d69f9dd2801f82a7efe81d6336"
+    },
+    {
+      "file": "daily_accounts.csv",
+      "sha256": "00fc3042d93ec36da0add9aa81ce09dc3c81ac406125f9a5582494dcf40ab210"
+    },
+    {
+      "file": "account_ledger.csv",
+      "sha256": "6f7e17b211e39090768dd9d4027d4137dab506e7c450ae585790f6cf66fade7f"
+    }
+  ],
+  "verification": {
+    "artifact_hashes_verified": 5,
+    "daily_rows": 20040,
+    "ledger_events": 55760,
+    "max_decimal_ledger_usd_error": "4.5223552236721E-10",
+    "max_decimal_ledger_share_error": "1.0606951671887E-12",
+    "local_raw_sessions_matched": 498,
+    "raw_measurement_sessions_checked": 494,
+    "raw_holding_outcomes_checked": 988,
+    "raw_ledger_reference_checks": 54830,
+    "omission_diagnostics_checked": 30,
+    "bootstrap_checks": [
+      {
+        "block_length": 20,
+        "replicates": 10000,
+        "seed": 2026102220,
+        "intervals_match": true
+      },
+      {
+        "block_length": 40,
+        "replicates": 10000,
+        "seed": 2026102240,
+        "intervals_match": true
+      }
+    ]
+  },
+  "provenance_limits": {
+    "missing_local_raw_inputs": "The newly acquired 2020 boundary, 2021 calibration/warm-up windows and three shortened-session supplements were not uploaded as raw pages or CSVs.",
+    "native_source_sha256": "291931d8d07a0a992c72cf7f9223c249d20c0b7fc57509f2c1d8f524d6a3e5bc",
+    "local_pre_documentation_source_sha256": "d6110ed23e2e5c7f5b0369462bdd668201cc85051192e0f676546406e12df6f7",
+    "source_fingerprint_match": false,
+    "source_difference_explained": true,
+    "source_resolution": {
+      "status": "reproduced_with_observed_crlf_pattern",
+      "inventory_source_revision": "f5992dfe51c8d56c5b5cb4317ab058ef7506a60b",
+      "native_inventory_sha256": "08fa977e223ed44a659983ebb19cf93a156636592d60f8a732a03b99cc3decaa",
+      "native_execution_summary_sha256": "84a8fdeceeb61107c588d53e65710ae6cab4563eee6cf793ecb94d6a012559bc",
+      "inventory_entries": 116,
+      "exact_byte_matches": 108,
+      "crlf_byte_matches": 8,
+      "crlf_paths": [
+        "CMakePresets.json",
+        "apps/continuation_diagnostic.cpp",
+        "research/intraday_continuation_protocol.md",
+        "src/platform/windows/alpaca_console_credentials.cpp",
+        "src/reporting/continuation_diagnostic_report.cpp",
+        "src/reporting/continuation_diagnostic_report.hpp",
+        "src/research/intraday_continuation.cpp",
+        "src/research/intraday_continuation.hpp"
+      ],
+      "reconstructed_revision": "e90f64a393381a30b15c86449e9d71c776f120ac",
+      "method": "Read the reconstructed revision's tracked files in the CMake source-fingerprint scope, convert LF to CRLF only for the eight observed paths, hash each file, sort path:sha256 records with LF terminators, and hash their concatenation.",
+      "reconstructed_native_source_sha256": "291931d8d07a0a992c72cf7f9223c249d20c0b7fc57509f2c1d8f524d6a3e5bc"
+    },
+    "interpretation": "The raw Windows/Linux fingerprints differ because eight files use CRLF on Windows. The later per-file inventory accounts for every source entry, and applying its observed line-ending pattern to the earlier checkout reproduces the risk study's original native aggregate exactly. The source difference is explained; unavailable raw acquisition files remain a separate verification limit."
+  },
+  "decision": "No advancement under revision 1; no later-period evaluation follows from this result."
+}

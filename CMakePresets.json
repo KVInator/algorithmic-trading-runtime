@@ -35,6 +35,16 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_TESTING": "ON"
       }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release (GCC/Clang)",
+      "inherits": "linux-debug",
+      "binaryDir": "${sourceDir}/scratch/build-linux-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -51,6 +61,10 @@
     {
       "name": "linux-debug",
       "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release"
     }
   ],
   "testPresets": [
@@ -98,6 +112,57 @@
       "filter": {
         "exclude": {
           "label": "integration"
+        }
+      }
+    },
+    {
+      "name": "windows-debug-quick",
+      "displayName": "Windows Debug: quick contracts",
+      "inherits": "windows-debug",
+      "filter": {
+        "exclude": {
+          "label": "integration|extended"
+        }
+      }
+    },
+    {
+      "name": "windows-release-quick",
+      "displayName": "Windows Release: quick contracts",
+      "inherits": "windows-release",
+      "filter": {
+        "exclude": {
+          "label": "integration|extended"
+        }
+      }
+    },
+    {
+      "name": "linux-debug-quick",
+      "displayName": "Linux Debug: quick contracts",
+      "inherits": "linux-debug",
+      "filter": {
+        "exclude": {
+          "label": "integration|extended"
+        }
+      }
+    },
+    {
+      "name": "linux-release",
+      "configurePreset": "linux-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "exclude": {
+          "label": "integration"
+        }
+      }
+    },
+    {
+      "name": "linux-release-quick",
+      "inherits": "linux-release",
+      "filter": {
+        "exclude": {
+          "label": "integration|extended"
         }
       }
     }

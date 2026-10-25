@@ -1,171 +1,215 @@
 # Algorithmic Trading Runtime
 
-C++20 historical market-data ingestion and intraday strategy research on SPY.
-The implemented workflow acquires Alpaca SIP minute bars, preserves the original
-responses, verifies saved inputs and evaluates one fixed intraday momentum rule
-with delayed price references, explicit costs and block-bootstrap uncertainty.
+C++20 research and execution software connecting causal SPY strategy decisions to
+exact order accounting, a deterministic broker peer and durable restart recovery.
+The project combines **three intraday strategy families**, a separate daily-risk
+study, **144 synthetic execution cases** and **120 Release benchmark trials per
+host**. Python provides independent numerical checks and publication rendering.
 
-The baseline research design and continuation gates are defined in the
-[SPY-IM-01 protocol](research/intraday_momentum_protocol.md). The
-[development data policy](research/development_data_policy.json) records its
-revision-2 data exclusion. No validation or final-period strategy evaluation is
-implemented in the current workflow.
+**Read the [technical report (PDF)](docs/report.pdf) or download the
+[self-contained HTML report](docs/report.html)** for the full mathematics,
+results, assumptions and interactive saved-event replay. The
+[verification record](docs/verification.md) maps the completed roadmap to evidence.
 
-The next candidate is [SPY-TOD-01](research/intraday_continuation_protocol.md):
-time-of-day continuation with an explicit price-only versus volume-conditioned
-comparison. Its 20-session causal feature history, half-hour state machine and
-delayed replay are implemented and covered by synthetic contracts. Historical
-aggregate scoring and its paired statistical report are the next milestone.
+## Research findings
 
-## Project layout
+The historical sample is inspected **2022-2023 development data**. No registered
+candidate advances to later-period evaluation. Positive point returns and failed
+advancement screens are reported together.
 
-| Directory | Responsibility |
+| Experiment | Sample | Main finding |
+| --- | --- | --- |
+| SPY-IM-01: late-session momentum | 496 dates; 268 active | Gross compounded return **-2.8207%**; primary net **-7.8924%**. No demonstrated gross edge. |
+| SPY-TOD-01: time-of-day continuation | 476 scored dates after 20 warm-up sessions | Volume variant net **+11.9652%**, falling to **-0.4292%** when its five largest winning dates become cash. Both variants fail registered screens; the volume increment remains unconfirmed. |
+| SPY-MR-01: opening-anchor reversion | 476 dates; 83 active | Candidate gross **+1.2498%**, primary net **-0.4171%**; cost-dominated and below the 100-active-date coverage convention. |
+| SPY-RISK-01: daily risk allocation | 501 exchange dates; 40 account cases | Intraday-risk CER increment over daily-only **-1.5430 percentage points/year**. Positive QLIKE point improvement has intervals spanning zero. |
+
+Primary intraday comparisons use one-minute delayed minute-open references and
+**1 bp per side**. These are hypothetical all-in costs, not measured spreads or
+broker fees. The designs have different information sets and holding windows;
+the table is not a risk-matched performance ranking.
+
+![Recorded historical development findings](docs/figures/research_findings.svg)
+
+## Mathematical design
+
+**Momentum and continuation.** Late momentum observes
+$m_d=C_{d,15:29}/O_{d,09:30}-1$ at 15:30 and enters only when $m_d>0$.
+Time-of-day continuation compares the current move $u_{d,m}$ with the mean absolute
+same-clock move over twenty strictly earlier sessions:
+
+$$
+s_{d,m}=\frac{1}{20}\sum_{j=d-20}^{d-1}|u_{j,m}|.
+$$
+
+The volume variant also requires cumulative shares above the prior same-clock
+median for fresh entries. Volume does not determine exits. Signals use completed
+bars; delayed references occur after decisions. For one-way cost $c=k/10^4$:
+
+$$
+R(c)=\frac{P_x(1-c)}{P_e(1+c)}-1.
+$$
+
+**Opening-anchor reversion.** Five-minute log residuals around a fixed
+volume-weighted opening-close anchor follow the estimated relation
+$X_{k+1}=a+\phi X_k+\epsilon_{k+1}$. Pooled centered OLS uses 480 within-session
+pairs from twenty prior sessions. For an admissible positive sub-unit slope:
+
+$$
+\theta=\frac{a}{1-\phi},\qquad
+\kappa=-\frac{\log\phi}{5},\qquad
+ g(x;\delta,H)=(\theta-x)e^{-\kappa\delta}(1-e^{-\kappa H}).
+$$
+
+The noon candidate compares this expected delayed move with the fixed primary
+log-cost hurdle. Unsupported fits produce dated cash decisions. Numerical
+OU admissibility does not establish stationarity or identify a latent diffusion.
+The synthetic noise study demonstrates false admissibility and interval
+undercoverage; historical parameter ranges remain descriptive.
+
+![Finite-sample and observation-noise evidence](docs/figures/reversion_validation.svg)
+
+**Daily risk.** Prior-only daily-squared-return and RV5 estimates feed
+$w_d=\min(1,0.10/\sqrt{252h_d})$. Fractional accounts retain cash, shares,
+dividend receivables/payments and split identities. Forecast loss and allocation
+value are assessed separately using paired whole-calendar resampling. Intraday
+studies use five-/ten-session outcome blocks; risk uses twenty/forty. Fixed
+screens and prior research exposure remain explicit in the
+[registered protocols](research/README.md).
+
+## Decisions, orders and recovery
+
+```mermaid
+flowchart TD
+    B["Validated completed observations"] --> S["Authoritative strategy engines"]
+    S --> R["Fractional research accounts"]
+    S --> T["Whole-share target adapters"]
+    T --> E["Order state and reservations"]
+    E --> J["Synchronized input journal"]
+    J --> P["Deterministic broker peer"]
+    P --> F["Incremental fills and snapshots"]
+    F --> E
+    J --> G["Verified replay and closed routing gate"]
+    G --> E
+```
+
+The core reserves cash or shares before dispatch eligibility. Partial fills apply
+exact integer money once per stable execution identity. Pending cancellation
+retains resources. Contradictory evidence closes entry; broker snapshots must
+match cash, positions and complete open-order terms before routing reopens.
+
+The schema-3 bridge uses **USD 1e-9 units** and durable broker identities. A
+candidate input/checkpoint is appended and synchronized before state publication.
+Recovery replays the same core and persists a new disconnect barrier. An
+incomplete tail can be recovered only into a separate verified-prefix file;
+complete corruption is rejected. Uncertain durable orders are not blindly resent.
+Local once-only accounting does not guarantee exactly-once external dispatch.
+
+![Partial-fill and cancellation accounting](docs/figures/broker_lifecycle.svg)
+
+`project_demo` exposes a keyboard-operable event playhead, targets, fills,
+reservations, client/broker state, account-parity cases and interrupted paths.
+Its **259 checks across 24 cases** run without credentials or private data.
+Quotes, messages and event times are synthetic. Historical Alpaca acquisition is
+preserved separately; no paid feed or native broker service is required.
+
+## Execution measurements
+
+Four fixed limit/deadline policies run on 36 matched quote/delivery workloads,
+yielding **144 accounts, 108 paired policy comparisons and 120 assumption
+comparisons**. Signed arrival-midpoint shortfall is decomposed into spread and
+timing; unfilled shares receive a separate common-terminal opportunity mark.
+The arithmetic retains exact half-cents.
+
+| Policy | Filled/requested shares | Completed cases / 36 | Total marked shortfall, bp of requested notional |
+| --- | ---: | ---: | ---: |
+| Crossing limit; 5-second cancel | 72.22% | 20 | 3.5889 |
+| Crossing limit; 11-second cancel | 76.67% | 24 | 3.5889 |
+| Same-side limit; 5-second cancel | 14.44% | 0 | 3.7667 |
+| Same-side limit; 11-second cancel | 20.00% | 0 | 3.6000 |
+
+![Fill coverage and execution-cost components](docs/figures/execution_policies.svg)
+
+These are constructed workload aggregates, not empirical fill probabilities.
+Source and receipt clocks are distinct. Incomplete completion times stay null;
+cancellation is informative censoring. Synthetic prices do not estimate market
+impact, exchange queue priority or actual broker latency.
+
+## Measured implementation costs
+
+Matched Release workloads compare direct processing, additional candidate
+copying, volatile/synchronized schema-2 and schema-3 journals, and warm restart.
+At 128 round trips on the verified Windows workstation:
+
+| Operation | Median of five trial p50 values |
+| --- | ---: |
+| Direct core input | 24.4 us |
+| Input with additional candidate copy | 83.8 us |
+| Synchronized typed-journal input | 2.4384 ms |
+| Synchronized paper-journal input | 3.5602 ms |
+| Typed warm recovery | 72.7635 ms |
+| Paper warm recovery | 982.5807 ms |
+
+![State-size latency and timed-call throughput](docs/figures/runtime_costs.svg)
+
+MSVC 19.51.36260.0 Release uses `/O2 /Ob2 /DNDEBUG`, C++20 and warnings as errors.
+The OS reports Intel Family 6 Model 183, 24 logical processors. Process-wide peak
+working set is 20.730 MiB; this does not isolate per-case allocations. Throughput
+uses summed timed calls, excluding preparation, validation and reporting. Recovery
+reads are warm-cache. Timings depend on the host, storage and instrumentation.
+
+Journals are bounded to **10,000 inputs, 32 MiB per file and 64 KiB per frame**.
+Copies and retained histories have measured costs; no capacity extrapolation,
+low-latency target, rotation or compaction is claimed.
+
+## Build and reproduce
+
+Windows: Visual Studio 2026 with C++/CMake tools. Open the folder, select
+**windows-x64 / windows-release**, **Build All**, then run the **windows-release**
+test preset. Select **project_demo.exe** and press **Ctrl+F5**. Open its printed
+`report.html`. Everyday edits use the matching `-quick` test preset.
+
+Linux requires CMake 3.25+, a C++20 compiler and OpenSSL development headers:
+
+```sh
+cmake --preset linux-release
+cmake --build --preset linux-release
+ctest --preset linux-release --output-on-failure
+scratch/build-linux-release/project_demo
+python -B research/verify_project_demo.py scratch/runs/project_demo_0
+```
+
+Use the actual printed suffix. **29 routine contract groups** cover data,
+chronology, statistics, accounting and recovery. **25 quick groups** exclude four
+extended study/disk regressions. Windows/Linux CI performs clean Release builds
+and independent offline verification; Ubuntu additionally runs ASan/UBSan with
+leak detection. No performance threshold is imposed on shared CI hosts.
+
+The [runbook](docs/running.md) covers execution measurements, benchmarks,
+historical acquisition/reproduction and rebuilding the publication. Independent
+Python checks reconstruct Decimal ledgers, fit/statistical references, quote
+budgets, source/receipt timing, censoring and artifact identities. Full historical
+reproduction requires the retained private input evidence; the distributed
+[summary snapshot](docs/evidence/manifest.json) does not manufacture daily paths.
+
+## Structure and limits
+
+| Location | Responsibility |
 | --- | --- |
-| `apps/` | Acquisition, offline finalization and study entry points |
-| `apps/diagnostics/` | Optional live gap investigation |
-| `src/market/` | Minute-bar invariants, UTC timestamps and session calendar |
-| `src/alpaca/` | Request, response, JSON and rate-limit contracts |
-| `src/storage/` | Raw evidence, checkpoints, integrity and dataset finalization |
-| `src/research/` | Signal/replay, return statistics and moving-block bootstrap |
-| `src/reporting/` | HTML/SVG and CSV presentation of the synthetic continuation trace |
-| `src/platform/` | Windows HTTP/credential access and platform SHA-256 backends |
-| `tests/` | Synthetic contract fixtures and optional full-period integration |
-| `research/` | Economic protocol and declared data policy |
-| `scratch/datasets/` | Acquired data and immutable dataset evidence |
-| `scratch/runs/` | Acquisition audits, diagnostic evidence and research reports |
+| `src/market`, `src/alpaca`, `src/storage`, `src/platform` | Validated observations, message contracts, integrity and platform resources |
+| `src/research`, `src/accounting` | Authoritative causal models, statistics and fractional accounts |
+| `src/execution` | Whole-share runtime, journals, adapters and deterministic broker/replay scenarios |
+| `src/reporting`, `apps` | Result-bound exports and thin composition roots |
+| `tests`, `research/verify_*.py` | Contract regressions and independent references |
+| `docs` | Technical report, curated figures/evidence and operational contracts |
 
-Generated builds, test output and local experiments belong under the ignored
-`scratch/` directory. Visual Studio regenerates ignored `.vs/` state. Neither is
-part of source delivery. Raw datasets and run evidence are local research
-artifacts and remain excluded from version control.
+The [architecture](docs/architecture.md) explains ownership and units.
+Generated builds, private data and full run directories stay under ignored
+`scratch/`. The final tree removes superseded launchers, report exporters,
+proposal comparisons and progress checklists; their history remains in Git.
 
-## Visual Studio workflow
-
-Requirements: Visual Studio 2026 with MSVC, a Windows SDK and C++ CMake tools.
-CMake pins nlohmann/json 3.12.0 by SHA-256. The first clean configuration needs
-internet access to obtain that dependency. The core uses C++20; project warnings
-are treated as errors.
-
-1. Open the project folder with **File > Open > Folder**.
-2. Select configure preset **windows-x64** and build preset **windows-debug**.
-3. Select **Build > Build All**.
-4. Select **Test > Run Test Preset > windows-debug** for nine routine groups.
-5. Select **continuation_diagnostic.exe**, then **Ctrl+F5**.
-6. Open the printed `trace.html` path for the price/volume plots and paired
-   decision table. `decisions.csv` retains unrounded features and UTC clocks.
-
-The diagnostic uses constructed observations, requires no API credentials and
-does not score historical strategy performance. Its chart compares the signal
-with the same-clock historical scale and shows the volume entry condition.
-
-The existing baseline is run through **development_finalize.exe** followed by
-**development_replay.exe**, each with **Ctrl+F5**, when offline evidence
-verification or baseline reproduction is required.
-
-`windows-debug-full` adds the 497-session synthetic disk integration test. It is
-optional for routine changes and can take several minutes in Windows Debug.
-The regular preset excludes this test. These two test presets explicitly select `Debug`.
-
-For optimized offline runs, select build preset **windows-release**, rebuild,
-then run the targets from `scratch/build/Release/` through the Visual Studio
-startup-item selector. The matching **windows-release** test preset runs the
-nine routine groups in Release. Domain and artifact validation remain enabled.
-
-Finalization and replay are offline. Their paths are anchored to the source
-folder, independently of the IDE working directory. Repeated finalization
-verifies the existing frozen study without overwriting it. Each replay writes
-a new report directory. Both apps print a flushed startup message before
-verification, elapsed-time progress for each month and the final manifest status.
-Replay also reports its calculation and bootstrap stages. A month or bootstrap
-stage may take time in Debug; progress messages mark work boundaries rather than
-a periodic heartbeat. Run finalization to completion before starting replay.
-
-## Acquisition and credentials
-
-`alpaca_development.exe` collects only the fixed 2022–2023 development period.
-It reuses the original March 2022 pilot and verifies calendar dates, daylight
-saving conversion, all completed checkpoints and retained incomplete sessions.
-Coverage gaps are inventoried while later sessions are collected. HTTP, schema,
-calendar, integrity and filesystem errors stop the run. Exit code 2 means the
-collection audit finished with unresolved sessions; it does not authorize replay.
-
-Credentials are read through Windows Credential Manager from the generic entry
-`algorithmic-trading-runtime/alpaca-paper`: the user-name field holds the paper
-API key and the password field its secret. A missing entry triggers hidden
-console prompts. The app reads only this named credential and never writes it
-to project files. HTTP uses WinHTTP with certificate checks, bounded responses,
-timeouts, redirects disabled and the existing bounded HTTP-429 policy.
-
-The optional `alpaca_gap_probe.exe` target is enabled by the CMake cache option
-`TRADING_BUILD_DIAGNOSTICS=ON`. It retains diagnostic responses separately and
-does not modify dataset checkpoints or data policy. Completed setup/pilot
-launchers are retired; their real data and reports remain under `scratch/`.
-
-## Frozen development sample
-
-The original acquisition inventory contains 497 eligible sessions after three
-early closes and the 2023-01-03 diagnostic fixture are excluded. One session,
-2023-06-05, lacks four minute bars in repeated and targeted Alpaca responses.
-Protocol revision 2 excludes that entire session before full-period evaluation.
-
-The study contains **496 sessions and 193,440 bars**, with 250 sessions in 2022
-and 246 in 2023. All five excluded dates and their reasons are reported. Missing
-bars are not filled, omitted dates are not synthetic cash returns, and no feed
-is substituted. The original March manifest retains SHA-256 identity
-`a8d9489284efe604ab8350f945e0e5393ae769c6bc3a0350450a2328759416e5`.
-
-`development_finalize` verifies the policy, acquisition audit, diagnostic probe,
-raw responses, CSV values, calendar snapshots and selected checkpoints before
-publishing `study_manifest.json` beside the original data. The original
-acquisition manifest remains absent because its 497-session contract was not
-met. The separate study manifest identifies the revised evaluation sample.
-A changed policy, altered evidence or unexpected date blocks finalization/load.
-
-`development_replay` verifies that study manifest and applies the unchanged ten
-cost/delay cases. Its `daily_returns.csv` and `summary.json` retain input and
-protocol hashes, annual results, daily-close drawdown, winner concentration,
-five-/ten-day moving-block bootstrap intervals and the continuation decision.
-The protocol defines every financial convention and statistic.
-
-These results use continuous-notional delayed minute-open price proxies and
-hypothetical two-sided costs. They do not establish broker fills, market impact
-or executable account profit. Advancement to later evaluation follows the
-predeclared gates.
-
-## Development finding
-
-The locally retained development report at
-`scratch/runs/SPY_IM_01_development_2022-2023_0/summary.json`
-contains 268 active trades. The unchanged candidate fails its development gate
-with `no_gross_edge`; validation and final evaluation remain unopened.
-
-| Fixed case | Compounded strategy return | Daily-close maximum drawdown |
-| --- | ---: | ---: |
-| One-minute delay, zero cost | -2.8207% | 7.8018% |
-| One-minute delay, 1 bp per side | -7.8924% | 11.8412% |
-| Two-minute delay, 1 bp per side | -9.8039% | 13.5161% |
-
-Both annual primary-case returns are negative: -3.1999% in 2022 and -4.8475%
-in 2023. The five-/ten-day bootstrap mean-return intervals include zero. These
-observations do not support advancing this adaptation as a profitable strategy.
-The report's manifest and daily-return digests identify the exact inputs and
-outputs; the original engineering-pilot result is retained separately.
-
-An optional Python standard-library reference check is retained under
-`scratch/verification/`. It independently recomputes raw-price returns, period
-statistics, concentration and both bootstrap calculations. Its recorded
-verification identifies the same frozen manifest and daily-return digest.
-The application workflow and numerical engine are C++.
-
-## Version control
-
-Source commits contain the CMake configuration, application/core code, tests and
-research specifications. Raw responses, local reports, credentials and generated
-build state remain outside source control. The existing baseline and new
-candidate have separate protocols and reviewable milestones.
-
-Visual Studio's **Git > Create Git Repository** can initialize the current folder
-and publish it to a selected GitHub repository. Preserve the repository-owned
-ignore file. Use a private repository during research and retain the existing
-local data directory. Subsequent work can use branches, reviewed commits and
-normal pulls instead of replacing the project folder.
+The evidence is limited by one ETF, two inspected development years,
+finalized historical bars, assumed costs, long/cash scope, observation-model
+identification and uncalibrated synthetic liquidity. Local **2024-2025 strategy
+prices and performance remain unopened**. The project is a completed bounded
+research and execution study, with no demonstrated live-trading edge.

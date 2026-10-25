@@ -18,12 +18,17 @@ struct CaseStatistics {
 };
 
 enum class DevelopmentDecision {
-    insufficient_active_days, no_gross_edge, cost_dominated, delay_stress_failed,
-    undefined_signal_contrast, nonpositive_signal_contrast, eligible_for_unchanged_validation
+    insufficient_active_days,
+    no_gross_edge,
+    cost_dominated,
+    delay_stress_failed,
+    undefined_signal_contrast,
+    nonpositive_signal_contrast,
+    eligible_for_unchanged_validation
 };
 
-[[nodiscard]] DevelopmentDecision assess_development(const PeriodStatistics& primary,
-                                                     const PeriodStatistics& delay_stress);
+[[nodiscard]] DevelopmentDecision assess_development(const PeriodStatistics &primary,
+                                                     const PeriodStatistics &delay_stress);
 [[nodiscard]] std::string development_decision_name(DevelopmentDecision decision);
 
 struct DevelopmentStudyResult {
@@ -34,14 +39,11 @@ struct DevelopmentStudyResult {
 };
 
 class DevelopmentStudy {
-public:
-    using Progress = std::function<void(const std::string&)>;
+  public:
+    using Progress = std::function<void(const std::string &)>;
     // Requires the revision-2 dataset returned by DevelopmentStudyDataset.
-    [[nodiscard]] DevelopmentStudyResult run(const FrozenDevelopmentDataset& dataset, const Progress& progress = {}) const;
+    [[nodiscard]] DevelopmentStudyResult run(const FrozenDevelopmentDataset &dataset,
+                                             const Progress &progress = {}) const;
 };
-
-[[nodiscard]] std::filesystem::path save_development_report(
-    const FrozenDevelopmentDataset& dataset, const DevelopmentStudyResult& study,
-    const std::filesystem::path& output_root);
 
 } // namespace trading

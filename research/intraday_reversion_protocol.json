@@ -1,0 +1,110 @@
+{
+  "study": "SPY-MR-01",
+  "revision": 1,
+  "registered_date": "2026-10-23",
+  "status": "registered_before_historical_model_fitting_and_scoring",
+  "frozen_development_manifest_sha256": "70fdd01093b9026cc4e673def25718e547c0052b728163bac9bdf30b9c25126e",
+  "eligible_sessions": 496,
+  "warmup_sessions": 20,
+  "scored_sessions": 476,
+  "excluded_dates": [
+    "2022-11-25",
+    "2023-01-03",
+    "2023-06-05",
+    "2023-07-03",
+    "2023-11-24"
+  ],
+  "timezone": "America/New_York",
+  "regular_session_minutes": 390,
+  "anchor_minutes": 30,
+  "anchor_method": "arithmetic_volume_weighted_minute_closes",
+  "prefix_minutes": 150,
+  "observation_step_minutes": 5,
+  "observations_per_session": 25,
+  "pairs_per_fit": 480,
+  "history_sessions": 20,
+  "history_policy": "latest_eligible_slots_strictly_before_current_session_no_replacement_of_missing_anchor",
+  "decision_clock": "12:00",
+  "exit_decision_clock": "12:30",
+  "holding_minutes": 30,
+  "policies": [
+    "candidate",
+    "sign_only",
+    "drift",
+    "always_long",
+    "cash"
+  ],
+  "primary_cost_bps_per_side": 1,
+  "primary_delay_minutes": 1,
+  "cost_bps_per_side": [
+    0,
+    0.5,
+    1,
+    2,
+    5
+  ],
+  "execution_delay_minutes": [
+    1,
+    2
+  ],
+  "signal_cost_bps_per_side": 1,
+  "signal_delay_minutes": 1,
+  "stress_reselects_signals": false,
+  "minimum_active_dates": 100,
+  "maximum_top_five_share_of_positive_net_sum": 0.5,
+  "remove_top_five_requires_positive_net_sum": true,
+  "strictly_positive_mean_gates": [
+    "primary_gross",
+    "primary_net",
+    "primary_net_2022",
+    "primary_net_2023",
+    "one_minute_two_bp_net",
+    "two_minute_one_bp_net",
+    "paired_net_vs_sign_only",
+    "paired_net_vs_drift"
+  ],
+  "nonnegative_mean_gates": [
+    "paired_gross_vs_sign_only",
+    "paired_gross_vs_drift"
+  ],
+  "strictly_positive_lower_range_gates": [
+    "primary_net",
+    "paired_net_vs_sign_only",
+    "paired_net_vs_drift"
+  ],
+  "parameter_bootstrap": {
+    "replicates": 499,
+    "blocks": [
+      1,
+      5
+    ],
+    "base_seed": 20261023,
+    "date_seed_rule": "base_seed_plus_YYYYMMDD",
+    "minimum_admissible_refits": 20,
+    "missing_coefficient_rule": "entire_slope_range_unavailable",
+    "OU_range_rule": "conditional_on_admissible_refits",
+    "entry_filter": false
+  },
+  "outcome_bootstrap": {
+    "replicates": 10000,
+    "blocks": [
+      5,
+      10
+    ],
+    "seed": 20261023,
+    "calendar": "all_476_common_scored_records",
+    "undefined_replicate_rule": "entire_statistic_range_unavailable"
+  },
+  "percentile_probabilities": [
+    0.025,
+    0.975
+  ],
+  "quantile_interpolation": "linear_p_times_n_minus_one",
+  "annual_sessions": 252,
+  "initial_normalized_equity": 1,
+  "zero_anchor_policy": "retain_date_cash_for_affected_policies_and_history_slot",
+  "unsupported_model_policy": "retain_date_candidate_cash_with_explicit_status",
+  "input_integrity_or_nonfinite_policy": "stop_without_scoring",
+  "latent_OU_identification_claim": false,
+  "historical_prices_or_results_2024_2025_authorized": false
+}

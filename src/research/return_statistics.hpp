@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <random>
 #include <span>
 #include <string>
 #include <vector>
@@ -31,6 +32,26 @@ struct WinningContribution {
     double net_return;
 };
 
+struct ReturnPathPoint {
+    double wealth;
+    double drawdown;
+};
+
+[[nodiscard]] std::vector<ReturnPathPoint> compound_return_path(std::span<const double> values);
+[[nodiscard]] ReturnStatistics describe_return_series(std::span<const double> values);
+
+struct ReturnConcentration {
+    std::vector<WinningContribution> largest_five_winners;
+    double arithmetic_net_sum;
+    double positive_return_sum;
+    double largest_five_net_sum;
+    std::optional<double> largest_five_share_of_arithmetic_net;
+    std::optional<double> largest_five_share_of_positive_returns;
+};
+
+[[nodiscard]] ReturnConcentration describe_return_concentration(
+    std::span<const WinningContribution> days);
+
 struct PeriodStatistics {
     std::size_t sessions;
     std::size_t active_days;
@@ -55,6 +76,20 @@ struct PeriodStatistics {
 struct PercentileInterval {
     double lower;
     double upper;
+};
+
+[[nodiscard]] PercentileInterval percentile_interval(std::vector<double> values);
+
+// A stream of complete paired-day indices. Each sample concatenates uniformly
+// selected non-circular blocks, truncating the final block to the sample size.
+class MovingBlockIndexSampler {
+public:
+    MovingBlockIndexSampler(std::size_t sample_size, std::size_t block_length, std::uint64_t seed);
+    [[nodiscard]] std::vector<std::size_t> next();
+private:
+    std::size_t sample_size_;
+    std::size_t block_length_;
+    std::mt19937_64 engine_;
 };
 
 struct BootstrapStatistics {

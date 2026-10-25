@@ -11,7 +11,9 @@ nlohmann::json parse_json_document(std::string_view payload) {
     using Json = nlohmann::json;
     std::vector<std::unordered_set<std::string>> object_keys;
     auto callback = [&](int depth, Json::parse_event_t event, Json& value) {
-        if (depth > 64) { throw std::invalid_argument("JSON document exceeds the supported nesting depth"); }
+        if (depth > 64) {
+            throw std::invalid_argument("JSON document exceeds the supported nesting depth");
+        }
         if (event == Json::parse_event_t::object_start) {
             object_keys.emplace_back();
         } else if (event == Json::parse_event_t::object_end) {
@@ -30,6 +32,41 @@ nlohmann::json parse_json_document(std::string_view payload) {
     } catch (const Json::out_of_range&) {
         throw std::invalid_argument("JSON document contains an unrepresentable numeric value");
     }
+}
+
+nlohmann::json parse_json_number_text(std::string_view payload) {
+    static_cast<void>(parse_json_document(payload));
+    std::string encoded;
+    encoded.reserve(payload.size());
+    bool quoted = false, escaped = false;
+    for (std::size_t i = 0; i < payload.size(); ++i) {
+        const char c = payload[i];
+        if (quoted) {
+            encoded.push_back(c);
+            if (escaped) {
+                escaped = false;
+            } else if (c == '\\') {
+                escaped = true;
+            } else if (c == '"') {
+                quoted = false;
+            }
+        } else if (c == '"') {
+            quoted = true;
+            encoded.push_back(c);
+        } else if (c == '-' || (c >= '0' && c <= '9')) {
+            encoded.push_back('"');
+            do {
+                encoded.push_back(payload[i++]);
+            } while (i < payload.size() &&
+                     (payload[i] == '-' || payload[i] == '+' || payload[i] == '.' || payload[i] == 'e' ||
+                      payload[i] == 'E' || (payload[i] >= '0' && payload[i] <= '9')));
+            --i;
+            encoded.push_back('"');
+        } else {
+            encoded.push_back(c);
+        }
+    }
+    return parse_json_document(encoded);
 }
 
 } // namespace trading
