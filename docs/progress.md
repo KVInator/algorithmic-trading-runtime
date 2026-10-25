@@ -8,7 +8,7 @@ Completion follows acceptance evidence, not test counts or strategy profitabilit
 | 1. Native integration checkpoint | Complete | Preserve legacy journal/pipeline contracts |
 | 2. Strategy research | Complete | Preserve registered findings and unopened later-period performance |
 | 3. Strategy/execution integration | Complete | Preserve adapters and historical reference-price distinctions |
-| 4. Simulated broker protocol | Linux verification and native diagnostic accepted | Windows quick-suite result not supplied; no broker implementation remains |
+| 4. Simulated broker protocol | Complete | Native diagnostic independently verified; Windows build and tests reported successful |
 | 5. Simulated execution measurements | Open | Matched policy schedules, quote/fill/delay/censoring tables and plots |
 | 6. Implementation benchmarks and CI | Open | Release workloads, latency/throughput/recovery measurements, portable CI and sanitizer evidence |
 | 7. Unified technical report | Open | Standalone HTML/PDF, integrated figures, curated evidence and final repository presentation |
@@ -94,21 +94,20 @@ matches and four explained CRLF variants, with no unexplained source differences
 The paired paths end at USD 2,000.24, flat with no open orders or reservations.
 The partial-cancel case retains four shares and USD 1,600; uncertain-submission,
 snapshot-mismatch and deadline/stop cases preserve USD 2,000 and zero inventory.
-The archive and console establish a successful native diagnostic. No Windows
-quick-suite transcript or explicit current test result accompanied this upload;
-that verification item remains unconfirmed.
+The archive and console establish a successful native diagnostic. The subsequent
+Windows build and tests were reported successful on 25 October 2026, completing
+the native checkpoint. No additional native test log or timing was supplied.
 
 The native summary SHA-256 is
 `951aea03d3b5ed206ed04ae99b06c14feb43f522030df0fe2cd07a53b403c978`.
 Its source-inventory identity is
 `75e42c73dda639c76638b64d8aad5f7c2ab38862b24e2382f67675e90b1cf172`.
 The complete evidence and comparison record are retained under
-`scratch/verification/native-broker-20261025/`. The next native verification item
-is the existing `windows-debug-quick` preset; the accepted diagnostic need not be
-repeated unless its implementation changes. Existing data and run directories
-remain retained.
+`scratch/verification/native-broker-20261025/`. Existing data and run directories
+remain retained. The accepted diagnostic need not be repeated unless its
+implementation changes.
 
-After native acceptance, milestone 4 closes under the revised offline scope.
+Milestone 4 is complete under the revised offline scope.
 Next: milestone 5's matched execution-policy measurements and quote/fill visuals,
 then milestone 6 benchmarks/CI and milestone 7 report/presentation. No additional
 strategy search or service-access investigation is needed.
