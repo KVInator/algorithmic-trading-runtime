@@ -520,13 +520,15 @@ class ApplicationBuild:
                 ):
                     continue
                 print(f"Linking {name}", flush=True)
+                pending = executable.with_name("linking-" + executable.name)
+                pending.unlink(missing_ok=True)
                 if self.compiler.windows:
                     command = [
                         str(self.compiler.executable),
                         "/nologo",
                         str(objects[source]),
                         str(library),
-                        f"/Fe{executable}",
+                        f"/Fe{pending}",
                         "/link",
                         "/INCREMENTAL:NO",
                         "bcrypt.lib",
@@ -544,9 +546,10 @@ class ApplicationBuild:
                         "-pthread",
                         "-lcrypto",
                         "-o",
-                        str(executable),
+                        str(pending),
                     ]
                 self.compiler.command(command)
+                pending.replace(executable)
             print(f"Applications: {self.directory}", flush=True)
         return self.directory / (
             (target if target != "all" else "project_demo")
