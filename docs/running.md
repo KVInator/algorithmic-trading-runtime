@@ -247,6 +247,8 @@ change the 27-group full routine or 23-group quick selections.
 
 Dependency examples, command-line tools and manuals are disabled in the scoped
 libcurl configuration. They must not appear as executable startup targets.
+A recursive configure-time check rejects executable targets anywhere inside
+the libcurl dependency, so an accidentally enabled tool/example fails generation.
 After pulling a CMake change, allow generation to finish before reopening the
 Visual Studio startup-target chooser. Project executables retain their names,
 including `paper_market_diagnostic.exe` and `paper_market_probe.exe`.

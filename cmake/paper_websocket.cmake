@@ -1,5 +1,19 @@
 # The native WinHTTP WebSocket API does not expose challenge PING/PONG frames.
 # Build only libcurl's HTTP/WebSocket path, with platform certificate validation.
+function(check_paper_curl_targets directory)
+    get_property(dependency_targets DIRECTORY "${directory}" PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(dependency_target IN LISTS dependency_targets)
+        get_target_property(dependency_type "${dependency_target}" TYPE)
+        if(dependency_type STREQUAL "EXECUTABLE")
+            message(FATAL_ERROR "The libcurl dependency must not add executable targets: ${dependency_target}")
+        endif()
+    endforeach()
+    get_property(dependency_directories DIRECTORY "${directory}" PROPERTY SUBDIRECTORIES)
+    foreach(dependency_directory IN LISTS dependency_directories)
+        check_paper_curl_targets("${dependency_directory}")
+    endforeach()
+endfunction()
+
 function(add_paper_websocket_dependency)
     set(BUILD_CURL_EXE OFF)
     # Examples are enabled upstream even when the command-line tool is disabled.
@@ -35,5 +49,6 @@ function(add_paper_websocket_dependency)
         URL_HASH SHA256=8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5
         DOWNLOAD_EXTRACT_TIMESTAMP FALSE)
     FetchContent_MakeAvailable(paper_curl)
+    check_paper_curl_targets("${paper_curl_SOURCE_DIR}")
 endfunction()
 add_paper_websocket_dependency()
