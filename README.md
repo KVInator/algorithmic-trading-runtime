@@ -17,9 +17,12 @@ and open it locally. The [v1.0.0 release](https://github.com/KVInator/algorithmi
 contains the report downloads and original Windows benchmark evidence.
 
 The [multi-instrument extension](docs/extension_plan.md) is now in development.
-Its baseline inventory is complete (**M0; 1 of 11 milestones**). M1 provides
-a five-instrument historical capability runner; authenticated availability
-awaits a local Windows run. Bulk acquisition and expanded historical evaluation
+Its baseline inventory and sampled free-data assessment are complete
+(**M0-M1; 2 of 11 milestones**). A Windows provider run demonstrated historical
+SIP bar, quote and trade access for all five instruments over 2016-2025;
+sampled minute gaps and incomplete early dividend fields are recorded in the
+[capability assessment](docs/extension_plan.md#m1-provider-evidence-and-disposition).
+Full-panel acquisition, action reconciliation and expanded historical evaluation
 have not started. The results below describe the completed v1 study.
 
 ## Research findings

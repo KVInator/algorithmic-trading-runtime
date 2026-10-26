@@ -171,11 +171,15 @@ it creates `review.zip` containing exactly `summary.json`, `capability.csv` and
 and raw responses local.** The same script accepts the printed
 `historical_capability_check_<suffix>` directory for offline constructed checks.
 
-M1 remains open until the provider matrix is reviewed. The common price start
-is provisional and sample-based. Full coverage, action/issuer agreement,
-process-date tails and warm-up are M2 requirements. Empty actions do not prove
-that no distribution or split occurred. A first quote/trade page establishes
-neither full-window coverage nor empirical execution quality.
+The [M1 provider assessment](extension_plan.md#m1-provider-evidence-and-disposition)
+records the reviewed 26 October 2026 run. All 570 requests succeeded; four missing
+minute bars and incomplete early dividend fields require M2 treatment. The
+reported `provisional_common_price_start` is the earliest suffix of sampled
+years with no observed bar gap. Its value of 2025 is not an entitlement boundary
+or a recommendation to discard earlier history. Full coverage, action/issuer
+agreement, process-date tails and warm-up remain M2 requirements. Empty actions
+do not prove that no distribution or split occurred. A first quote/trade page
+establishes neither full-window coverage nor empirical execution quality.
 
 Endpoint conventions follow the official
 [historical bars](https://docs.alpaca.markets/us/reference/stockbars),

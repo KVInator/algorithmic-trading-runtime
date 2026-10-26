@@ -1,7 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 26 October 2026: **M0 complete; M1 implementation prepared,
-provider evidence pending; M2-M10 not started.**
+Status recorded 26 October 2026: **M0-M1 complete; M2-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -142,9 +141,9 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 
 | ID | Decision / concrete limitation | Resolution stage |
 | --- | --- | --- |
-| D1 | At v1, calendar conversion starts at 2020-12-31; reference calendars cover 2021 calibration and 2022-2023 development | M1 extends conversion to 2016-2025; old reference calendars retain their bounds; provider evidence pending |
+| D1 | At v1, calendar conversion starts at 2020-12-31; reference calendars cover 2021 calibration and 2022-2023 development | M1 extends conversion to 2016-2025; all 20 provider calendar samples passed; old reference calendars retain their bounds |
 | D2 | At v1, calendar bar requests, session batches and corporate-action requests encode SPY | M1 adds explicit-symbol requests and a separate capability runner; legacy defaults/loaders remain; panel acquisition follows at M2 |
-| D3 | Actual free bars, distributions/payment dates, splits and quote-window coverage for all five symbols are unverified | M1: capability matrix and coverage-based common start; fixed failure/retry policy |
+| D3 | Free historical access is demonstrated, with four sampled missing minutes and 90 dividend records lacking payment/record dates; complete action history and quote windows remain unverified | M1 assessment below; M2 authenticates the full panel and action sources; M6 evaluates complete declared quote windows |
 | D4 | Expanded dataset layout, masks, action conventions and vendor-vintage bridge are not registered | M2: immutable identities and a separate panel alongside the original inputs |
 | D5 | Primary endpoint family, materiality/power design, family-aware inference and risk-matching details remain proposed | M2: finite analysis specification before expanded scoring; final executable freeze at M8 |
 | D6 | Engines and aggregate runners enforce SPY, fixed histories and 2022-2023 gates | M3: parameterize authoritative engines and add the panel driver; keep the v1 reference path |
@@ -162,7 +161,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | ID | Work package | Completion evidence | Status |
 | --- | --- | --- | --- |
 | M0 | Baseline and research inventory | Release identities, implementation map, exposure log, scope and decision register | Complete |
-| M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Implementation prepared; provider evidence pending |
+| M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
 | M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Not started |
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Not started |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
@@ -174,8 +173,10 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
 
 The initial effort range is 228-368 focused hours plus unattended work, to be
-re-estimated after M1, M4 and M5. One of eleven accepted milestones is a count,
-not a claim that one eleventh of the engineering effort has been spent.
+re-estimated after M1, M4 and M5. Two of eleven accepted milestones is a count,
+not a claim that two elevenths of the engineering effort have been spent. M1
+required no paid access; full-panel volume, gap masks and action reconciliation
+must be measured at M2 before revising the remaining effort range.
 
 ## Build and verification record
 
@@ -213,7 +214,7 @@ records earlier Windows Release/Debug and Linux Release verification at its
 stated commit. Windows, private acquisition trees and the full historical
 experiments were not rerun at M0. No new benchmark claim is made.
 
-## M1 implementation and pending evidence
+## M1 implementation
 
 The capability runner and its native/independent checks are implemented. Calendar
 conversion covers 2016-2025. Explicit-symbol bar/action/tick requests reuse the
@@ -231,14 +232,11 @@ from successful HTTP or an empty response.
 Every HTTP attempt is archived before decoding. Later-period responses remain
 under a local `sealed/` boundary. The review bundle contains counts, flags,
 request metadata and hashes. No strategy fitting, scoring, returns, spread
-calibration or price summaries are produced. Windows credentials and provider
-coverage cannot be verified in the current Linux environment.
+calibration or price summaries are produced. The Windows provider run below
+establishes sampled access, rather than complete historical coverage.
 
 Run and sharing instructions are in
 [Extension data capability](running.md#extension-data-capability).
-M1 acceptance awaits the provider matrix and independent local verification.
-Actual availability, the common-start recommendation and remaining action
-evidence requirements will be recorded after that review.
 
 Local GNU 13.3.0 Release and Debug runs passed 46 native checks each. The
 standard-library oracle independently verified all five constructed evidence
@@ -248,3 +246,72 @@ existing Release demo retained its 259 checks across 24 cases and passed its
 independent accounting verification. The seven frozen identities and released
 publication/result evidence remain unchanged. These are software checks, not
 provider-access or full historical-coverage evidence.
+
+## M1 provider evidence and disposition
+
+The Windows Release run on 26 October 2026 used MSVC 19.51.36260. Its 570
+read-only requests, between 10:24:15 and 10:36:23 UTC, all returned HTTP 200.
+The fixed universe and all ten sampled years were retained. The sanitized
+[50-row capability matrix](evidence/m1_capability.csv) contains no prices,
+credentials or strategy outcomes.
+
+| Evidence | Observed result | Scope |
+| --- | --- | --- |
+| Calendar | 20 valid January/December samples | Two months per year; not a full calendar audit |
+| SIP minute bars | 97 complete and three gapped symbol-days; 38,996 of 39,000 expected observations | Two fixed sessions per symbol/year |
+| SIP quotes | All 50 symbol/year samples accessible; 5,000 usable records | First page of one fixed minute; no full-window or execution claim |
+| SIP trades | All 50 samples accessible; 4,816 usable records | Same first-page sampling boundary |
+| Corporate actions | 238 cash-dividend records; 148 with complete payment/record fields; no returned split records | Process-date query results; issuer agreement and ex-date completeness unverified |
+| Native Windows verification | 46 constructed checks completed, zero network requests | All five completed synthetic bundles also passed the independent verifier during review |
+
+The sampled gaps are GLD on 2016-01-04 (two minutes), TLT on 2017-12-29
+(one minute), and GLD on 2024-12-31 (one minute). Gaps remain missing; no
+replacement date or fabricated observation is introduced. Ninety dividend
+records in 2016-2019 lack both record and payable dates. The 2020-2025 samples
+have complete fields under the declared schema checks, which does not establish
+that all distributions were returned. GLD's empty action responses likewise
+do not establish an absence of distributions or splits.
+
+The saved status `input_access_review_required` is expected for the three
+gapped bar samples. It is not an HTTP, credential or subscription failure.
+The reported `provisional_common_price_start` of 2025 means only that the
+sampled 2025 sessions form the earliest remaining suffix without a sampled
+bar gap. A single 2024 gap removes every earlier suffix under that statistic.
+It does not date the start of available history or establish a feasible scored
+period. The 2016-2025 target archive and all five instruments remain in scope;
+M2 must establish the usable calendar and initialization from full coverage.
+
+M1 is complete as a feasibility assessment. No entitlement workaround, paid
+feed or repeat of the same probe is warranted by this evidence. The following
+are M2 acceptance requirements before expanded scoring:
+
+- Authenticate the full archive, retain each missing interval, and register
+  outcome-independent session eligibility and common comparison masks.
+- Reconcile distributions and splits against independent source records,
+  including missing early payment/record dates and process-date boundary tails.
+  Unresolved fields cannot become assumed cash payments or zero actions.
+- Establish prior-history availability, the first eligible scored date and the
+  bridge to the original SPY acquisition vintage. Preserve the original inputs.
+- Register the finite comparisons, costs, uncertainty rules and 2024/2025 access
+  boundaries before model fitting or strategy evaluation.
+
+The supplied `review.zip` exactly matches the provider run's root and `review/`
+files. Its CSV and HTML hashes match the summary. Automated byte/hash and index
+verification passed for all 570 archived responses, including 114 reserved
+responses; reserved response bodies were not decoded during this review.
+Only pre-2024 action fields were inspected to diagnose the missing dates.
+No reserved prices, models, returns or spread estimates were inspected.
+The local verifier creates `review.zip` only after its raw-evidence checks pass;
+the supplied bundle follows that export contract.
+
+| Evidence identity | SHA-256 |
+| --- | --- |
+| Provider and synthetic-run build-source inventory | `357a615910cf57518d927a4eeb0908c1159d9e5a844c3675e89df60340d34ce9` |
+| Provider review summary | `47e5e1d2c1c8d25c0fd4e4b82e9b00c52dccecef45a90e34ce998a0e9af17298` |
+| Capability CSV, retained unchanged | `84a41b853a3dc09bf5a68e7eb0b3d768951c24543dc215408ffe650015b8abdc` |
+| Provider review HTML | `3fa04ce963cfaea8074afe0b0bb0fe4ea9900e2adf0b6a7dda038b47d7ab385c` |
+
+The Windows source inventory is a run identity, not a verified Git commit:
+Visual Studio had expanded the local project items before compilation.
+Bulk/raw evidence stays outside version control. The v1 protocols, results and
+publication identities remain unchanged.
