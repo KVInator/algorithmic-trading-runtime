@@ -1,14 +1,20 @@
 # Algorithmic Trading Runtime
 
-C++20 research and execution software connecting causal SPY strategy decisions to
-exact order accounting, a deterministic broker peer and durable restart recovery.
-The project combines **three intraday strategy families**, a separate daily-risk
-study, **144 synthetic execution cases** and **120 Release benchmark trials per
-host**. Python provides independent numerical checks and publication rendering.
+C++20 software for causal SPY strategy research, exact order accounting,
+synthetic broker-message processing and durable restart recovery.
+Historical research uses inspected **2022-2023 development data**; broker
+events and execution workloads are constructed offline scenarios.
 
-**Read the [technical report (PDF)](docs/report.pdf) or download the
-[self-contained HTML report](docs/report.html)** for the full mathematics,
-results, assumptions and interactive saved-event replay.
+The project contains **three intraday strategy families**, a separate daily-risk
+study, **144 matched synthetic execution cases** and **120 Release benchmark
+trials per host**. Python provides independent numerical verification and
+publication rendering.
+
+Read the [technical report (PDF)](docs/report.pdf) for the mathematics,
+results and assumptions. For the interactive saved-event replay,
+[download the standalone HTML report](https://github.com/KVInator/algorithmic-trading-runtime/releases/download/v1.0.0/report.html)
+and open it locally. The [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
+contains the report downloads and original Windows benchmark evidence.
 
 ## Research findings
 
@@ -157,6 +163,11 @@ working set is 20.730 MiB; this does not isolate per-case allocations. Throughpu
 uses summed timed calls, excluding preparation, validation and reporting. Recovery
 reads are warm-cache. Timings depend on the host, storage and instrumentation.
 
+The published Windows timings are archived reference measurements. The
+[original benchmark evidence](https://github.com/KVInator/algorithmic-trading-runtime/releases/download/v1.0.0/windows-runtime-benchmark.zip)
+contains raw timed samples, journals, source inventory and host metadata. Its
+summary identity is recorded in the [evidence manifest](docs/evidence/manifest.json).
+
 Journals are bounded to **10,000 inputs, 32 MiB per file and 64 KiB per frame**.
 Copies and retained histories have measured costs; no capacity extrapolation,
 low-latency target, rotation or compaction is claimed.
@@ -189,6 +200,21 @@ Python checks reconstruct Decimal ledgers, fit/statistical references, quote
 budgets, source/receipt timing, censoring and artifact identities. Full historical
 reproduction requires the retained private input evidence; the distributed
 [summary snapshot](docs/evidence/manifest.json) does not manufacture daily paths.
+
+The native build was accepted on Windows Release/Debug and Linux Release at
+commit [`2e566bb`](https://github.com/KVInator/algorithmic-trading-runtime/commit/2e566bb7dee677b57af7fce1fba3e2b31c6643a7).
+The [acceptance run](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40224499759)
+exercised the offline demo, independent execution and benchmark verification,
+and publication checks. The application code and compiler driver are unchanged
+from that accepted revision. Commit
+[`34c7ab7`](https://github.com/KVInator/algorithmic-trading-runtime/commit/34c7ab7fc8feff53a8210312cb4284c530cd3332)
+removed only the temporary workflow; subsequent release edits update documentation
+and ignore rules.
+
+The earlier [29-group regression run](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40218027491)
+applies to revision `ee0b72e`. The final repository retains explicit local
+verification commands and has no continuous CI workflow. PDF page layout was
+reviewed separately from automated publication verification.
 
 ## Structure and limits
 

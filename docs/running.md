@@ -94,9 +94,21 @@ snapshot cannot overwrite their identities. Missing prerequisites stop the runne
 No broker account, real-time quote probe or paid subscription is required by the
 offline completion scope. No local 2024-2025 strategy evaluation is authorized.
 
-Historical exports have independent checks in `research/verify_*.py`. Risk,
-reversion and synthetic sampling oracles may require NumPy; their original method
-and numerical conventions are recorded beside the governing protocols.
+Historical exports have independent checks in `research/verify_*.py`; their
+methods and numerical conventions are recorded beside the governing protocols.
+The verification entry points use the Python standard library except
+`verify_reversion_study.py`, which additionally requires NumPy and an available
+IANA time-zone database. Install NumPy and `tzdata` before running that verifier,
+particularly on Windows:
+
+```sh
+python -m pip install numpy tzdata
+```
+
+These extras are not required for the offline demo, execution-measurement,
+benchmark or publication-integrity verifiers. Publication generation has its
+separate dependencies in `research/report_requirements.txt`.
+
 Historical final bars cannot reproduce original live receipt/revision timestamps.
 The report's curated result snapshot reproduces figures/tables, not unbundled raw
 prices or historical daily paths.
