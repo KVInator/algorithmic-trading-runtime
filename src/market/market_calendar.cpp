@@ -48,8 +48,8 @@ std::chrono::sys_days parse_session_date(std::string_view date) {
     const auto value =
         std::chrono::floor<std::chrono::days>(parse_utc_seconds(std::string{date} + "T00:00:00Z"));
     const auto year = static_cast<int>(std::chrono::year_month_day{value}.year());
-    if (date < "2020-12-31" || year > 2025) {
-        throw std::invalid_argument("historical calendar conversion is bounded to 2020-12-31 through 2025");
+    if (year < 2016 || year > 2025) {
+        throw std::invalid_argument("historical calendar conversion is bounded to 2016 through 2025");
     }
     return value;
 }
@@ -91,7 +91,10 @@ const std::string &CalendarSession::date() const noexcept { return date_; }
 std::chrono::sys_seconds CalendarSession::open_utc() const noexcept { return open_utc_; }
 std::chrono::sys_seconds CalendarSession::close_utc() const noexcept { return close_utc_; }
 bool CalendarSession::regular() const noexcept { return regular_; }
-HistoricalBarRequest CalendarSession::bar_request() const { return {"SPY", open_utc_, close_utc_, 100}; }
+HistoricalBarRequest CalendarSession::bar_request() const { return bar_request("SPY"); }
+HistoricalBarRequest CalendarSession::bar_request(std::string symbol) const {
+    return {std::move(symbol), open_utc_, close_utc_, 100};
+}
 
 std::vector<CalendarSession> decode_market_calendar(std::string_view payload, const CalendarRange &range) {
     const auto document = parse_json_document(payload);

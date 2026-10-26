@@ -17,9 +17,10 @@ and open it locally. The [v1.0.0 release](https://github.com/KVInator/algorithmi
 contains the report downloads and original Windows benchmark evidence.
 
 The [multi-instrument extension](docs/extension_plan.md) is now in development.
-Its baseline inventory is complete (**M0; 1 of 11 milestones**); wider data
-acquisition and expanded historical evaluation have not started. The results
-below describe the completed v1 study.
+Its baseline inventory is complete (**M0; 1 of 11 milestones**). M1 provides
+a five-instrument historical capability runner; authenticated availability
+awaits a local Windows run. Bulk acquisition and expanded historical evaluation
+have not started. The results below describe the completed v1 study.
 
 ## Research findings
 
@@ -210,8 +211,9 @@ The native build was accepted on Windows Release/Debug and Linux Release at
 commit [`2e566bb`](https://github.com/KVInator/algorithmic-trading-runtime/commit/2e566bb7dee677b57af7fce1fba3e2b31c6643a7).
 The [acceptance run](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40224499759)
 exercised the offline demo, independent execution and benchmark verification,
-and publication checks. The application code and compiler driver are unchanged
-from that accepted revision. Commit
+and publication checks. The v1.0.0 application code and compiler driver match
+that accepted revision. Current extension changes have a separate verification
+record in the [extension plan](docs/extension_plan.md). Commit
 [`34c7ab7`](https://github.com/KVInator/algorithmic-trading-runtime/commit/34c7ab7fc8feff53a8210312cb4284c530cd3332)
 removed only the temporary workflow; subsequent release edits update documentation
 and ignore rules.

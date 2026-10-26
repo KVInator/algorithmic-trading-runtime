@@ -10,8 +10,13 @@ namespace trading {
 class CorporateActionRequest {
 public:
     CorporateActionRequest(std::string first, std::string last);
+    CorporateActionRequest(std::string symbol, std::string first, std::string last);
     [[nodiscard]] std::string path(const std::optional<std::string>& token = std::nullopt) const;
+    [[nodiscard]] const std::string& symbol() const noexcept { return symbol_; }
+    [[nodiscard]] const std::string& first() const noexcept { return first_; }
+    [[nodiscard]] const std::string& last() const noexcept { return last_; }
 private:
+    std::string symbol_;
     std::string first_;
     std::string last_;
 };

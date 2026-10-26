@@ -72,6 +72,8 @@ these checks are explicit local commands.
 | Target | Purpose / additional prerequisites |
 | --- | --- |
 | `project_demo` | Offline strategy decisions, account parity, broker lifecycle and recovery; no credentials/data |
+| `historical_capability_check` | Focused native wider-request/calendar and capability-evidence checks; synthetic, no credentials |
+| `historical_capability_probe` | Read-only five-instrument 2016-2025 capability samples; Windows historical data credentials |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
 | `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
 | `reversion_validation` | Thirteen seeded finite-sample/noise controls; full interval experiment |
@@ -115,6 +117,73 @@ separate dependencies in `research/report_requirements.txt`.
 Historical final bars cannot reproduce original live receipt/revision timestamps.
 The report's curated result snapshot reproduces figures/tables, not unbundled raw
 prices or historical daily paths.
+
+## Extension data capability
+
+Build **Release | x64** in `Runtime.sln`. The default startup application remains
+`project_demo`. Select `scratch/native/Release/historical_capability_check.exe`
+as the project's **Debugging > Command**, then Ctrl+F5, for the constructed
+checks. Select `historical_capability_probe.exe` there for the provider run.
+Keep the repository root as the working directory.
+
+The provider runner uses the existing Windows Credential Manager entry. If it
+is absent, hidden console input accepts the same Alpaca API key and secret from
+the Alpaca dashboard's API Keys control. Credentials are never included in the
+report. No order, position, account-balance, latest-quote or stream endpoint is
+called. The existing calendar GET uses `paper-api.alpaca.markets`; historical
+prices and actions use `data.alpaca.markets`.
+
+The fixed plan covers SPY, QQQ, IWM, TLT and GLD for 2016-2025. January's first
+and December's last full session come from the returned calendar. Their complete
+minute grids are sampled without replacements for inconvenient gaps. One noon
+minute per symbol/year supplies a first-page quote/trade capability sample.
+Corporate actions are paginated over each process-date year. A nominal complete
+run uses about 570 HTTP attempts before pagination variation/retries, with a
+750-ms pause per attempt. This one-time capability run takes several minutes
+and is separate from routine editing checks.
+
+Every response is retained before interpretation, including failures and retry
+responses. HTTP 401 stops further calls; 400/403/404 block that endpoint/symbol
+for the run. HTTP 429 and 500/502/503/504 receive at most two retries. Persistent
+failure is recorded without further entitlement experiments. Exit 0 means the
+sampled bar route is ready for review, not that the dataset or actions are
+complete. Exit 2 means price access needs review. Both produce a report. Exit 1
+is an interrupted software/storage failure; captured evidence remains in the
+printed directory.
+
+Provider runs write to `scratch/runs/historical_capability_<suffix>/`:
+
+- `review/`: shareable report, capability CSV and summary with counts and hashes;
+- `responses/`, `sealed/`: local raw evidence, with 2024-2025 under `sealed/`;
+- `index/`: an append-only attempt index with request paths and status.
+
+Verify a completed provider run locally and create its price-free review ZIP:
+
+```sh
+py -3 -B research/verify_historical_capability.py scratch/runs/historical_capability_0
+```
+
+Use the actual printed suffix. The standard-library script independently checks
+raw hashes, pagination, grids, action fields, metadata, CSV values and the sealed
+boundary, without printing observed prices or financial summaries. On success
+it creates `review.zip` containing exactly `summary.json`, `capability.csv` and
+`report.html`. **Share only this ZIP or `review/`; keep the full run directory
+and raw responses local.** The same script accepts the printed
+`historical_capability_check_<suffix>` directory for offline constructed checks.
+
+M1 remains open until the provider matrix is reviewed. The common price start
+is provisional and sample-based. Full coverage, action/issuer agreement,
+process-date tails and warm-up are M2 requirements. Empty actions do not prove
+that no distribution or split occurred. A first quote/trade page establishes
+neither full-window coverage nor empirical execution quality.
+
+Endpoint conventions follow the official
+[historical bars](https://docs.alpaca.markets/us/reference/stockbars),
+[quotes](https://docs.alpaca.markets/us/reference/stockquotes-1),
+[trades](https://docs.alpaca.markets/us/reference/stocktradesingle-1) and
+[corporate actions](https://docs.alpaca.markets/us/reference/corporateactions-1)
+references, reviewed 26 October 2026. Documentation does not establish this
+account's entitlement.
 
 ## Publication
 

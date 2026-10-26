@@ -6,17 +6,23 @@
 
 namespace trading {
 
-ApiRequestPolicy::ApiRequestPolicy(Wait wait) : wait_{std::move(wait)} {
+ApiRequestPolicy::ApiRequestPolicy(Wait wait, bool retry_server_errors)
+    : wait_{std::move(wait)}, retry_server_errors_{retry_server_errors} {
     if (!wait_) { throw std::invalid_argument("API request policy requires an explicit wait function"); }
 }
 
-MarketDataResponse ApiRequestPolicy::get(const std::function<MarketDataResponse()>& request) const {
+MarketDataResponse ApiRequestPolicy::get(const std::function<MarketDataResponse()>& request,
+                                        const Observer& observer) const {
     if (!request) { throw std::invalid_argument("API request callback is missing"); }
     for (unsigned int attempt = 0; attempt < 3; ++attempt) {
         wait_(std::chrono::milliseconds{750});
         auto response = request();
-        if (response.status != 429) { return response; }
-        if (attempt == 2) { throw std::runtime_error("HTTP 429 persisted after two retries; completed sessions are preserved"); }
+        if (observer) { observer(response); }
+        const bool server_error = response.status == 500 || response.status == 502 ||
+                                  response.status == 503 || response.status == 504;
+        if (response.status != 429 && !(retry_server_errors_ && server_error)) { return response; }
+        if (attempt == 2) { throw std::runtime_error("HTTP " + std::to_string(response.status) +
+            " persisted after two retries; retained evidence is preserved"); }
         unsigned int seconds = 2;
         if (response.retry_after) {
             const auto& value = *response.retry_after;

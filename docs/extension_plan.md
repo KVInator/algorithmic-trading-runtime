@@ -1,6 +1,7 @@
 # Multi-instrument research and execution extension
 
-Status recorded 26 October 2026: **M0 complete; M1-M10 not started.**
+Status recorded 26 October 2026: **M0 complete; M1 implementation prepared,
+provider evidence pending; M2-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -141,8 +142,8 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 
 | ID | Decision / concrete limitation | Resolution stage |
 | --- | --- | --- |
-| D1 | `parse_session_date` accepts only 2020-12-31 through 2025; reference calendars cover 2021 calibration and 2022-2023 development | M1: bounded wider calendar support and trusted historical calendar evidence before old-date probes |
-| D2 | `CalendarSession::bar_request` and `SessionBatch` encode SPY; corporate-action requests encode SPY and process dates within 2021-March 2024 | M1: explicit five-symbol historical request/response contracts; preserve legacy defaults and identities |
+| D1 | At v1, calendar conversion starts at 2020-12-31; reference calendars cover 2021 calibration and 2022-2023 development | M1 extends conversion to 2016-2025; old reference calendars retain their bounds; provider evidence pending |
+| D2 | At v1, calendar bar requests, session batches and corporate-action requests encode SPY | M1 adds explicit-symbol requests and a separate capability runner; legacy defaults/loaders remain; panel acquisition follows at M2 |
 | D3 | Actual free bars, distributions/payment dates, splits and quote-window coverage for all five symbols are unverified | M1: capability matrix and coverage-based common start; fixed failure/retry policy |
 | D4 | Expanded dataset layout, masks, action conventions and vendor-vintage bridge are not registered | M2: immutable identities and a separate panel alongside the original inputs |
 | D5 | Primary endpoint family, materiality/power design, family-aware inference and risk-matching details remain proposed | M2: finite analysis specification before expanded scoring; final executable freeze at M8 |
@@ -161,7 +162,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | ID | Work package | Completion evidence | Status |
 | --- | --- | --- | --- |
 | M0 | Baseline and research inventory | Release identities, implementation map, exposure log, scope and decision register | Complete |
-| M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Not started |
+| M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Implementation prepared; provider evidence pending |
 | M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Not started |
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Not started |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
@@ -211,3 +212,39 @@ performance. The [original native acceptance](https://github.com/KVInator/algori
 records earlier Windows Release/Debug and Linux Release verification at its
 stated commit. Windows, private acquisition trees and the full historical
 experiments were not rerun at M0. No new benchmark claim is made.
+
+## M1 implementation and pending evidence
+
+The capability runner and its native/independent checks are implemented. Calendar
+conversion covers 2016-2025. Explicit-symbol bar/action/tick requests reuse the
+historical read-only transport. The old SPY action constructor, study loaders,
+reference calendars, protocols and default demo retain their original contracts.
+Full-panel acquisition is not implemented at this stage.
+
+The runner samples two full sessions per symbol/year, a first page of historical
+quotes/trades, and paginated process-date actions. Its report separates
+accessible, empty, incomplete-field, gapped, forbidden and invalid evidence.
+A sampled bar route is not full-history readiness. Action completeness,
+payment-date/issuer agreement and announcement availability are not inferred
+from successful HTTP or an empty response.
+
+Every HTTP attempt is archived before decoding. Later-period responses remain
+under a local `sealed/` boundary. The review bundle contains counts, flags,
+request metadata and hashes. No strategy fitting, scoring, returns, spread
+calibration or price summaries are produced. Windows credentials and provider
+coverage cannot be verified in the current Linux environment.
+
+Run and sharing instructions are in
+[Extension data capability](running.md#extension-data-capability).
+M1 acceptance awaits the provider matrix and independent local verification.
+Actual availability, the common-start recommendation and remaining action
+evidence requirements will be recorded after that review.
+
+Local GNU 13.3.0 Release and Debug runs passed 46 native checks each. The
+standard-library oracle independently verified all five constructed evidence
+bundles in both configurations and rejected altered raw evidence, false
+completion claims and an unexpected raw file in the review boundary. The
+existing Release demo retained its 259 checks across 24 cases and passed its
+independent accounting verification. The seven frozen identities and released
+publication/result evidence remain unchanged. These are software checks, not
+provider-access or full historical-coverage evidence.

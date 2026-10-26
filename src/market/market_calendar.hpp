@@ -9,7 +9,7 @@
 
 namespace trading {
 
-// Daytime New York sessions in the 2020-12-31 through 2025 historical interval.
+// Daytime New York sessions in the 2016 through 2025 historical interval.
 // Uses the post-2007 US DST rule; it is not a general timezone database.
 [[nodiscard]] std::chrono::sys_days parse_session_date(std::string_view date);
 
@@ -33,6 +33,7 @@ class CalendarSession {
     [[nodiscard]] std::chrono::sys_seconds close_utc() const noexcept;
     [[nodiscard]] bool regular() const noexcept;
     [[nodiscard]] HistoricalBarRequest bar_request() const;
+    [[nodiscard]] HistoricalBarRequest bar_request(std::string symbol) const;
 
   private:
     std::string date_;
