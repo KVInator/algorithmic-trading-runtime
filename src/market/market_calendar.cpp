@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <span>
+#include <set>
 #include <utility>
 
 namespace trading {
@@ -161,6 +162,52 @@ std::vector<CalendarSession> risk_calibration_calendar(const CalendarRange &rang
                                                        "2021-09-06", "2021-11-25", "2021-12-24"};
     constexpr std::array<std::string_view, 1> short_dates{"2021-11-26"};
     return reference_sessions(range, holidays, short_dates);
+}
+
+std::vector<CalendarSession> extension_calendar(const CalendarRange &range) {
+    const auto first = parse_session_date(range.first()), finish = parse_session_date(range.last());
+    const int first_year = static_cast<int>(std::chrono::year_month_day{first}.year());
+    const int last_year = static_cast<int>(std::chrono::year_month_day{finish}.year());
+    std::set<std::chrono::sys_days> holidays, shortened;
+    for (int y = first_year; y <= last_year; ++y) {
+        const auto year = std::chrono::year{y};
+        const auto observed = [](std::chrono::sys_days day) {
+            const auto weekday = std::chrono::weekday{day};
+            return day + (weekday == std::chrono::Saturday ? std::chrono::days{-1}
+                : weekday == std::chrono::Sunday ? std::chrono::days{1} : std::chrono::days{0});
+        };
+        const auto new_year = std::chrono::sys_days{year / std::chrono::January / 1};
+        // NYSE does not observe a Saturday New Year on the preceding Friday.
+        if (std::chrono::weekday{new_year} != std::chrono::Saturday) { holidays.insert(observed(new_year)); }
+        holidays.insert(std::chrono::sys_days{year / std::chrono::January / std::chrono::Monday[3]});
+        holidays.insert(std::chrono::sys_days{year / std::chrono::February / std::chrono::Monday[3]});
+        const int a = y % 19, b = y / 100, c = y % 100, d = b / 4, e = b % 4;
+        const int f = (b + 8) / 25, g = (b - f + 1) / 3;
+        const int h = (19 * a + b - d - g + 15) % 30, i = c / 4, k = c % 4;
+        const int l = (32 + 2 * e + 2 * i - h - k) % 7, m = (a + 11 * h + 22 * l) / 451;
+        const int easter_month = (h + l - 7 * m + 114) / 31;
+        const int easter_day = (h + l - 7 * m + 114) % 31 + 1;
+        holidays.insert(std::chrono::sys_days{year / std::chrono::month{static_cast<unsigned>(easter_month)} /
+            std::chrono::day{static_cast<unsigned>(easter_day)}} - std::chrono::days{2});
+        holidays.insert(std::chrono::sys_days{year / std::chrono::May / std::chrono::Monday[std::chrono::last]});
+        if (y >= 2022) { holidays.insert(observed(std::chrono::sys_days{year / std::chrono::June / 19})); }
+        holidays.insert(observed(std::chrono::sys_days{year / std::chrono::July / 4}));
+        holidays.insert(std::chrono::sys_days{year / std::chrono::September / std::chrono::Monday[1]});
+        const auto thanksgiving = std::chrono::sys_days{year / std::chrono::November / std::chrono::Thursday[4]};
+        holidays.insert(thanksgiving);
+        holidays.insert(observed(std::chrono::sys_days{year / std::chrono::December / 25}));
+        shortened.insert(thanksgiving + std::chrono::days{1});
+        shortened.insert(std::chrono::sys_days{year / std::chrono::July / 3});
+        shortened.insert(std::chrono::sys_days{year / std::chrono::December / 24});
+    }
+    holidays.insert(std::chrono::sys_days{std::chrono::year{2018}/12/5});
+    holidays.insert(std::chrono::sys_days{std::chrono::year{2025}/1/9});
+    std::vector<CalendarSession> result;
+    for (auto day = first; day <= finish; day += std::chrono::days{1}) {
+        if (std::chrono::weekday{day}.iso_encoding() >= 6 || holidays.contains(day)) { continue; }
+        result.emplace_back(format_utc_seconds(day).substr(0, 10), "09:30", shortened.contains(day) ? "13:00" : "16:00");
+    }
+    return result;
 }
 
 } // namespace trading

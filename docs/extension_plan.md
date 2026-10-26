@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 26 October 2026: **M0-M1 complete; M2-M10 not started.**
+Status recorded 26 October 2026: **M0-M1 complete; M2 in progress; M3-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -22,7 +22,7 @@ distinct from the Git commit, dataset identity and publication manifest.
 The two acquisition identities above were checked against their registered
 source records; the private raw acquisition trees were not reauthenticated at M0.
 
-The seven frozen protocol/settings/data-policy files in `ProjectSources.frozen`
+The seven original frozen protocol/settings/data-policy files in `ProjectSources.frozen`
 match their registered SHA-256 values. Neither those records nor the original
 result files, curated evidence, report, journal schemas or release tag change
 at this milestone. Subsequent code must retain the original SPY reference path;
@@ -144,8 +144,8 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 | D1 | At v1, calendar conversion starts at 2020-12-31; reference calendars cover 2021 calibration and 2022-2023 development | M1 extends conversion to 2016-2025; all 20 provider calendar samples passed; old reference calendars retain their bounds |
 | D2 | At v1, calendar bar requests, session batches and corporate-action requests encode SPY | M1 adds explicit-symbol requests and a separate capability runner; legacy defaults/loaders remain; panel acquisition follows at M2 |
 | D3 | Free historical access is demonstrated, with four sampled missing minutes and 90 dividend records lacking payment/record dates; complete action history and quote windows remain unverified | M1 assessment below; M2 authenticates the full panel and action sources; M6 evaluates complete declared quote windows |
-| D4 | Expanded dataset layout, masks, action conventions and vendor-vintage bridge are not registered | M2: immutable identities and a separate panel alongside the original inputs |
-| D5 | Primary endpoint family, materiality/power design, family-aware inference and risk-matching details remain proposed | M2: finite analysis specification before expanded scoring; final executable freeze at M8 |
+| D4 | Dataset/action contracts and bridge software are implemented; actual panel identities and source discrepancies remain unresolved | M2: authenticate the Windows archive and issuer evidence, then freeze masks and vintage identities alongside the original inputs |
+| D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
 | D6 | Engines and aggregate runners enforce SPY, fixed histories and 2022-2023 gates | M3: parameterize authoritative engines and add the panel driver; keep the v1 reference path |
 | D7 | One-symbol cash, pending-fill limits, internal ownership transfers and journal growth need a shared-account contract | M4: one global ledger, deterministic netting/allocation and bounded durable handover |
 | D8 | Process framing, durable broker history, lifecycle/fee/cash policies and schema migration remain unspecified | M5: explicit bounded contracts and twelve-family fault acceptance |
@@ -162,7 +162,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | --- | --- | --- | --- |
 | M0 | Baseline and research inventory | Release identities, implementation map, exposure log, scope and decision register | Complete |
 | M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
-| M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Not started |
+| M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Contract and acquisition/finalization software implemented; full Windows archive and complete action evidence pending |
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Not started |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
@@ -315,3 +315,63 @@ The Windows source inventory is a run identity, not a verified Git commit:
 Visual Studio had expanded the local project items before compilation.
 Bulk/raw evidence stays outside version control. The v1 protocols, results and
 publication identities remain unchanged.
+
+## M2 implementation checkpoint
+
+The [registered study contract](../research/extension_protocol.md) fixes the
+dataset, six primary endpoints, materiality, pooling, uncertainty design,
+secondary neighborhood and access controls before expanded scoring. The
+JSON identity is pinned by the existing Python build driver. No CMake/CTest or
+hosted workflow is introduced.
+
+`panel_check`, `panel_acquire` and `panel_finalize` call cohesive native owners
+for resumable page acquisition, eligibility, action reconciliation and the
+original 496-date SPY vintage bridge. The independent Python panel verifier
+checks raw hashes, request chains, a separate fixed-date calendar oracle,
+minute grids and masks. The public price reader requires an acquisition
+identity and rejects reserved years before lookup.
+
+The initial controlled precision design checks nine Gaussian AR(1) cases with
+2,000 trials each against analytical mean variance and power. Its retained
+[table](evidence/m2_precision.csv) is a planning calculation, not an estimate
+from market outcomes. It does not establish final max-T coverage or market power.
+
+Free source extraction is implemented for SPY, QQQ, IWM and TLT distributions.
+The reviewed source snapshots supplied 40, 41, 40 and 120 cash records,
+respectively, in the ex-date horizon. Those counts are not a substitute for
+reconciling the complete provider archive. GLD and independent split-history
+coverage remain unresolved; the source preparer records them as incomplete
+and cannot publish ready research inputs.
+
+A pre-2024-only comparison with M1 evidence also found QQQ amount disagreements
+on 2018-06-18 and 2018-12-24, plus distinct provider records with the same
+2022-09-19 ex-date and different payable dates. These are retained source
+discrepancies, not rounding/zero-payment assumptions. The complete acquisition
+must establish their current-vintage status and an explicit source resolution
+before accounting registration. No reserved price data were inspected.
+
+M2 acceptance still requires the full Windows acquisition, independent local
+verification, complete action-source review, vintage bridge and final study
+manifest. The v1 results and seven original frozen identities remain unchanged.
+No expanded strategy has been fitted or scored. Run/sharing instructions are in
+[panel acquisition](running.md#extension-panel-acquisition-and-registration).
+
+The final local checkpoint used GNU 13.3.0 on Linux:
+
+| Verification | Observed result |
+| --- | --- |
+| Release build | All 16 Linux applications built with warnings as errors |
+| Native panel checks | 91 passed in Release and Debug; no network requests |
+| Independent panel oracle | Four constructed raw archives verified in each configuration, including interrupted/outage recovery and history masks |
+| Existing capability contracts | 46 passed; five constructed bundles independently verified |
+| Existing offline demo | 259 checks / 24 cases passed; independent 350-artifact accounting/replay verification passed |
+| Controlled precision design | Nine cases, 2,000 trials each; analytical variance/power comparisons passed |
+| Legacy issuer extractor | Original twelve SPY financial records unchanged |
+| Frozen identities/publication | Seven original and one extension identity matched; v1 publication hashes/links verified |
+| Repository hygiene | Passed with no findings |
+
+Panel evidence directories are `scratch/runs/panel_check_6` (Release) and
+`scratch/runs/panel_check_7` (Debug), under source-inventory SHA-256
+`fb194e3307078fc0727e400e008d46e951aa3cf115ddc1e07b1aa3fc77efcc07`.
+These are local run identities, not provider coverage evidence. Native MSVC and
+the full private panel have not been verified by this checkpoint.

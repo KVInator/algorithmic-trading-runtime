@@ -1,0 +1,342 @@
+{
+  "schema_version": 1,
+  "study_id": "MULTI-ASSET-01",
+  "symbols": [
+    "SPY",
+    "QQQ",
+    "IWM",
+    "TLT",
+    "GLD"
+  ],
+  "archive": {
+    "first_date": "2016-01-01",
+    "last_date": "2025-12-31",
+    "initialization_last": "2016-12-31",
+    "development_last": "2023-12-31",
+    "validation_year": 2024,
+    "final_year": 2025,
+    "action_process_last": "2026-03-31",
+    "feed": "sip",
+    "adjustment": "raw",
+    "currency": "USD",
+    "asof": "-",
+    "page_size": 100,
+    "maximum_pages_per_session": 16,
+    "maximum_action_pages_per_interval": 32,
+    "maximum_response_bytes": 65536,
+    "maximum_attempts_per_request": 9,
+    "pause_milliseconds": 750,
+    "maximum_attempts_per_invocation": 3,
+    "response_byte_encoding": "lowercase_hex_in_atomic_metadata_envelope"
+  },
+  "eligibility": {
+    "intraday": "full_regular_session_complete_minute_grid",
+    "cross_instrument": "intersection_of_symbol_validity_on_original_calendar",
+    "missing_bar": "retain_gap_without_imputation_or_replacement_date",
+    "daily_marks": "required_actual_endpoint_or_stop_affected_account",
+    "diagnostic_exclusion": {
+      "symbol": "SPY",
+      "date": "2023-01-03"
+    },
+    "shortened_sessions": "retain_daily_marks_exclude_primary_intraday",
+    "continuation_history": "twenty_previous_eligible_full_sessions",
+    "reversion_history": "twenty_previous_regular_calendar_slots_missing_slots_retained",
+    "risk_missing_rv": "registered_v1_daily_return_fallback_with_explicit_flag",
+    "minimum_scored_years": 5,
+    "minimum_common_development_dates_per_qualified_year": 200,
+    "minimum_common_development_calendar_coverage": 0.8,
+    "reversion_missing_history_after_warmup": "retain_fit_unavailable_cash_date_with_separate_history_completeness_flag"
+  },
+  "history": {
+    "primary_sessions": 20,
+    "risk_and_overlay_returns": 252,
+    "annualization_sessions": 252,
+    "condition_volatility_sessions": 60,
+    "condition_cutoff_sessions": 252
+  },
+  "reference_costs": {
+    "per_side_basis_points": [
+      0,
+      0.5,
+      1,
+      2,
+      5
+    ],
+    "primary": 1,
+    "delays_minutes": [
+      1,
+      2
+    ],
+    "primary_delay": 1,
+    "cash_interest": 0
+  },
+  "primary_endpoints": [
+    {
+      "id": "momentum_increment",
+      "candidate": "momentum",
+      "control": "same_window_always_long",
+      "measure": "mean_daily_net_return_difference",
+      "material_increment": 5e-05
+    },
+    {
+      "id": "continuation_increment",
+      "candidate": "volume_conditioned",
+      "control": "price_only",
+      "measure": "mean_daily_net_return_difference",
+      "material_increment": 5e-05
+    },
+    {
+      "id": "reversion_sign_increment",
+      "candidate": "reversion_candidate",
+      "control": "sign_only",
+      "measure": "mean_daily_net_return_difference",
+      "material_increment": 5e-05
+    },
+    {
+      "id": "reversion_drift_increment",
+      "candidate": "reversion_candidate",
+      "control": "drift",
+      "measure": "mean_daily_net_return_difference",
+      "material_increment": 5e-05
+    },
+    {
+      "id": "risk_cer_increment",
+      "candidate": "intraday_risk",
+      "control": "daily_only",
+      "measure": "annual_cer_difference",
+      "material_increment": 0.005
+    },
+    {
+      "id": "risk_qlike_improvement",
+      "candidate": "intraday_risk",
+      "control": "daily_only",
+      "measure": "mean_control_minus_candidate_qlike",
+      "material_increment": 0.01
+    }
+  ],
+  "inference": {
+    "instrument_weights": [
+      0.2,
+      0.2,
+      0.2,
+      0.2,
+      0.2
+    ],
+    "resamples": 10000,
+    "seed": 290026,
+    "intraday_blocks": [
+      5,
+      10
+    ],
+    "daily_risk_blocks": [
+      20,
+      40
+    ],
+    "simultaneous_blocks": [
+      40,
+      20
+    ],
+    "family_procedure": "one_sided_centered_moving_block_max_t",
+    "family_alpha": 0.05,
+    "studentizer": "fixed_original_sample_bartlett_hac_block_minus_one_lags",
+    "undefined_resample_fraction_limit": 0.01,
+    "minimum_valid_dates": 200,
+    "minimum_calendar_coverage": 0.8,
+    "adequacy": "report_precision_against_material_increment_no_fixed_active_date_pass_rule",
+    "precision_design": {
+      "sessions": 252,
+      "daily_noise_basis_points": [
+        5,
+        10,
+        20
+      ],
+      "ar1": [
+        0,
+        0.3,
+        0.7
+      ],
+      "power": 0.8
+    }
+  },
+  "risk_matching": {
+    "prior_returns": 252,
+    "annual_volatility_ceiling": 0.1,
+    "target": "minimum_of_ceiling_and_both_prior_volatilities",
+    "leverage": false,
+    "zero_or_missing_volatility": "unavailable",
+    "implementation": "replay_sizing_costs_and_ledger"
+  },
+  "stability": {
+    "history_sessions": [
+      10,
+      20,
+      40
+    ],
+    "observation_minutes": [
+      1,
+      5,
+      15
+    ],
+    "momentum_hold_minutes": [
+      10,
+      20,
+      25
+    ],
+    "reversion_hold_minutes": [
+      15,
+      30,
+      60
+    ],
+    "winner_removal_counts": [
+      1,
+      5,
+      10
+    ],
+    "winner_removal_fraction": 0.01,
+    "design": "one_factor_at_a_time_secondary_only",
+    "variants": [
+      {
+        "id": "momentum_hold_minutes_10",
+        "family": "momentum",
+        "parameter": "hold_minutes",
+        "value": 10
+      },
+      {
+        "id": "momentum_hold_minutes_20",
+        "family": "momentum",
+        "parameter": "hold_minutes",
+        "value": 20
+      },
+      {
+        "id": "continuation_history_sessions_10",
+        "family": "continuation",
+        "parameter": "history_sessions",
+        "value": 10
+      },
+      {
+        "id": "continuation_history_sessions_40",
+        "family": "continuation",
+        "parameter": "history_sessions",
+        "value": 40
+      },
+      {
+        "id": "reversion_history_sessions_10",
+        "family": "reversion",
+        "parameter": "history_sessions",
+        "value": 10
+      },
+      {
+        "id": "reversion_history_sessions_40",
+        "family": "reversion",
+        "parameter": "history_sessions",
+        "value": 40
+      },
+      {
+        "id": "reversion_observation_minutes_1",
+        "family": "reversion",
+        "parameter": "observation_minutes",
+        "value": 1
+      },
+      {
+        "id": "reversion_observation_minutes_15",
+        "family": "reversion",
+        "parameter": "observation_minutes",
+        "value": 15
+      },
+      {
+        "id": "reversion_hold_minutes_15",
+        "family": "reversion",
+        "parameter": "hold_minutes",
+        "value": 15
+      },
+      {
+        "id": "reversion_hold_minutes_60",
+        "family": "reversion",
+        "parameter": "hold_minutes",
+        "value": 60
+      },
+      {
+        "id": "daily_risk_history_sessions_10",
+        "family": "daily_risk",
+        "parameter": "history_sessions",
+        "value": 10
+      },
+      {
+        "id": "daily_risk_history_sessions_40",
+        "family": "daily_risk",
+        "parameter": "history_sessions",
+        "value": 40
+      },
+      {
+        "id": "daily_risk_measurement_observation_minutes_1",
+        "family": "daily_risk_measurement",
+        "parameter": "observation_minutes",
+        "value": 1
+      },
+      {
+        "id": "daily_risk_measurement_observation_minutes_15",
+        "family": "daily_risk_measurement",
+        "parameter": "observation_minutes",
+        "value": 15
+      }
+    ],
+    "variant_execution": "primary_cost_and_delay_only_no_crossing_of_secondary_parameters",
+    "coarse_grid_convention": "fixed_opening_anchor_and_decision_times_completed_aggregate_bars_within_source_sessions",
+    "invariant_aggregation": "momentum_and_same_clock_continuation_aggregation_parity_is_not_an_independent_strategy_variant",
+    "condition_quantiles": [
+      0.3333333333333333,
+      0.6666666666666666
+    ],
+    "condition_quantile_method": "linear_interpolation_at_index_n_minus_one_times_p",
+    "holding_duration_band_edges_minutes": [
+      0,
+      15,
+      30,
+      60,
+      120,
+      390
+    ],
+    "condition_labels": "prior_only_descriptive_attribution_not_trading_filters",
+    "top_fraction_count": "ceiling_of_fraction_times_positive_date_count_unavailable_if_zero_positive_dates"
+  },
+  "portfolio": {
+    "initial_usd": 100000,
+    "families": [
+      "momentum",
+      "volume_conditioned_continuation",
+      "reversion"
+    ],
+    "gross_fraction_limit": 1,
+    "instrument_target_fraction_limit": 0.2,
+    "family_budget_fraction": "1/3",
+    "instrument_within_family_fraction": "1/5",
+    "quantity_unit": "whole_share",
+    "shorting": false,
+    "borrowing": false
+  },
+  "corporate_actions": {
+    "cash_rate_absolute_tolerance_usd_per_share": 1e-06,
+    "missing_dates": "issuer_evidence_required_no_assumed_payment",
+    "unsupported_type": "block_affected_account",
+    "issuer_reconciliation": "full_ex_date_horizon_including_empty_symbols_and_splits",
+    "point_in_time_announcement_claim": false,
+    "issuer_only_record": "retain_from_authenticated_primary_source_with_explicit_provider_absence_flag",
+    "nonempty_provider_disagreement": "block_reconciliation",
+    "historical_split_basis": "prior_prices_and_share_volumes_in_current_share_units_using_only_effective_splits",
+    "multiple_provider_same_ex_date": "explicit_reconciliation_required_no_automatic_income_sum"
+  },
+  "exposure_qualifications": {
+    "design": "retrospective",
+    "spy_2022_2023": "selection_exposed",
+    "gld_2025": "known_prior_research_exposure",
+    "qqq_iwm_tlt_prior_exposure": "unverified",
+    "global_untouched_holdout_claim": false
+  },
+  "stage_gates": {
+    "m2": "integrity_and_coverage_only",
+    "m3_m7": "strategy_inputs_through_2023_only",
+    "m8": "2024_validation_then_executable_freeze",
+    "m9": "2025_final_retrospective_evaluation",
+    "economic_success_required_for_completion": false
+  }
+}

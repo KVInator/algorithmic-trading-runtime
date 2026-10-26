@@ -74,6 +74,9 @@ these checks are explicit local commands.
 | `project_demo` | Offline strategy decisions, account parity, broker lifecycle and recovery; no credentials/data |
 | `historical_capability_check` | Focused native wider-request/calendar and capability-evidence checks; synthetic, no credentials |
 | `historical_capability_probe` | Read-only five-instrument 2016-2025 capability samples; Windows historical data credentials |
+| `panel_check` | Constructed resumable panel, calendar/mask, action-reconciliation, vintage-bridge and access-control checks |
+| `panel_acquire` | Resumable 2016-2025 five-instrument archive; Windows historical-data credentials; long-running |
+| `panel_finalize` | Local issuer reconciliation and original-snapshot bridge; publishes the new study manifest only after prerequisites pass |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
 | `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
 | `reversion_validation` | Thirteen seeded finite-sample/noise controls; full interval experiment |
@@ -188,6 +191,62 @@ Endpoint conventions follow the official
 [corporate actions](https://docs.alpaca.markets/us/reference/corporateactions-1)
 references, reviewed 26 October 2026. Documentation does not establish this
 account's entitlement.
+
+## Extension panel acquisition and registration
+
+The governing [study contract](../research/extension_protocol.md) and its pinned
+JSON precede acquisition/scoring. M2 remains in progress until the full local
+archive, actions and original-SPY bridge pass. No later-period model or return
+is needed for these checks.
+
+1. Build **Release | x64** in `Runtime.sln` with **Build Solution**.
+2. Set **Runtime > Properties > Debugging > Command** to
+   `$(OutDir)panel_check.exe`, keep working directory `$(ProjectDir)`, and use
+   **Ctrl+F5**. This is the fast constructed check; no credentials or network.
+3. Set Command to `$(OutDir)panel_acquire.exe`, then **Ctrl+F5**. The default
+   output is `scratch/datasets/extension_panel_2016_2025/`. The first full run
+   takes hours: roughly 50,000 bar pages, with about 10.5 hours of pacing alone.
+   Rerunning resumes the same vintage and authenticates earlier pages without
+   downloading them again. Leave one writer running; do not run two copies.
+4. After completion, run the independent verifier from the repository root:
+
+```sh
+py -3 -B research/verify_historical_panel.py scratch/datasets/extension_panel_2016_2025
+```
+
+The script audits request/page identities, calendars, grids, masks and actions
+without printing prices. It creates `review/review.zip` with only a summary and
+coverage CSV. **Share that ZIP; keep raw/sealed inputs local.** The same verifier
+accepts the printed `scratch/runs/panel_check_<suffix>` directory for constructed
+evidence. Use actual suffixes.
+
+Free issuer cash-reference preparation is a separate local command:
+
+```sh
+py -3 -B research/prepare_panel_actions.py
+```
+
+It caches primary-source files with retrieval/hash provenance and prepares
+`issuer/reference.json` inside the new dataset. It does not infer split
+completeness or GLD's history from a dividend table. The initial reference is
+therefore intentionally incomplete, with its unresolved declarations visible.
+Do not mark coverage complete without supporting whole-horizon source evidence.
+
+Once those sources have been reconciled, select `$(OutDir)panel_finalize.exe`.
+It authenticates the panel, issuer evidence and original registered 496-session
+SPY dataset before writing `study_manifest.json`, masks and the source-vintage
+bridge. Exit 2 means an expected unresolved prerequisite; exit 1 indicates a
+verification/software failure. Neither is permission to score. The acquisition
+manifest alone always retains `research_inputs_ready=false`.
+
+The controlled precision design can be reproduced independently:
+
+```sh
+py -3 -B research/extension_precision.py
+```
+
+It uses synthetic Gaussian AR(1) trials only. Its planning table is not a market
+result or final validation of the registered block-bootstrap procedure.
 
 ## Publication
 

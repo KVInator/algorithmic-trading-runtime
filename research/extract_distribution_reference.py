@@ -14,8 +14,8 @@ class IssuerDistributionExtractor:
     namespace = {"s": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
     source_url = "https://www.ssga.com/library-content/products/fund-data/etfs/us/spdr-etf-historical-distributions.xlsx"
 
-    def extract(self, source: Path, retrieved_utc: str) -> dict:
-        datetime.strptime(retrieved_utc, "%Y-%m-%dT%H:%M:%SZ")
+    def table(self, source: Path) -> list[tuple[int, dict]]:
+        """Read the issuer's worksheet once for legacy and panel extraction."""
         with ZipFile(source) as archive:
             shared = ["".join(item.itertext()) for item in ET.fromstring(archive.read("xl/sharedStrings.xml"))]
             rows = ET.fromstring(archive.read("xl/worksheets/sheet1.xml")).findall(".//s:row", self.namespace)
@@ -28,29 +28,36 @@ class IssuerDistributionExtractor:
                     if cell.get("t") == "s":
                         text = shared[int(text)]
                     values["".join(c for c in cell.attrib["r"] if c.isalpha())] = text.strip()
-                if row.attrib["r"] == "1":
-                    expected = {"B": "TICKER", "C": "CUSIP", "D": "EX-DATE", "E": "RECORD DATE",
-                                "F": "PAYABLE DATE", "G": "DIVIDEND ($)", "H": "SHORT TERM CAPITAL GAIN ($)",
-                                "I": "LONG TERM CAPITAL GAIN ($)"}
-                    if any(values.get(key) != label for key, label in expected.items()):
-                        raise ValueError("Issuer worksheet columns differ from the extraction contract")
-                    continue
-                if values.get("B") != "SPY":
-                    continue
-                ex = datetime.strptime(values["D"], "%m/%d/%Y").date().isoformat()
-                if not "2021-01-01" <= ex <= "2023-12-31":
-                    continue
-                if values["C"] != "78462F103" or any(Decimal(values.get(c) or "0") != 0 for c in ["H", "I"]):
-                    raise ValueError("Unexpected security identifier or capital-gain distribution")
-                amount = Decimal(values["G"])
-                if not amount.is_finite() or amount <= 0:
-                    raise ValueError("Invalid issuer dividend amount")
-                record = datetime.strptime(values["E"], "%m/%d/%Y").date().isoformat()
-                pay = datetime.strptime(values["F"], "%m/%d/%Y").date().isoformat()
-                if not ex <= record <= pay:
-                    raise ValueError("Invalid issuer dividend chronology")
-                result.append({"ex_date": ex, "record_date": record, "payable_date": pay,
-                               "usd_per_share": float(amount), "worksheet_row": int(row.attrib["r"])})
+                result.append((int(row.attrib["r"]), values))
+            return result
+
+    def extract(self, source: Path, retrieved_utc: str) -> dict:
+        datetime.strptime(retrieved_utc, "%Y-%m-%dT%H:%M:%SZ")
+        result = []
+        for row_number, values in self.table(source):
+            if row_number == 1:
+                expected = {"B": "TICKER", "C": "CUSIP", "D": "EX-DATE", "E": "RECORD DATE",
+                            "F": "PAYABLE DATE", "G": "DIVIDEND ($)", "H": "SHORT TERM CAPITAL GAIN ($)",
+                            "I": "LONG TERM CAPITAL GAIN ($)"}
+                if any(values.get(key) != label for key, label in expected.items()):
+                    raise ValueError("Issuer worksheet columns differ from the extraction contract")
+                continue
+            if values.get("B") != "SPY":
+                continue
+            ex = datetime.strptime(values["D"], "%m/%d/%Y").date().isoformat()
+            if not "2021-01-01" <= ex <= "2023-12-31":
+                continue
+            if values["C"] != "78462F103" or any(Decimal(values.get(c) or "0") != 0 for c in ["H", "I"]):
+                raise ValueError("Unexpected security identifier or capital-gain distribution")
+            amount = Decimal(values["G"])
+            if not amount.is_finite() or amount <= 0:
+                raise ValueError("Invalid issuer dividend amount")
+            record = datetime.strptime(values["E"], "%m/%d/%Y").date().isoformat()
+            pay = datetime.strptime(values["F"], "%m/%d/%Y").date().isoformat()
+            if not ex <= record <= pay:
+                raise ValueError("Invalid issuer dividend chronology")
+            result.append({"ex_date": ex, "record_date": record, "payable_date": pay,
+                           "usd_per_share": float(amount), "worksheet_row": row_number})
         result.sort(key=lambda row: row["ex_date"])
         if len(result) != 12 or len({row["ex_date"] for row in result}) != 12:
             raise ValueError("Expected twelve distinct quarterly ex-dates in the reference horizon")

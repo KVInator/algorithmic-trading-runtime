@@ -22,8 +22,12 @@ Its baseline inventory and sampled free-data assessment are complete
 SIP bar, quote and trade access for all five instruments over 2016-2025;
 sampled minute gaps and incomplete early dividend fields are recorded in the
 [capability assessment](docs/extension_plan.md#m1-provider-evidence-and-disposition).
-Full-panel acquisition, action reconciliation and expanded historical evaluation
-have not started. The results below describe the completed v1 study.
+Full-panel acquisition and action reconciliation await local verification;
+expanded historical evaluation has not started. **M2 is in progress:** the registered
+[dataset/study contract](research/extension_protocol.md), resumable archive,
+independent verifier and issuer cash-source adapters are implemented. Windows
+acquisition and complete action evidence are still required. The results below
+describe the completed v1 study.
 
 ## Research findings
 

@@ -51,4 +51,8 @@ class CalendarSession {
 // NYSE 2021 holiday/early-close reference, plus the preceding 2020-12-31 close.
 [[nodiscard]] std::vector<CalendarSession> risk_calibration_calendar(const CalendarRange &range);
 
+// Independent NYSE regular-session reference for the extension's fixed years,
+// including Juneteenth from 2022 and the 2018/2025 mourning closures.
+[[nodiscard]] std::vector<CalendarSession> extension_calendar(const CalendarRange &range);
+
 } // namespace trading
