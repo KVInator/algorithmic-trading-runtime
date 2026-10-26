@@ -16,6 +16,11 @@ results and assumptions. For the interactive saved-event replay,
 and open it locally. The [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 contains the report downloads and original Windows benchmark evidence.
 
+The [multi-instrument extension](docs/extension_plan.md) is now in development.
+Its baseline inventory is complete (**M0; 1 of 11 milestones**); wider data
+acquisition and expanded historical evaluation have not started. The results
+below describe the completed v1 study.
+
 ## Research findings
 
 The historical sample is inspected **2022-2023 development data**. No registered

@@ -92,7 +92,10 @@ its registered calibration, warm-up, shortened-session and issuer-action inputs.
 Use the paths declared by those loaders and governing JSON records; a new provider
 snapshot cannot overwrite their identities. Missing prerequisites stop the runner.
 No broker account, real-time quote probe or paid subscription is required by the
-offline completion scope. No local 2024-2025 strategy evaluation is authorized.
+offline completion scope. The v1 entry points remain restricted to their
+registered inputs; no v1 2024-2025 strategy evaluation is authorized. The
+[extension plan](extension_plan.md) records a separate registration and access
+sequence for later periods. M0 opens no later-period strategy inputs or results.
 
 Historical exports have independent checks in `research/verify_*.py`; their
 methods and numerical conventions are recorded beside the governing protocols.
