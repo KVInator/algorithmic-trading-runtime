@@ -1,0 +1,11 @@
+year,period,calendar_dates,regular_dates,common_intraday_dates,common_regular_coverage_percent,missing_minutes,missing_opens,missing_closes,qualifies_development_year
+2016,initialization,252,251,154,61.354582,317,0,0,False
+2017,development,251,249,92,36.947791,562,0,0,False
+2018,development,251,248,111,44.758065,415,0,0,False
+2019,development,252,249,153,61.445783,271,0,3,False
+2020,development,253,251,221,88.047809,313,0,0,True
+2021,development,252,251,209,83.266932,66,0,0,True
+2022,development,251,250,227,90.800000,33,0,0,True
+2023,development,250,248,208,83.870968,61,0,0,True
+2024,validation_reserved,252,249,219,87.951807,37,0,0,False
+2025,final_reserved,250,247,245,99.190283,2,0,0,False

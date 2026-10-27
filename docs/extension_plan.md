@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 26 October 2026: **M0-M1 complete; M2 in progress; M3-M10 not started.**
+Status recorded 27 October 2026: **M0-M1 complete; M2 input-limited; M3-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -144,7 +144,7 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 | D1 | At v1, calendar conversion starts at 2020-12-31; reference calendars cover 2021 calibration and 2022-2023 development | M1 extends conversion to 2016-2025; all 20 provider calendar samples passed; old reference calendars retain their bounds |
 | D2 | At v1, calendar bar requests, session batches and corporate-action requests encode SPY | M1 adds explicit-symbol requests and a separate capability runner; legacy defaults/loaders remain; panel acquisition follows at M2 |
 | D3 | Free historical access is demonstrated, with four sampled missing minutes and 90 dividend records lacking payment/record dates; complete action history and quote windows remain unverified | M1 assessment below; M2 authenticates the full panel and action sources; M6 evaluates complete declared quote windows |
-| D4 | Dataset/action contracts and bridge software are implemented; actual panel identities and source discrepancies remain unresolved | M2: authenticate the Windows archive and issuer evidence, then freeze masks and vintage identities alongside the original inputs |
+| D4 | Full-panel review identifies insufficient common development coverage, three missing daily closes and unresolved action evidence; bridge registration remains open | M2: resolve input limitations and issuer evidence before freezing masks and vintage identities alongside the original inputs |
 | D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
 | D6 | Engines and aggregate runners enforce SPY, fixed histories and 2022-2023 gates | M3: parameterize authoritative engines and add the panel driver; keep the v1 reference path |
 | D7 | One-symbol cash, pending-fill limits, internal ownership transfers and journal growth need a shared-account contract | M4: one global ledger, deterministic netting/allocation and bounded durable handover |
@@ -162,7 +162,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | --- | --- | --- | --- |
 | M0 | Baseline and research inventory | Release identities, implementation map, exposure log, scope and decision register | Complete |
 | M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
-| M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Contract and acquisition/finalization software implemented; full Windows archive and complete action evidence pending |
+| M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Full acquisition review received; input-limited under registered coverage/daily-mark rules; issuer reconciliation and final registration pending |
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Not started |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
@@ -350,9 +350,9 @@ discrepancies, not rounding/zero-payment assumptions. The complete acquisition
 must establish their current-vintage status and an explicit source resolution
 before accounting registration. No reserved price data were inspected.
 
-M2 acceptance still requires the full Windows acquisition, independent local
-verification, complete action-source review, vintage bridge and final study
-manifest. The v1 results and seven original frozen identities remain unchanged.
+M2 acceptance requires complete action-source review, resolution of the full-panel
+input limitations recorded below, the vintage bridge and final study manifest.
+The v1 results and seven original frozen identities remain unchanged.
 No expanded strategy has been fitted or scored. Run/sharing instructions are in
 [panel acquisition](running.md#extension-panel-acquisition-and-registration).
 
@@ -375,3 +375,70 @@ Panel evidence directories are `scratch/runs/panel_check_6` (Release) and
 `fb194e3307078fc0727e400e008d46e951aa3cf115ddc1e07b1aa3fc77efcc07`.
 These are local run identities, not provider coverage evidence. Native MSVC and
 the full private panel have not been verified by this checkpoint.
+
+## Full-panel acquisition review
+
+The 27 October 2026 coverage-only review reports 50,350 retained HTTP attempts
+verified locally across 120 months, 2,514 exchange dates and 12,570 symbol-days.
+The submitted ZIP contains only `summary.json` and `coverage.csv`; both match the
+separately retained files byte for byte. All CSV rows match the summary, and a
+separate fixed-date calendar check reproduces dates, session lengths and the
+registered eligibility flags. Raw responses were not supplied for this review,
+so their local verification is reported rather than independently repeated.
+The export does not retain compiler or native-check evidence.
+
+The panel contains 4,881,323 of 4,883,400 expected minute observations. The 2,077
+missing observations are 0.0425% of the expected grid. Their cause cannot be
+established from coverage flags alone: an absent minute does not prove either
+a failed download or a no-trade interval. No interpolation or zero-volume bar
+was introduced. TLT accounts for 1,196 missing minutes and GLD for 555; the
+other three instruments account for 326 combined.
+
+The [annual coverage table](evidence/m2_coverage.csv) is derived by grouping
+the review's coverage rows by calendar year. Regular/common counts use one
+SPY row per date; missing-minute and endpoint counts sum all five instruments.
+Development-year qualification requires both 200 common dates and 80% of the
+regular calendar, excludes the 2016 initialization year and does not use
+strategy outcomes or warm-up/model availability.
+
+| Development year | Common eligible dates / regular dates | Coverage | Qualifies |
+| --- | --- | --- | --- |
+| 2017 | 92 / 249 | 36.95% | No |
+| 2018 | 111 / 248 | 44.76% | No |
+| 2019 | 153 / 249 | 61.45% | No |
+| 2020 | 221 / 251 | 88.05% | Yes |
+| 2021 | 209 / 251 | 83.27% | Yes |
+| 2022 | 227 / 250 | 90.80% | Yes |
+| 2023 | 208 / 248 | 83.87% | Yes |
+
+Only four development years qualify; five are required. Common coverage is
+the intersection of five complete-session grids, so high aggregate minute
+coverage does not imply sufficient common dates. These are input dates, not
+active dates or performance observations. There are also three unavailable
+required closing minutes, all on 2019-08-12, for SPY, IWM and GLD. All opens
+are available. The current finalizer therefore cannot register the intended
+continuous daily accounts or pass the development-year gate.
+
+All 55 action process-date intervals are represented, including the five
+January-March 2026 tails. The provider summary reports 243 cash-dividend rows,
+153 with complete payment fields, no split rows and no GLD action rows. Thus
+90 cash records need independent date evidence. Empty split/GLD responses
+do not establish that no actions occurred. Aggregate counts cannot resolve the
+previously identified QQQ amount and same-ex-date discrepancies.
+
+The acquisition is complete according to the independent export, but M2 remains
+input-limited. Further work must resolve source evidence for gaps and actions;
+any change to eligibility must be an explicit protocol amendment before replay,
+with the original contract and its failed input assessment retained. The
+coverage review authorizes neither a silent threshold change nor historical
+strategy evaluation. The original-SPY vintage bridge is still pending.
+Reserved-year review used coverage metadata only; no prices, fitted models,
+returns or spread estimates were inspected.
+
+| Evidence identity | SHA-256 |
+| --- | --- |
+| Registered extension protocol | `269d6e677a3e62a21ede6e88659edb2f7a998bfe0137e62b13458e411f0c55ee` |
+| Acquisition manifest reported by local verification | `ebf148ee10d8997ef9b259aad5af1f9e4894e4875824dbcaf4203beb3538b1d2` |
+| Submitted review summary | `b30355d563e63d09fbb62e3f7aade96018f88d03a714bc5fbf12da5af21d9ca9` |
+| Submitted daily coverage CSV | `2b579f1dbf80edc8338343bd4039d799924b45732d879c19fb2ab52b3fe4fc94` |
+| Derived annual coverage CSV | `10378dcca03a994db6c31e8de0bf0fd9b474d93d8200ca1e59073ed6d717b031` |

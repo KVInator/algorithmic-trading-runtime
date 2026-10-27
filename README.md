@@ -22,12 +22,14 @@ Its baseline inventory and sampled free-data assessment are complete
 SIP bar, quote and trade access for all five instruments over 2016-2025;
 sampled minute gaps and incomplete early dividend fields are recorded in the
 [capability assessment](docs/extension_plan.md#m1-provider-evidence-and-disposition).
-Full-panel acquisition and action reconciliation await local verification;
-expanded historical evaluation has not started. **M2 is in progress:** the registered
-[dataset/study contract](research/extension_protocol.md), resumable archive,
-independent verifier and issuer cash-source adapters are implemented. Windows
-acquisition and complete action evidence are still required. The results below
-describe the completed v1 study.
+The full-panel independent review reports 50,350 retained HTTP attempts and
+12,570 symbol-days. **M2 remains input-limited:** only four development years
+meet the registered common-coverage requirement of five, three required daily
+closes are missing, and issuer reconciliation and vintage registration remain
+open. The [coverage assessment](docs/extension_plan.md#full-panel-acquisition-review)
+records the evidence under the unchanged
+[dataset/study contract](research/extension_protocol.md). Expanded historical
+evaluation has not started. The results below describe the completed v1 study.
 
 ## Research findings
 
