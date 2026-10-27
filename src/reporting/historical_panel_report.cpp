@@ -19,12 +19,19 @@ std::filesystem::path HistoricalPanelReport::write_readiness(const nlohmann::jso
         << "<p>Qualified development years: " << assessment.at("qualified_development_years") << " / required "
         << assessment.at("minimum_development_years") << ". Missing daily endpoints: " << assessment.at("missing_daily_endpoints").size()
         << ". Issuer actions reconciled: " << assessment.at("actions").at("issuer_reconciled") << ".</p>"
-        << "<table><tr><th>Year</th><th>Common dates</th><th>Regular dates</th><th>Qualifies</th></tr>";
+        << "<h2>Parent complete-grid assessment</h2><table><tr><th>Year</th><th>Common dates</th><th>Regular dates</th><th>Qualifies</th></tr>";
     for (const auto& year : assessment.at("development_years")) {
         html << "<tr><td>" << ReportText{year.at("year").get<std::string>()}.html() << "</td><td>" << year.at("common_dates")
             << "</td><td>" << year.at("regular_dates") << "</td><td>" << year.at("qualifies") << "</td></tr>";
     }
-    html << "</table><h2>Retained evidence</h2><p>Daily endpoint flags contain no prices. Cash amounts, where present, "
+    html << "</table>";
+    if (assessment.contains("input_policy_assessment")) {
+        html << "<h2>Registered input amendment</h2><p>Qualified operational development years: "
+            << assessment.at("input_policy_assessment").at("qualified_operational_development_years")
+            << ". Daily endpoints still unavailable after recovery: " << assessment.at("remaining_daily_endpoints").size()
+            << ". Operational coverage and feature availability have different meanings; neither establishes strategy activation or a completed study.</p>";
+    }
+    html << "<h2>Retained evidence</h2><p>Daily endpoint flags contain no prices. Cash amounts, where present, "
         << "describe pre-2024 distribution discrepancies, not trading results. Vintage comparison is still a separate gate.</p><pre>"
         << ReportText{assessment.dump(2)}.html() << "</pre><p><a href=\"summary.json\">Readiness evidence</a></p></main></html>";
     write_new_text_file(directory / "summary.json", assessment.dump(2) + '\n');

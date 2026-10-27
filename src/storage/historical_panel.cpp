@@ -228,6 +228,143 @@ HistoricalPanelDataset::HistoricalPanelDataset(std::filesystem::path directory, 
         previous = range.last();
     }
 }
+PanelClosingRecovery HistoricalPanelDataset::recover_closing_marks(const PanelInputPolicy& policy,
+    const Json& audited_panel, const BarPageFetcher& fetch, ApiRequestPolicy::Wait wait, bool acquire) const {
+    if (!wait || (acquire && !fetch)) { throw std::invalid_argument("closing recovery requires pacing and an acquisition fetcher"); }
+    const auto acquisition_sha = sha256_file(directory_ / "acquisition_manifest.json");
+    const std::string origin = origin_ == PanelOrigin::provider ? "provider" : "synthetic";
+    if (audited_panel.at("acquisition_manifest_sha256").get<std::string>() != acquisition_sha ||
+        audited_panel.at("protocol_sha256").get<std::string>() != contract_.identity() || audited_panel.at("evidence_origin").get<std::string>() != origin) {
+        throw std::invalid_argument("closing recovery requires the authenticated original acquisition");
+    }
+    const auto recovery_root = directory_ / "resolutions/closing_marks";
+    if (acquire) { std::filesystem::create_directories(recovery_root); }
+    std::unique_ptr<execution::JournalStorage> owner;
+    if (acquire) {
+        const auto lock = directory_ / "acquisition.lock";
+        owner = std::filesystem::exists(lock) ? execution::open_journal_file(lock) : execution::create_journal_file(lock);
+    }
+    PanelPageArchive archive{recovery_root, acquire, std::move(wait)};
+    Json records = Json::array();
+    std::vector<MinuteBar> recovered;
+    for (const auto& item : policy.closing_recovery_plan()) {
+        const auto symbol = item.at("symbol").get<std::string>(), date = item.at("date").get<std::string>();
+        contract_.require_development_access(date);
+        const auto found = std::find_if(audited_panel.at("coverage").begin(), audited_panel.at("coverage").end(), [&](const auto& row) {
+            return row.at("symbol").template get<std::string>() == symbol && row.at("date").template get<std::string>() == date;
+        });
+        if (found == audited_panel.at("coverage").end()) {
+            if (origin_ == PanelOrigin::synthetic) { continue; }
+            throw std::invalid_argument("registered closing recovery date is absent from the acquisition");
+        }
+        if (found->at("close_available").get<bool>()) { continue; }
+        const CalendarSession day{date, "09:30", found->at("regular").get<bool>() ? "16:00" : "13:00"};
+        const HistoricalBarRequest request{symbol, day.close_utc() - std::chrono::minutes{1}, day.close_utc()};
+        Json pages = Json::array();
+        const auto download = SessionDownloader{request, 1}.download([&](const auto& req, const auto& token) {
+            const auto response = archive.get("responses/" + symbol + '/' + date, "data.alpaca.markets", req.path(token),
+                [&] { return fetch(req, token); });
+            pages.push_back(archive.last());
+            return response;
+        });
+        const bool available = download.audit.complete();
+        records.push_back({{"symbol", symbol}, {"date", date}, {"start_utc", format_utc_seconds(request.start())},
+            {"end_exclusive_utc", format_utc_seconds(request.end_exclusive())}, {"recovered", available}, {"pages", pages}});
+        if (available) { recovered.push_back(download.bars.front()); }
+    }
+    const Json manifest{{"schema_version", 1}, {"kind", "closing_mark_recovery"}, {"evidence_origin", origin},
+        {"acquisition_manifest_sha256", acquisition_sha}, {"protocol_sha256", contract_.identity()},
+        {"input_policy_sha256", policy.identity()}, {"records", records}};
+    retain(recovery_root / "manifest.json", manifest, acquire);
+    return {{{"manifest_sha256", sha256_file(recovery_root / "manifest.json")}, {"required", records.size()},
+        {"recovered", recovered.size()}, {"network_requests", archive.network_requests()}, {"complete", records.size() == recovered.size()}}, std::move(recovered)};
+}
+
+nlohmann::json HistoricalPanelDataset::assess_input_policy(const PanelInputPolicy& policy,
+    std::string_view expected_acquisition_sha256) const {
+    if (sha256_file(directory_ / "acquisition_manifest.json") != expected_acquisition_sha256) {
+        throw std::invalid_argument("availability assessment acquisition identity changed");
+    }
+    const auto manifest = parse_json_document(read_text_file(directory_ / "acquisition_manifest.json"));
+    const std::string origin = origin_ == PanelOrigin::provider ? "provider" : "synthetic";
+    if (manifest.at("protocol_sha256").get<std::string>() != contract_.identity() || manifest.at("evidence_origin").get<std::string>() != origin) {
+        throw std::invalid_argument("availability assessment origin or protocol mismatch");
+    }
+    const auto load = [&](const Json& ref) {
+        const auto path = contained_path(directory_, ref.at("file").get<std::string>());
+        if (sha256_file(path) != ref.at("sha256").get<std::string>()) { throw std::invalid_argument("availability checkpoint identity changed"); }
+        return parse_json_document(read_text_file(path));
+    };
+    struct Year { std::size_t regular{}, operational{}, strict{}, halt_dates{}; };
+    struct Features { std::size_t regular{}, momentum{}, reversion{}, continuation{}; };
+    std::map<std::string, Year> years;
+    std::map<std::pair<std::string, std::string>, Features> features;
+    Json availability_rows = Json::array();
+    const auto symbols = contract_.symbols();
+    for (const auto& month_ref : manifest.at("months")) {
+        const auto month = load(month_ref);
+        const auto& rows = month.at("checkpoints");
+        if (rows.size() % symbols.size() != 0) { throw std::invalid_argument("availability checkpoint group is incomplete"); }
+        for (std::size_t first = 0; first < rows.size(); first += symbols.size()) {
+            bool common = true, strict = true, regular = false, halt = false;
+            std::string day;
+            for (std::size_t offset = 0; offset < symbols.size(); ++offset) {
+                const auto record = load(rows.at(first + offset));
+                const auto symbol = record.at("symbol").get<std::string>();
+                const auto date = record.at("date").get<std::string>();
+                if (symbol != symbols.at(offset) || (offset != 0 && day != date)) { throw std::invalid_argument("availability checkpoint ordering mismatch"); }
+                day = date;
+                regular = record.at("regular").get<bool>();
+                const CalendarSession session{date, "09:30", regular ? "16:00" : "13:00"};
+                std::vector<std::chrono::sys_seconds> missing;
+                for (const auto& at : record.at("missing_minutes_utc")) { missing.push_back(parse_utc_seconds(at.get<std::string>())); }
+                const auto available = policy.evaluate(session, symbol, missing);
+                availability_rows.push_back({{"symbol", symbol}, {"date", date}, {"operational", available.operational},
+                    {"momentum_features", available.momentum_features}, {"reversion_features", available.reversion_features},
+                    {"continuation_prefixes", available.continuation_prefixes}});
+                common = common && available.operational;
+                strict = strict && record.at("intraday_eligible").get<bool>();
+                halt = available.known_halt_date;
+                auto& count = features[{symbol, date.substr(0, 4)}];
+                if (regular && !available.diagnostic_excluded) {
+                    ++count.regular;
+                    count.momentum += available.momentum_features ? 1U : 0U;
+                    count.reversion += available.reversion_features ? 1U : 0U;
+                    count.continuation += static_cast<std::size_t>(std::count(available.continuation_prefixes.begin(), available.continuation_prefixes.end(), true));
+                }
+            }
+            auto& year = years[day.substr(0, 4)];
+            year.regular += regular ? 1U : 0U;
+            year.operational += common ? 1U : 0U;
+            year.strict += strict ? 1U : 0U;
+            year.halt_dates += regular && halt ? 1U : 0U;
+        }
+    }
+    Json annual = Json::array(), feature_counts = Json::array();
+    std::size_t qualified = 0;
+    const auto& rules = contract_.document().at("eligibility");
+    for (const auto& [year, count] : years) {
+        const double fraction = count.regular == 0 ? 0 : static_cast<double>(count.operational) / static_cast<double>(count.regular);
+        const bool development = year > "2016" && year < "2024";
+        const bool passes = development && count.operational >= rules.at("minimum_common_development_dates_per_qualified_year").get<std::size_t>() &&
+            fraction >= rules.at("minimum_common_development_calendar_coverage").get<double>();
+        qualified += passes ? 1U : 0U;
+        annual.push_back({{"year", year}, {"regular_dates", count.regular}, {"common_operational_dates", count.operational},
+            {"parent_complete_grid_dates", count.strict}, {"operational_fraction", fraction}, {"qualifies_development_year", passes},
+            {"known_halt_context_dates", count.halt_dates}});
+    }
+    for (const auto& [key, count] : features) {
+        feature_counts.push_back({{"symbol", key.first}, {"year", key.second}, {"regular_non_diagnostic_dates", count.regular},
+            {"momentum_feature_dates", count.momentum}, {"reversion_feature_dates", count.reversion},
+            {"continuation_available_prefixes", count.continuation}, {"continuation_possible_prefixes", count.regular * 12}});
+    }
+    return {{"policy_sha256", policy.identity()}, {"parent_protocol_sha256", contract_.identity()},
+        {"execution_minute_slots", policy.execution_slots()}, {"year_coverage", annual}, {"feature_coverage", feature_counts}, {"rows", availability_rows},
+        {"qualified_operational_development_years", qualified}, {"minimum_development_years", rules.at("minimum_scored_years")},
+        {"operational_year_gate_passed", qualified >= rules.at("minimum_scored_years").get<std::size_t>()},
+        {"research_inputs_ready", false}, {"model_fit_availability_evaluated", false}, {"replay_adoption_pending", true}};
+}
+
 nlohmann::json HistoricalPanelDataset::collect(const PanelFetchers& fetchers, ApiRequestPolicy::Wait wait, const Progress& progress) const {
     if (!fetchers.calendar || !fetchers.bars || !fetchers.actions || !wait) {
         throw std::invalid_argument("panel collection requires calendar, bar, action and pacing callbacks");

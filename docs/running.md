@@ -283,6 +283,27 @@ the original SPY snapshot and writes the vintage bridge, masks and study
 manifest. Readiness assessment alone cannot publish those records. The
 acquisition manifest always retains `research_inputs_ready=false`.
 
+The [registered input amendment](../research/extension_input_policy.md) separates
+scheduled execution observability from feature completeness. Readiness reports
+retain the parent complete-grid failure and show the amended assessment separately.
+Feature availability does not imply an active trade or an admissible fit.
+
+For an already completed panel, run `panel_acquire.exe` once after this update.
+It authenticates cached pages, then makes at most three new ordinary requests:
+the registered SPY/IWM/GLD closing-minute windows on 2019-08-12. Bounded transient
+retries follow the existing policy. Receipts and a separate immutable manifest
+are written under `resolutions/closing_marks/`; no original response is replaced.
+An empty successful response remains an unavailable mark and is not re-probed.
+This run does not repeat the full network acquisition.
+
+Then run `panel_finalize.exe` and verify its new printed readiness directory
+with the existing `--readiness` command above. The verifier also authenticates
+the recovery pages and independently reproduces amended availability counts.
+Only its readiness `review.zip` is required for source review. The existing issuer
+reference is reused; source preparation need not be repeated. Action discrepancies
+and missing issuer coverage still block registration independently of operational
+coverage or recovered prices.
+
 The controlled precision design can be reproduced independently:
 
 ```sh

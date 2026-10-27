@@ -56,6 +56,7 @@ class ProjectSources:
     """Own the source inventory and exact registered protocol identities."""
 
     frozen = {
+        "extension_input_policy.json": "af45ca4552ef58d5de5d9305b140c57eecd42ffc02453867b127d2f6886ad99e",
         "extension_protocol.json": "269d6e677a3e62a21ede6e88659edb2f7a998bfe0137e62b13458e411f0c55ee",
         "intraday_momentum_protocol.md": "b013e488f56a3b3dd2d6d53c1226c63d1d24e21e300b84ce538312f5aacf9499",
         "development_data_policy.json": "34dda94bf3adfc065bf739ec19296e6fae1f78b3830f061eb4938fb011490349",
@@ -355,6 +356,7 @@ class ApplicationBuild:
                 (self.root / "research/scheduled_releases_2022_2023.csv").read_bytes()
             ),
             "TRADING_EXTENSION_PROTOCOL_SHA256": self.sources.frozen["extension_protocol.json"],
+            "TRADING_EXTENSION_INPUT_POLICY_SHA256": self.sources.frozen["extension_input_policy.json"],
             "TRADING_SOURCE_SHA256": source_digest,
             "TRADING_COMPILER_ID": self.compiler.identity,
             "TRADING_BUILD_COMPILER": self.compiler.identity.replace(" ", "-"),

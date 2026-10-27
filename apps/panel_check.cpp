@@ -40,6 +40,8 @@ public:
                 Json all = Json::array();
                 for (std::size_t i = 0; i < request.expected_minutes(); ++i) {
                     const auto day = trading::format_utc_seconds(request.start()).substr(0, 10);
+                    if (closing_gaps && request.expected_minutes() == 390 && day == "2019-08-12" &&
+                        request.symbol() != "QQQ" && request.symbol() != "TLT" && i == 389) { continue; }
                     if (request.symbol() == "GLD" && day == "2023-01-03" && i == 10) { continue; }
                     if (diagnostic_faults && ((request.symbol() == "GLD" && day == "2023-01-03" && (i == 11 || i == 12 || i == 20)) ||
                         (request.symbol() == "SPY" && day == "2023-01-03" && i == 389) ||
@@ -72,7 +74,7 @@ public:
             }};
     }
     std::size_t calls{}, bar_calls{}, interrupt_at{};
-    bool deny{}, transient{}, always_transient{}, retried{}, bad_calendar{}, diagnostic_faults{};
+    bool deny{}, transient{}, always_transient{}, retried{}, bad_calendar{}, diagnostic_faults{}, closing_gaps{};
 };
 
 class PanelChecks {
@@ -80,7 +82,41 @@ public:
     void run() {
         const std::filesystem::path root{TRADING_PROJECT_ROOT};
         const auto contract = trading::ExtensionStudyContract::load(root / "research/extension_protocol.json");
+        const auto input_policy = trading::PanelInputPolicy::load(root / "research/extension_input_policy.json", contract);
         directory_ = trading::create_unique_directory(root / "scratch/runs", "panel_check");
+        const trading::CalendarSession policy_day{"2023-01-04", "09:30", "16:00"};
+        const auto missing_at = [&](std::initializer_list<int> slots) {
+            std::vector<std::chrono::sys_seconds> result;
+            for (const int slot : slots) { result.push_back(policy_day.open_utc() + std::chrono::minutes{slot}); }
+            return result;
+        };
+        const auto full = input_policy.evaluate(policy_day, "SPY", {});
+        check("complete inputs retain every feature and execution reference", full.operational && full.momentum_features && full.reversion_features &&
+            std::all_of(full.continuation_prefixes.begin(), full.continuation_prefixes.end(), [](bool value) { return value; }));
+        check("execution references derive from all registered delays and holding periods", input_policy.execution_slots().size() == 33 &&
+            input_policy.execution_slots().front() == 0 && input_policy.execution_slots().back() == 387);
+        const auto middle = input_policy.evaluate(policy_day, "SPY", missing_at({100}));
+        check("irrelevant missing minute preserves endpoint and fixed-grid features", middle.operational && middle.momentum_features && middle.reversion_features);
+        check("volume prefix failure does not backdate to earlier decisions", middle.continuation_prefixes[2] && !middle.continuation_prefixes[3]);
+        check("one-minute reversion grid requires its actual additional observations", !input_policy.evaluate(policy_day, "SPY", missing_at({100}), 1).reversion_features);
+        check("fifteen-minute reversion grid preserves fixed clock endpoints", input_policy.evaluate(policy_day, "SPY", missing_at({100}), 15).reversion_features);
+        check("missing anchor minute cannot become zero volume", !input_policy.evaluate(policy_day, "SPY", missing_at({5})).reversion_features);
+        const auto signal_gap = input_policy.evaluate(policy_day, "SPY", missing_at({359}));
+        check("signal availability is separate from execution observability", signal_gap.operational && !signal_gap.momentum_features);
+        const auto fill_gap = input_policy.evaluate(policy_day, "SPY", missing_at({151}));
+        check("future missing execution reference cannot alter past reversion features", !fill_gap.operational && fill_gap.reversion_features);
+        check("missing closing mark is not an imputed execution quote", input_policy.evaluate(policy_day, "SPY", missing_at({389})).operational);
+        check("shortened session stays outside primary comparisons", !input_policy.evaluate({"2022-11-25", "09:30", "13:00"}, "SPY", {}).operational);
+        check("diagnostic exclusion is symbol specific under amendment", !input_policy.evaluate({"2023-01-03", "09:30", "16:00"}, "SPY", {}).operational &&
+            input_policy.evaluate({"2023-01-03", "09:30", "16:00"}, "QQQ", {}).operational);
+        check("halt context does not itself fabricate a missing interval", input_policy.evaluate({"2020-03-09", "09:30", "16:00"}, "SPY", {}).known_halt_date);
+        reject("duplicate missing slot rejected", [&] { static_cast<void>(input_policy.evaluate(policy_day, "SPY", missing_at({1, 1}))); });
+        reject("out of order missing slots rejected", [&] { static_cast<void>(input_policy.evaluate(policy_day, "SPY", missing_at({10, 9}))); });
+        reject("outside-session missing slot rejected", [&] { static_cast<void>(input_policy.evaluate(policy_day, "SPY", missing_at({390}))); });
+        reject("unregistered observation step rejected", [&] { static_cast<void>(input_policy.evaluate(policy_day, "SPY", {}, 0)); });
+        reject("unregistered policy symbol rejected", [&] { static_cast<void>(input_policy.evaluate(policy_day, "DIA", {})); });
+        trading::write_new_text_file(directory_ / "altered_input_policy.json", trading::read_text_file(root / "research/extension_input_policy.json") + " ");
+        reject("altered amendment rejected", [&] { static_cast<void>(trading::PanelInputPolicy::load(directory_ / "altered_input_policy.json", contract)); });
         check("five fixed symbols", contract.symbols().size() == 5);
         const std::string malformed_bytes{"\xff\0\n", 3};
         check("raw byte archival is lossless for non-UTF-8 bodies", trading::decode_response_bytes(trading::encode_response_bytes(malformed_bytes)) == malformed_bytes);
@@ -193,7 +229,7 @@ public:
             issuer / "absent.json", contract, trading::PanelOrigin::synthetic));
         check("absent issuer reference still reports price gaps", !missing_reference.at("input_gates_passed").get<bool>() &&
             missing_reference.at("development_gap_intervals").size() == 1);
-        const auto readiness = finalizer.assess(summary, incomplete_actions);
+        const auto readiness = finalizer.assess(summary, incomplete_actions, &input_policy);
         check("assessment does not turn incomplete actions into ready inputs", !readiness.at("input_gates_passed").get<bool>() && !readiness.at("research_inputs_ready").get<bool>());
         check("single missing minute has exact half-open interval", readiness.at("development_gap_intervals").size() == 1 &&
             readiness.at("development_gap_intervals").at(0).at("start_utc").get<std::string>() == "2023-01-03T14:40:00Z" &&
@@ -234,6 +270,53 @@ public:
         reject("daily endpoint gaps block registration with otherwise reconciled actions", [&] { static_cast<void>(diagnostic_finalizer.finalize(diagnostic_summary, action_result, legacy)); });
         check("assessment cannot publish the study manifest", !std::filesystem::exists(directory_ / "diagnosis/study_manifest.json"));
         const auto diagnostic_report = trading::HistoricalPanelReport{}.write_readiness(diagnostic, directory_ / "reports");
+
+        PanelFixture closing_fixture;
+        closing_fixture.closing_gaps = true;
+        const trading::HistoricalPanelDataset closing_dataset{directory_ / "closing", contract, trading::PanelOrigin::synthetic,
+            {{"2019-08-12", "2019-08-12"}}};
+        const auto closing_summary = closing_dataset.collect(closing_fixture.fetchers(), no_wait);
+        const auto closing_acquisition = closing_summary.at("acquisition_manifest_sha256").get<std::string>();
+        const auto recovered = closing_dataset.recover_closing_marks(input_policy, closing_summary, closing_fixture.fetchers().bars, no_wait, true);
+        check("only the three registered exact closing slots are requested", recovered.summary.at("network_requests").get<int>() == 3 && recovered.bars.size() == 3);
+        check("recovery preserves the original acquisition identity", trading::sha256_file(directory_ / "closing/acquisition_manifest.json") == closing_acquisition);
+        check("closing recovery resumes without network calls", closing_dataset.recover_closing_marks(input_policy, closing_summary,
+            closing_fixture.fetchers().bars, no_wait, true).summary.at("network_requests").get<int>() == 0);
+        check("closing recovery can be authenticated offline", closing_dataset.recover_closing_marks(input_policy, closing_summary, {}, no_wait, false).bars.size() == 3);
+        const trading::PanelInputFinalizer closing_finalizer{directory_ / "closing", contract, trading::PanelOrigin::synthetic};
+        auto closing_reference = reference;
+        closing_reference["cash_distributions"] = Json::array();
+        for (const auto& symbol : contract.symbols()) {
+            if (symbol == "GLD") { continue; }
+            closing_reference["cash_distributions"].push_back({{"symbol", symbol}, {"ex_date", "2019-06-01"}, {"record_date", "2019-06-02"},
+                {"payable_date", "2019-06-10"}, {"usd_per_share", 0.5}, {"source_file", "source.txt"}, {"source_locator", "constructed 2019 issuer source"}});
+        }
+        trading::write_new_text_file(issuer / "closing.json", closing_reference.dump(2) + '\n');
+        const auto closing_actions = action_reference.reconcile(directory_ / "closing", issuer / "closing.json", contract, trading::PanelOrigin::synthetic);
+        const auto closing_readiness = closing_finalizer.assess(closing_summary, closing_actions, &input_policy);
+        check("recovered marks do not erase original endpoint failures", closing_readiness.at("missing_daily_endpoints").size() == 3 && closing_readiness.at("remaining_daily_endpoints").empty());
+        check("all amended input gates pass only after real fixture marks are present", closing_readiness.at("active_input_gates_passed").get<bool>());
+        const auto closing_registered = closing_finalizer.finalize(closing_summary, closing_actions, {}, {}, {}, &input_policy);
+        check("registration binds the amendment and recovery identities", closing_registered.at("input_policy_sha256").get<std::string>() == input_policy.identity() &&
+            closing_registered.at("closing_recovery_manifest_sha256") == recovered.summary.at("manifest_sha256"));
+        const auto recovered_masks = Json::parse(trading::read_text_file(directory_ / "closing/eligibility_masks.json"));
+        check("daily readiness uses recovered marks while preserving original missing flags", !recovered_masks.at("rows").at(0).at("close_available").get<bool>() &&
+            recovered_masks.at("rows").at(0).at("daily_close_available").get<bool>());
+        const auto closing_report = trading::HistoricalPanelReport{}.write_readiness(closing_readiness, directory_ / "reports");
+        const trading::HistoricalPanelDataset empty_recovery_dataset{directory_ / "closing_empty", contract, trading::PanelOrigin::synthetic,
+            {{"2019-08-12", "2019-08-12"}}};
+        const auto empty_summary = empty_recovery_dataset.collect(closing_fixture.fetchers(), no_wait);
+        const trading::BarPageFetcher empty_fetch = [](const auto&, const auto&) {
+            return trading::MarketDataResponse{200, Json{{"bars", Json::object()}, {"next_page_token", nullptr}}.dump()};
+        };
+        const auto unavailable = empty_recovery_dataset.recover_closing_marks(input_policy, empty_summary, empty_fetch, no_wait, true);
+        check("empty recovery response cannot create a closing price", unavailable.bars.empty() && !unavailable.summary.at("complete").get<bool>());
+        check("empty successful response is not repeatedly re-probed", empty_recovery_dataset.recover_closing_marks(input_policy, empty_summary,
+            empty_fetch, no_wait, true).summary.at("network_requests").get<int>() == 0);
+        const auto empty_readiness = trading::PanelInputFinalizer{directory_ / "closing_empty", contract, trading::PanelOrigin::synthetic}.assess(empty_summary,
+            action_reference.reconcile(directory_ / "closing_empty", issuer / "absent.json", contract, trading::PanelOrigin::synthetic), &input_policy);
+        check("empty recovery preserves every unresolved daily endpoint", empty_readiness.at("remaining_daily_endpoints").size() == 3 && !empty_readiness.at("active_coverage_gates_passed").get<bool>());
+        const auto empty_report = trading::HistoricalPanelReport{}.write_readiness(empty_readiness, directory_ / "reports");
 
         const std::vector<trading::CalendarRange> history_ranges{{"2023-01-01", "2023-01-31"}, {"2023-02-01", "2023-02-01"}};
         const trading::HistoricalPanelDataset history_dataset{directory_ / "history", contract, trading::PanelOrigin::synthetic, history_ranges};
@@ -303,7 +386,10 @@ public:
         reject("altered raw attempt rejected", [&] { static_cast<void>(retry.audit()); });
         const Json checks{{"evidence_origin", "synthetic"}, {"network_requests", 0}, {"checks", labels_},
             {"readiness_reports", {{"complete", std::filesystem::relative(readiness_report, directory_).generic_string()},
-                {"diagnosis", std::filesystem::relative(diagnostic_report, directory_).generic_string()}}},
+                {"diagnosis", std::filesystem::relative(diagnostic_report, directory_).generic_string()},
+                {"closing", std::filesystem::relative(closing_report, directory_).generic_string()},
+                {"closing_empty", std::filesystem::relative(empty_report, directory_).generic_string()}}},
+            {"additional_archives", {"closing", "closing_empty"}},
             {"source_sha256", TRADING_SOURCE_SHA256}, {"protocol_sha256", contract.identity()}};
         trading::write_new_text_file(directory_ / "checks.json", checks.dump(2) + '\n');
         std::cout << "Historical panel | constructed acquisition, masks and access controls\nChecks passed: " << labels_.size()

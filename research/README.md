@@ -11,7 +11,7 @@ wording is historical. The report describes the completed implementations and ev
 | SPY-TOD-01 revision 1 | [Protocol](intraday_continuation_protocol.md), [descriptive diagnostics](continuation_diagnostics.md) | Positive volume-variant point return, failed registered screens; volume increment unconfirmed |
 | SPY-MR-01 revision 1 | [Protocol](intraday_reversion_protocol.md), [settings](intraday_reversion_protocol.json), [development result](../docs/reversion_development.md) | Cost-dominated; primary net -0.4171%; 83 active dates |
 | SPY-RISK-01 revision 1 | [Protocol](daily_risk_protocol.md), [settings](daily_risk_protocol.json), [result](daily_risk_development_result.json) | No advancement; primary CER increment over daily-only -1.5430 pp/year |
-| MULTI-ASSET-01 edition 1 | [Dataset/study contract](extension_protocol.md), [registered settings](extension_protocol.json) | M2 inputs and action evidence pending; no expanded strategy scored |
+| MULTI-ASSET-01 edition 1 and INPUT-01 | [Dataset/study contract](extension_protocol.md), [registered settings](extension_protocol.json), [input amendment](extension_input_policy.md) | Parent complete-grid assessment retained; operational/feature masks and exact-time mark recovery implemented; action evidence and final registration pending |
 
 The reversion [synthetic design](reversion_validation.md) and
 [sampling/noise findings](reversion_validation_result.md) explain why numerical OU

@@ -23,11 +23,14 @@ SIP bar, quote and trade access for all five instruments over 2016-2025;
 sampled minute gaps and incomplete early dividend fields are recorded in the
 [capability assessment](docs/extension_plan.md#m1-provider-evidence-and-disposition).
 The full-panel independent review reports 50,350 retained HTTP attempts and
-12,570 symbol-days. **M2 remains input-limited:** only four development years
-meet the registered common-coverage requirement of five, three required daily
-closes are missing, and issuer reconciliation and vintage registration remain
-open. The [coverage assessment](docs/extension_plan.md#full-panel-acquisition-review)
-records the evidence under the unchanged
+12,570 symbol-days. **M2 remains in progress:** the parent complete-grid definition
+qualifies four development years against a requirement of five. A separately
+registered [input amendment](research/extension_input_policy.md) distinguishes
+execution observability from feature availability and supports exact-time closing
+recovery in a separate vintage. Issuer reconciliation, actual closing evidence
+and final vintage registration remain open. The
+[coverage assessment](docs/extension_plan.md#full-panel-acquisition-review) retains
+the original evidence under the unchanged parent
 [dataset/study contract](research/extension_protocol.md). Expanded historical
 evaluation has not started. The results below describe the completed v1 study.
 

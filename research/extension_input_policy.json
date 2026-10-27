@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "amendment_id": "MULTI-ASSET-01-INPUT-01",
+  "registered_date": "2026-10-27",
+  "parent_protocol_sha256": "269d6e677a3e62a21ede6e88659edb2f7a998bfe0137e62b13458e411f0c55ee",
+  "scope": "input_availability_before_expanded_replay",
+  "session_minutes": 390,
+  "execution_delays_minutes": [1, 2],
+  "momentum": {
+    "decision_minute": 360,
+    "exit_decision_minutes": [370, 380, 385],
+    "feature_minute_slots": [0, 359]
+  },
+  "continuation": {
+    "decision_minutes": [30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360],
+    "liquidation_minute": 385,
+    "feature_requirement": "every_actual_minute_in_completed_prefix"
+  },
+  "reversion": {
+    "decision_minute": 150,
+    "holding_minutes": [15, 30, 60],
+    "anchor_minutes": 30,
+    "primary_observation_step_minutes": 5,
+    "allowed_observation_step_minutes": [1, 5, 15],
+    "feature_requirement": "complete_anchor_and_exact_fixed_grid_closes"
+  },
+  "mandatory_open_minute": 0,
+  "unavailable_features": "explicit_cash_for_all_members_of_the_paired_comparison",
+  "unavailable_execution": "unavailable_outcome_on_original_calendar_not_zero_return",
+  "missing_minutes": "never_impute_prices_or_volume_or_compress_time",
+  "history_policy": "parent_protocol_unchanged",
+  "daily_mark_policy": "parent_protocol_unchanged_pending_source_resolution",
+  "closing_recovery_plan": [
+    {"symbol": "SPY", "date": "2019-08-12"},
+    {"symbol": "IWM", "date": "2019-08-12"},
+    {"symbol": "GLD", "date": "2019-08-12"}
+  ],
+  "closing_recovery_policy": "separate_immutable_vintage_exact_original_minute_no_daily_price_substitution",
+  "development_adequacy": "parent_thresholds_applied_to_common_operational_dates_with_feature_availability_reported_separately",
+  "original_complete_grid_assessment": "retain_as_separate_sensitivity_and_failed_parent_assessment",
+  "replay_adoption": "requires_explicit_amendment_identity_and_causal_missing_input_controls_at_M3",
+  "halt_context_dates": ["2020-03-09", "2020-03-12", "2020-03-16", "2020-03-18"],
+  "halt_context_source": "https://www.nyse.com/article/assessing-nyse-model-performance",
+  "halt_context_policy": "date_context_only_not_proof_of_any_individual_missing_interval"
+}

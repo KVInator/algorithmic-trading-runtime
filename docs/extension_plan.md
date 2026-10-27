@@ -144,7 +144,7 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 | D1 | At v1, calendar conversion starts at 2020-12-31; reference calendars cover 2021 calibration and 2022-2023 development | M1 extends conversion to 2016-2025; all 20 provider calendar samples passed; old reference calendars retain their bounds |
 | D2 | At v1, calendar bar requests, session batches and corporate-action requests encode SPY | M1 adds explicit-symbol requests and a separate capability runner; legacy defaults/loaders remain; panel acquisition follows at M2 |
 | D3 | Free historical access is demonstrated, with four sampled missing minutes and 90 dividend records lacking payment/record dates; complete action history and quote windows remain unverified | M1 assessment below; M2 authenticates the full panel and action sources; M6 evaluates complete declared quote windows |
-| D4 | Full-panel review identifies insufficient common development coverage, three missing daily closes and unresolved action evidence; bridge registration remains open | M2: resolve input limitations and issuer evidence before freezing masks and vintage identities alongside the original inputs |
+| D4 | Parent complete-grid coverage is input-limited; a registered operational/feature amendment and exact-time recovery are implemented; actual recovery and action evidence remain open | M2: authenticate recovery responses and issuer evidence before freezing masks and vintage identities alongside the original inputs |
 | D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
 | D6 | Engines and aggregate runners enforce SPY, fixed histories and 2022-2023 gates | M3: parameterize authoritative engines and add the panel driver; keep the v1 reference path |
 | D7 | One-symbol cash, pending-fill limits, internal ownership transfers and journal growth need a shared-account contract | M4: one global ledger, deterministic netting/allocation and bounded durable handover |
@@ -162,7 +162,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | --- | --- | --- | --- |
 | M0 | Baseline and research inventory | Release identities, implementation map, exposure log, scope and decision register | Complete |
 | M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
-| M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Full acquisition review received; input-limited under registered coverage/daily-mark rules; issuer reconciliation and final registration pending |
+| M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Full panel reviewed; input amendment and exact-time recovery implemented; actual recovery receipts, issuer reconciliation and final registration pending |
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Not started |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
@@ -462,3 +462,58 @@ source resolutions or an eligibility amendment can be assessed.
 | Submitted review summary | `b30355d563e63d09fbb62e3f7aade96018f88d03a714bc5fbf12da5af21d9ca9` |
 | Submitted daily coverage CSV | `2b579f1dbf80edc8338343bd4039d799924b45732d879c19fb2ab52b3fe4fc94` |
 | Derived annual coverage CSV | `10378dcca03a994db6c31e8de0bf0fd9b474d93d8200ca1e59073ed6d717b031` |
+
+## Input-policy amendment and closing recovery
+
+[MULTI-ASSET-01-INPUT-01](../research/extension_input_policy.md) registers the
+distinction between execution observability and feature availability before
+expanded replay. Its numerical authority is build-pinned separately from the
+unchanged parent. The parent assessment remains failed under its own definition.
+The amendment retains the five-year/200-date/80% numerical requirements but
+applies them to common operational dates, with feature availability reported
+separately. This is a changed input definition, not a pass under the parent rule.
+
+The native policy derives 33 required execution-reference slots from the already
+registered schedules, delays and holding periods. It preserves exact momentum
+and reversion observations, complete continuation volume prefixes, prior-only
+history dates and explicit unavailable-feature behavior. Operational coverage
+cannot establish model availability or activation. The M3 replay must verify
+causal missing-input behavior and cannot use future outcome availability as a
+signal or silently turn missing outcomes into zero returns.
+
+An [eight-row metadata comparison](evidence/m2_policy_coverage.csv) was reproduced
+with the native policy and separate Python calendar/set arithmetic from the
+supplied readiness summary. Operational counts for 2017-2023 are respectively
+222, 229, 242, 249, 250, 247 and 243. All seven years meet the amended operational
+criterion; only four meet the parent complete-grid criterion. These counts are
+availability evidence, not scored or active dates, returns, power estimates or
+proof of an unrestricted continuous account. No reserved-price values were used.
+
+The closing-recovery collector requests only the registered three missing
+2019-08-12 minute windows, retains a separate immutable response vintage and
+binds it to the original acquisition and amendment. It accepts actual bars at
+the exact original clock. Empty successful responses remain unavailable and are
+not repeatedly requested. Finalization preserves original missing flags and
+records each recovered daily-close source separately. No actual provider recovery
+response is retained at this implementation checkpoint; the constructed success
+cases do not establish that the provider can supply the missing observations.
+
+Verification used GNU 13.3.0 Release with warnings as errors: all 16 applications
+built, 135 native panel checks passed, and the independent verifier checked seven
+constructed archives and four readiness reports. Five altered-count, slot,
+identity, endpoint and raw-receipt cases were rejected. Existing capability
+checks (46), five capability reference bundles, the offline demo (259 checks /
+24 cases), independent 350-artifact accounting/replay verification and publication
+hash/link checks passed. All nine pinned identities match. The final source
+inventory is `533f57c37a21cb8c335b4c69c342de6e23f626df09e04a9ef807385eabad0ad6`.
+
+| Record | SHA-256 |
+| --- | --- |
+| Input amendment | `af45ca4552ef58d5de5d9305b140c57eecd42ffc02453867b127d2f6886ad99e` |
+| Supplied detailed readiness summary | `5a2b674c446eb7624a66b71893bc2b4c3c18d0d1fdb2fe3100053d8a72cf6b98` |
+| Derived operational comparison table | `1ae006196b7074a1737c172fcf06850a4f292bee6bd433d936e96781ab3798b0` |
+
+M2 remains open. Actual closing evidence, QQQ cash/date resolutions, independent
+GLD/split coverage and the final vintage bridge are still required. No issuer
+coverage flag, amount tolerance or action-disagreement gate was relaxed by this
+input amendment. The original v1 results and acquisition snapshots are preserved.

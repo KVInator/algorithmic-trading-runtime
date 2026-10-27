@@ -74,6 +74,21 @@ Json registered_coverage(const Json& coverage, const ExtensionStudyContract& con
         {"year_gate_applies", origin == PanelOrigin::provider}, {"missing_daily_endpoints", endpoints},
         {"coverage_gates_passed", endpoints.empty() && (origin == PanelOrigin::synthetic || qualified >= minimum)}};
 }
+bool recovered_close(std::span<const MinuteBar> recovered, std::string_view symbol, std::string_view date) {
+    return std::any_of(recovered.begin(), recovered.end(), [&](const auto& bar) {
+        return bar.symbol() == symbol && format_utc_seconds(bar.start()).substr(0, 10) == date;
+    });
+}
+Json remaining_endpoints(const Json& original, std::span<const MinuteBar> recovered) {
+    Json remaining = Json::array();
+    for (const auto& item : original) {
+        if (!item.at("open_available").get<bool>() ||
+            (!item.at("close_available").get<bool>() && !recovered_close(recovered, item.at("symbol").get<std::string>(), item.at("date").get<std::string>()))) {
+            remaining.push_back(item);
+        }
+    }
+    return remaining;
+}
 } // namespace
 
 nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& dataset,
@@ -243,7 +258,7 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
 PanelInputFinalizer::PanelInputFinalizer(std::filesystem::path dataset, ExtensionStudyContract contract, PanelOrigin origin)
     : directory_{std::move(dataset)}, contract_{std::move(contract)}, origin_{origin} {}
 
-nlohmann::json PanelInputFinalizer::assess(const Json& audited_panel, const Json& action_assessment) const {
+nlohmann::json PanelInputFinalizer::assess(const Json& audited_panel, const Json& action_assessment, const PanelInputPolicy* input_policy) const {
     const auto acquisition_sha = sha256_file(directory_ / "acquisition_manifest.json");
     const std::string expected_origin = origin_ == PanelOrigin::provider ? "provider" : "synthetic";
     if (audited_panel.at("acquisition_manifest_sha256").get<std::string>() != acquisition_sha ||
@@ -289,11 +304,26 @@ nlohmann::json PanelInputFinalizer::assess(const Json& audited_panel, const Json
     result["strategy_scored"] = false;
     result["reserved_strategy_inputs_opened"] = false;
     result["vintage_bridge_verified"] = false;
+    if (input_policy != nullptr) {
+        auto assessment = panel.assess_input_policy(*input_policy, acquisition_sha);
+        assessment.erase("rows");
+        PanelClosingRecovery recovery{Json{{"present", false}}, {}};
+        if (std::filesystem::exists(directory_ / "resolutions/closing_marks/manifest.json")) {
+            recovery = panel.recover_closing_marks(*input_policy, audited_panel, {}, [](auto) {}, false);
+        }
+        result["closing_mark_recovery"] = recovery.summary;
+        result["remaining_daily_endpoints"] = remaining_endpoints(result.at("missing_daily_endpoints"), recovery.bars);
+        result["active_coverage_gates_passed"] = result.at("remaining_daily_endpoints").empty() &&
+            (origin_ == PanelOrigin::synthetic || assessment.at("operational_year_gate_passed").get<bool>());
+        result["active_input_gates_passed"] = result.at("active_coverage_gates_passed").get<bool>() && action_assessment.at("issuer_reconciled").get<bool>();
+        result["input_policy_assessment"] = std::move(assessment);
+    }
     return result;
 }
 
 nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Json& action_assessment,
-    const FrozenDevelopmentDataset& legacy, std::span<const SessionDownload> legacy_calibration, std::string_view legacy_risk_identity) const {
+    const FrozenDevelopmentDataset& legacy, std::span<const SessionDownload> legacy_calibration, std::string_view legacy_risk_identity,
+    const PanelInputPolicy* input_policy) const {
     const auto manifest_file = directory_ / "acquisition_manifest.json";
     const std::string expected_origin = origin_ == PanelOrigin::provider ? "provider" : "synthetic";
     if (audited_panel.at("acquisition_manifest_sha256").get<std::string>() != sha256_file(manifest_file) ||
@@ -301,7 +331,17 @@ nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Js
         audited_panel.at("protocol_sha256").get<std::string>() != contract_.identity() || !action_assessment.at("issuer_reconciled").get<bool>()) {
         throw std::invalid_argument("panel finalization requires authenticated prices and reconciled issuer actions");
     }
-    if (!registered_coverage(audited_panel.at("coverage"), contract_, origin_).at("coverage_gates_passed").get<bool>()) {
+    const auto parent_coverage = registered_coverage(audited_panel.at("coverage"), contract_, origin_);
+    const HistoricalPanelDataset panel{directory_, contract_, origin_};
+    Json amended = input_policy == nullptr ? Json(nullptr) : panel.assess_input_policy(*input_policy, sha256_file(manifest_file));
+    PanelClosingRecovery recovery{Json{{"present", false}}, {}};
+    if (input_policy != nullptr && std::filesystem::exists(directory_ / "resolutions/closing_marks/manifest.json")) {
+        recovery = panel.recover_closing_marks(*input_policy, audited_panel, {}, [](auto) {}, false);
+    }
+    const bool year_gate = input_policy == nullptr ? parent_coverage.at("coverage_gates_passed").get<bool>() :
+        remaining_endpoints(parent_coverage.at("missing_daily_endpoints"), recovery.bars).empty() &&
+            (origin_ == PanelOrigin::synthetic || amended.at("operational_year_gate_passed").get<bool>());
+    if (!year_gate) {
         throw std::invalid_argument("panel is input-limited: inspect the readiness report for daily-mark and development-year failures");
     }
     if (sha256_file(directory_ / "sealed/accounting_actions.json") != action_assessment.at("canonical_actions_sha256").get<std::string>()) {
@@ -316,7 +356,6 @@ nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Js
         legacy_risk_identity != risk_rules::acquisition_digest || legacy_calibration.size() != risk_price_input_plan().size())) {
         throw std::invalid_argument("vintage bridge requires the original registered SPY study snapshot");
     }
-    const HistoricalPanelDataset panel{directory_, contract_, origin_};
     Json bridge = Json::array(), masks = Json::array();
     const auto acquisition_sha = sha256_file(manifest_file);
     const auto compare = [&](const SessionDownload& old, const std::string& role) {
@@ -345,28 +384,49 @@ nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Js
     const auto history_length = contract_.document().at("history").at("primary_sessions").get<std::size_t>();
     const auto risk_closes = contract_.document().at("history").at("risk_and_overlay_returns").get<std::size_t>() + 1;
     const auto initialization_last = contract_.document().at("archive").at("initialization_last").get<std::string>();
+    std::size_t row_index = 0;
     for (const auto& row : audited_panel.at("coverage")) {
         const auto day = row.at("date").get<std::string>();
         const auto symbol = row.at("symbol").get<std::string>();
         auto& history = histories[symbol];
         auto mask = row;
-        const bool base = row.at("intraday_eligible").get<bool>();
+        const bool has_recovered_close = recovered_close(recovery.bars, symbol, day);
+        const bool daily_close_available = row.at("close_available").get<bool>() || has_recovered_close;
+        mask["daily_close_available"] = daily_close_available;
+        mask["daily_close_source"] = has_recovered_close ? "authenticated_closing_recovery" : "original_archive";
+        const bool original_complete = row.at("intraday_eligible").get<bool>();
+        bool base = original_complete, reversion_history_valid = original_complete;
+        bool momentum_feature_valid = true, continuation_feature_valid = true, reversion_feature_valid = true;
+        if (input_policy != nullptr) {
+            const auto& availability = amended.at("rows").at(row_index);
+            if (availability.at("symbol") != row.at("symbol") || availability.at("date") != row.at("date")) {
+                throw std::invalid_argument("input-policy rows do not match the authenticated coverage order");
+            }
+            mask["input_availability"] = availability;
+            base = availability.at("operational").get<bool>();
+            momentum_feature_valid = availability.at("momentum_features").get<bool>();
+            reversion_feature_valid = availability.at("reversion_features").get<bool>();
+            continuation_feature_valid = std::any_of(availability.at("continuation_prefixes").begin(), availability.at("continuation_prefixes").end(),
+                [](const auto& valid) { return valid.template get<bool>(); });
+            reversion_history_valid = availability.at("reversion_features").get<bool>() && !contract_.diagnostic_excluded(symbol, day);
+        }
+        ++row_index;
         const bool scored_period = day > initialization_last;
-        mask["momentum_inputs_ready"] = scored_period && base;
-        mask["continuation_inputs_ready"] = scored_period && base && history.eligible >= history_length;
-        mask["reversion_inputs_ready"] = scored_period && base && history.regular_slots.size() == history_length;
+        mask["momentum_inputs_ready"] = scored_period && base && momentum_feature_valid;
+        mask["continuation_inputs_ready"] = scored_period && base && continuation_feature_valid && history.eligible >= history_length;
+        mask["reversion_inputs_ready"] = scored_period && base && reversion_feature_valid && history.regular_slots.size() == history_length;
         mask["reversion_history_complete"] = history.regular_slots.size() == history_length &&
             std::all_of(history.regular_slots.begin(), history.regular_slots.end(), [](bool valid) { return valid; });
         mask["daily_risk_inputs_ready"] = scored_period && history.consecutive_closes >= risk_closes &&
-            row.at("open_available").get<bool>() && row.at("close_available").get<bool>();
+            row.at("open_available").get<bool>() && daily_close_available;
         for (const auto* key : {"momentum_inputs_ready", "continuation_inputs_ready", "reversion_inputs_ready", "daily_risk_inputs_ready"}) {
             if (mask.at(key).get<bool>() && !first_scored[symbol].contains(key)) { first_scored[symbol][key] = day; }
         }
         masks.push_back(std::move(mask));
-        history.eligible += base ? 1U : 0U;
-        history.consecutive_closes = row.at("close_available").get<bool>() ? history.consecutive_closes + 1 : 0;
+        history.eligible += original_complete ? 1U : 0U;
+        history.consecutive_closes = daily_close_available ? history.consecutive_closes + 1 : 0;
         if (row.at("regular").get<bool>()) {
-            history.regular_slots.push_back(base);
+            history.regular_slots.push_back(reversion_history_valid);
             if (history.regular_slots.size() > history_length) { history.regular_slots.pop_front(); }
         }
     }
@@ -374,6 +434,9 @@ nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Js
         {"legacy_risk_acquisition_sha256", std::string{legacy_risk_identity}}, {"new_acquisition_sha256", acquisition_sha}, {"rows", bridge}, {"strategy_returns_compared", false}});
     publish(directory_ / "eligibility_masks.json", {{"schema_version", 1}, {"protocol_sha256", contract_.identity()}, {"rows", masks}});
     const Json result{{"schema_version", 1}, {"kind", "extension_study_manifest"}, {"protocol_sha256", contract_.identity()},
+        {"input_policy_sha256", input_policy == nullptr ? Json(nullptr) : Json(input_policy->identity())},
+        {"parent_coverage_assessment", parent_coverage},
+        {"closing_recovery_manifest_sha256", recovery.summary.contains("manifest_sha256") ? recovery.summary.at("manifest_sha256") : Json(nullptr)},
         {"evidence_origin", expected_origin},
         {"acquisition_manifest_sha256", acquisition_sha}, {"canonical_actions_sha256", action_assessment.at("canonical_actions_sha256")},
         {"issuer_reference_sha256", action_assessment.at("issuer_reference_sha256")},

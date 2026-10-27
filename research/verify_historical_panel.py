@@ -40,6 +40,7 @@ class PanelVerifier:
         self.directory = directory.resolve()
         self.response_files: set[str] = set()
         self.development_gap_intervals: list[dict] = []
+        self.missing_grids: dict[tuple[str, str], set[int]] = {}
 
     @staticmethod
     def digest(path: Path) -> str:
@@ -186,6 +187,7 @@ class PanelVerifier:
         require(token is None, "Panel pagination unfinished")
         observed = set(observations)
         missing = [at for at in grid if at not in observed]
+        self.missing_grids[symbol, day["date"]] = {(at - opening) // (60 * 10**9) for at in missing}
         require([timestamp_ns(t) for t in record["missing_minutes_utc"]] == missing, "Panel missing-minute mask mismatch")
         regular = day["close"] == "16:00"
         if day["date"] < "2024":
@@ -258,6 +260,94 @@ class PanelVerifier:
         require(record.get("unsupported_types", []) == unsupported and record["issuer_reconciled"] is False, "Panel unsupported action policy mismatch")
         return {k: v for k, v in record.items() if k != "pages"}
 
+    def verify_input_policy(self, summary: dict, actual: dict) -> int:
+        policy_file = Path(__file__).resolve().parent / "extension_input_policy.json"
+        policy = self.load(policy_file)
+        require(actual["policy_sha256"] == self.digest(policy_file) and actual["parent_protocol_sha256"] == summary["protocol_sha256"], "Input amendment identity mismatch")
+        require(policy["parent_protocol_sha256"] == summary["protocol_sha256"], "Input amendment parent differs")
+        decisions = (set(policy["continuation"]["decision_minutes"]) | set(policy["momentum"]["exit_decision_minutes"]) |
+                     {policy["momentum"]["decision_minute"], policy["continuation"]["liquidation_minute"], policy["reversion"]["decision_minute"]} |
+                     {policy["reversion"]["decision_minute"] + h for h in policy["reversion"]["holding_minutes"]})
+        required = {policy["mandatory_open_minute"]} | {t + d for t in decisions for d in policy["execution_delays_minutes"]}
+        require(actual["execution_minute_slots"] == sorted(required), "Input amendment execution slots differ from registered decisions")
+        by_date, features = {}, {}
+        for row in summary["coverage"]:
+            key = row["symbol"], row["date"]
+            missing = self.missing_grids[key]
+            diagnostic = key == ("SPY", "2023-01-03")
+            operational = row["regular"] and not diagnostic and not required.intersection(missing)
+            by_date.setdefault(row["date"], []).append((row, operational))
+            count = features.setdefault((row["symbol"], row["date"][:4]), [0, 0, 0, 0])
+            if row["regular"] and not diagnostic:
+                anchor = policy["reversion"]["anchor_minutes"]
+                samples = set(range(anchor - 1, policy["reversion"]["decision_minute"], policy["reversion"]["primary_observation_step_minutes"]))
+                count[0] += 1
+                count[1] += not missing.intersection(policy["momentum"]["feature_minute_slots"])
+                count[2] += not missing.intersection(set(range(anchor)) | samples)
+                count[3] += sum(not missing.intersection(range(t)) for t in policy["continuation"]["decision_minutes"])
+        require(len(actual["feature_coverage"]) == len(features), "Input amendment feature count differs")
+        for row in actual["feature_coverage"]:
+            expected = features[row["symbol"], row["year"]]
+            require([row[k] for k in ["regular_non_diagnostic_dates", "momentum_feature_dates", "reversion_feature_dates", "continuation_available_prefixes"]] == expected, "Input amendment feature availability differs")
+            require(row["continuation_possible_prefixes"] == expected[0] * 12, "Input amendment prefix denominator differs")
+        contract = self.load(Path(__file__).resolve().parent / "extension_protocol.json")
+        rules = contract["eligibility"]
+        years = sorted({d[:4] for d in by_date})
+        require(len(actual["year_coverage"]) == len(years), "Input amendment year count differs")
+        qualified = 0
+        for row, year in zip(actual["year_coverage"], years):
+            dates = [v for d, v in by_date.items() if d.startswith(year)]
+            regular = sum(v[0][0]["regular"] for v in dates)
+            common = sum(all(flag for _, flag in v) for v in dates)
+            strict = sum(v[0][0]["common_intraday_eligible"] for v in dates)
+            fraction = Decimal(common) / regular if regular else Decimal(0)
+            qualifies = "2016" < year < "2024" and common >= rules["minimum_common_development_dates_per_qualified_year"] and fraction >= rules["minimum_common_development_calendar_coverage"]
+            qualified += qualifies
+            require([row[k] for k in ["year", "regular_dates", "common_operational_dates", "parent_complete_grid_dates", "qualifies_development_year"]] == [year, regular, common, strict, qualifies], "Input amendment annual coverage differs")
+            require(abs(row["operational_fraction"] - fraction) < Decimal("1e-15"), "Input amendment annual fraction differs")
+            require(row["known_halt_context_dates"] == sum(v[0][0]["regular"] and d in policy["halt_context_dates"] for d, v in by_date.items() if d.startswith(year)), "Input amendment halt context differs")
+        require(actual["qualified_operational_development_years"] == qualified and actual["minimum_development_years"] == rules["minimum_scored_years"], "Input amendment adequacy count differs")
+        require(actual["operational_year_gate_passed"] == (qualified >= rules["minimum_scored_years"]), "Input amendment adequacy decision differs")
+        require(actual["research_inputs_ready"] is False and actual["model_fit_availability_evaluated"] is False and actual["replay_adoption_pending"] is True, "Input amendment makes a premature replay claim")
+        return qualified
+
+    def verify_closing_recovery(self, summary: dict, actual: dict) -> set[tuple[str, str]]:
+        if actual.get("present") is False:
+            return set()
+        root = self.directory / "resolutions/closing_marks"
+        verifier = PanelVerifier(root)
+        manifest = self.load(root / "manifest.json")
+        policy = self.load(Path(__file__).resolve().parent / "extension_input_policy.json")
+        require(actual["manifest_sha256"] == self.digest(root / "manifest.json"), "Closing recovery manifest hash differs")
+        require(manifest["acquisition_manifest_sha256"] == summary["acquisition_manifest_sha256"] and manifest["protocol_sha256"] == summary["protocol_sha256"] and manifest["evidence_origin"] == summary["evidence_origin"], "Closing recovery provenance differs")
+        require(manifest["input_policy_sha256"] == self.digest(Path(__file__).resolve().parent / "extension_input_policy.json"), "Closing recovery policy differs")
+        missing = {(r["symbol"], r["date"]) for r in summary["coverage"] if not r["close_available"]}
+        planned = {(r["symbol"], r["date"]) for r in policy["closing_recovery_plan"]} & missing
+        require({(r["symbol"], r["date"]) for r in manifest["records"]} == planned and len(manifest["records"]) == len(planned), "Closing recovery contains unexpected endpoints")
+        recovered = set()
+        from urllib.parse import quote
+        for row in manifest["records"]:
+            require(row["date"] < "2024-01-01", "Reserved closing recovery is not authorized")
+            original = next(r for r in summary["coverage"] if (r["symbol"], r["date"]) == (row["symbol"], row["date"]))
+            close = utc_clock(date.fromisoformat(row["date"]), 16 if original["regular"] else 13, 0)
+            opening = close - 60 * 10**9
+            require(timestamp_ns(row["start_utc"]) == opening and timestamp_ns(row["end_exclusive_utc"]) == close, "Closing recovery shifted the required clock")
+            path = (f"/v2/stocks/bars?symbols={row['symbol']}&timeframe=1Min&start={quote(row['start_utc'], safe='')}"
+                    f"&end={quote(row['start_utc'], safe='')}&limit=100&feed=sip&adjustment=raw&sort=asc&currency=USD&asof=-")
+            require(len(row["pages"]) == 1, "Closing recovery must use one bounded page")
+            body = verifier.response(row["pages"][0], path, "data.alpaca.markets", False)
+            require(body["next_page_token"] is None and set(body["bars"]) <= {row["symbol"]}, "Closing recovery response is paginated or has another symbol")
+            bars = body["bars"].get(row["symbol"], [])
+            require(len(bars) <= 1 and row["recovered"] == bool(bars), "Closing recovery invented a mark")
+            for bar in bars:
+                require(timestamp_ns(bar["t"]) == opening, "Closing recovery contains a different minute")
+                o, h, low, c = (numeric(bar, key) for key in ["o", "h", "l", "c"])
+                numeric(bar, "v")
+                require(0 < low <= o <= h and low <= c <= h, "Closing recovery has invalid OHLC")
+                recovered.add((row["symbol"], row["date"]))
+        require(actual["required"] == len(planned) and actual["recovered"] == len(recovered) and actual["complete"] == (planned == recovered), "Closing recovery counts differ")
+        return recovered
+
     def verify_readiness(self, summary: dict, directory: Path) -> Path:
         assessment = self.load(directory / "summary.json")
         require(assessment["kind"] == "historical_panel_readiness" and assessment["schema_version"] == 1, "Readiness schema mismatch")
@@ -295,6 +385,13 @@ class PanelVerifier:
         for comparison in actions.get("development_cash_discrepancies", []):
             require(comparison["symbol_ex_date"].split("/")[1] < "2024-01-01", "Reserved cash detail leaked into readiness review")
         require(assessment["input_gates_passed"] == (passes and actions["issuer_reconciled"]), "Readiness combined gate mismatch")
+        if "input_policy_assessment" in assessment:
+            qualified = self.verify_input_policy(summary, assessment["input_policy_assessment"])
+            recovered = self.verify_closing_recovery(summary, assessment["closing_mark_recovery"])
+            remaining = [r for r in endpoints if not r["open_available"] or (r["symbol"], r["date"]) not in recovered]
+            require(assessment["remaining_daily_endpoints"] == remaining, "Remaining daily endpoint mask differs")
+            active = not remaining and (not applies or qualified >= rules["minimum_scored_years"])
+            require(assessment["active_coverage_gates_passed"] == active and assessment["active_input_gates_passed"] == (active and actions["issuer_reconciled"]), "Active input gates differ")
         # Cash reconciliation is checked by the native contracts; this oracle
         # independently reproduces coverage/gaps and verifies the export boundary.
         report = directory / "report.html"
@@ -352,7 +449,7 @@ def main():
     directory = args.directory.resolve()
     if (directory / "checks.json").exists():
         checks = PanelVerifier.load(directory / "checks.json")
-        for child in ("complete", "interrupted", "outage", "history", *(["diagnosis"] if "readiness_reports" in checks else [])):
+        for child in ("complete", "interrupted", "outage", "history", *(["diagnosis"] if "readiness_reports" in checks else []), *checks.get("additional_archives", [])):
             verifier = PanelVerifier(directory / child)
             result = verifier.verify()
             require(result["evidence_origin"] == "synthetic", "Constructed panel origin mismatch")
