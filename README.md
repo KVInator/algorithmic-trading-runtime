@@ -27,8 +27,12 @@ The full-panel independent review reports 50,350 retained HTTP attempts and
 qualifies four development years against a requirement of five. A separately
 registered [input amendment](research/extension_input_policy.md) distinguishes
 execution observability from feature availability and supports exact-time closing
-recovery in a separate vintage. Issuer reconciliation, actual closing evidence
-and final vintage registration remain open. The
+recovery in a separate vintage. The provider returned no bars for the three
+missing closing minutes. A pinned source-resolution policy keeps those marks
+unavailable, resets daily history across gaps and uses issuer-authoritative cash
+records with free secondary split cross-checks. The updated finalizer can register
+the usable panel after local source preparation and the original-snapshot bridge.
+The Windows registration result remains to be confirmed. The
 [coverage assessment](docs/extension_plan.md#full-panel-acquisition-review) retains
 the original evidence under the unchanged parent
 [dataset/study contract](research/extension_protocol.md). Expanded historical

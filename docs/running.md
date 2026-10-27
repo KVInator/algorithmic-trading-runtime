@@ -239,24 +239,29 @@ coverage CSV. **Share that ZIP; keep raw/sealed inputs local.** The same verifie
 accepts the printed `scratch/runs/panel_check_<suffix>` directory for constructed
 evidence. Use actual suffixes.
 
-Free issuer cash-reference preparation is a separate local command:
+Prepare the resolved corporate-action reference from free sources:
 
 ```sh
 py -3 -B research/prepare_panel_actions.py
 ```
 
-It caches primary-source files with retrieval/hash provenance and prepares
-`issuer/reference.json` inside the new dataset. It does not infer split
-completeness or GLD's history from a dividend table. The initial reference is
-therefore intentionally incomplete, with its unresolved declarations visible.
-Do not mark coverage complete without supporting whole-horizon source evidence.
+It reuses existing issuer receipts, authenticates the GLD issuer income statement,
+and obtains five bounded 2016-2025 secondary event responses. It writes
+`issuer/reference_resolved.json`; the original `issuer/reference.json` and raw
+price archive remain intact. Each response has a retrieval timestamp and SHA-256.
+Issuer cash amounts and declared dates determine one event per symbol/ex-date.
+Provider conflicts are retained and duplicate announcements never double income.
+The split check requires complete 120-month coverage and zero returned split
+events from the secondary source, in agreement with the provider. This is a
+cross-provider coverage assumption, not a claim of complete issuer split records.
+No subscriptions, broker connections or orders are involved.
 
 After source preparation, select `$(OutDir)panel_finalize.exe` and run with
-**Ctrl+F5**. It uses saved responses without network requests. Before attempting
-registration it writes `scratch/runs/panel_readiness_<suffix>/summary.json` and
+**Ctrl+F5**. It uses saved responses without network requests. It writes `scratch/runs/panel_readiness_<suffix>/summary.json` and
 `report.html`, even when an issuer reference is absent or incomplete. These
 contain all coverage/daily-mark gates, contiguous pre-2024 missing intervals,
-all incomplete issuer coverage declarations and pre-2024 cash discrepancies.
+source coverage declarations and pre-2024 cash discrepancies. A successful run
+also records the study-manifest and vintage-bridge identities in the review.
 They contain no bar prices or detailed reserved-year gaps. Missing-interval
 causes remain undetermined; no bars or payments are invented.
 The provider's [bar-construction rules](https://docs.alpaca.markets/us/docs/market-data-faq)
@@ -272,9 +277,10 @@ py -3 -B research/verify_historical_panel.py scratch/datasets/extension_panel_20
 Use the actual printed readiness suffix. **Share the readiness directory's
 `review.zip`; raw responses and issuer source files stay local.** This ZIP has
 two files, `summary.json` and `report.html`. The independent oracle reproduces
-annual coverage, endpoint gates and exact missing intervals. It does not claim
-independent issuer reconciliation; native contracts check the source-comparison
-logic, and unresolved economic records still require source review.
+annual coverage, endpoint gates and exact missing intervals; it authenticates
+source receipts, secondary event coverage, canonical cash-event uniqueness and
+registration identities. It also checks that daily risk history never crosses
+an unavailable closing mark.
 
 `Status: input_limited` and exit 2 denote expected unresolved prerequisites.
 They are not a completed study registration. Exit 1 indicates invalid evidence
@@ -288,21 +294,22 @@ scheduled execution observability from feature completeness. Readiness reports
 retain the parent complete-grid failure and show the amended assessment separately.
 Feature availability does not imply an active trade or an admissible fit.
 
-For an already completed panel, run `panel_acquire.exe` once after this update.
-It authenticates cached pages, then makes at most three new ordinary requests:
-the registered SPY/IWM/GLD closing-minute windows on 2019-08-12. Bounded transient
-retries follow the existing policy. Receipts and a separate immutable manifest
-are written under `resolutions/closing_marks/`; no original response is replaced.
-An empty successful response remains an unavailable mark and is not re-probed.
-This run does not repeat the full network acquisition.
+The completed provider recovery returned zero bars for SPY/IWM/GLD on
+2019-08-12. **Do not rerun acquisition to search for these marks.** Their three
+existing immutable recovery receipts are sufficient. The separately pinned
+[source resolution](../research/extension_source_resolution.json) permits only
+these specific unavailable closes after authenticated recovery attempts. Missing
+opens or any other missing close still block registration. Daily outcomes remain
+NA and the consecutive 253-close history resets; there is no interpolation,
+forward-fill, price substitution or return across a gap. The original parent
+assessment and all missing flags are retained.
 
-Then run `panel_finalize.exe` and verify its new printed readiness directory
-with the existing `--readiness` command above. The verifier also authenticates
-the recovery pages and independently reproduces amended availability counts.
-Only its readiness `review.zip` is required for source review. The existing issuer
-reference is reused; source preparation need not be repeated. Action discrepancies
-and missing issuer coverage still block registration independently of operational
-coverage or recovered prices.
+After pulling and rebuilding, run the preparation command above, then
+`panel_finalize.exe`, then verify its printed readiness directory with
+`--readiness`. Expected success is `Status: registered_inputs_ready`.
+Seven operational development years do not imply seven active strategy years.
+The 2024 validation and 2025 final-evaluation prices and strategy outcomes remain
+sealed until their registered milestones.
 
 The controlled precision design can be reproduced independently:
 

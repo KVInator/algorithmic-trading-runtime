@@ -41,4 +41,19 @@ private:
     ExtensionStudyContract parent_;
     std::vector<std::size_t> execution_slots_;
 };
+// Registered source precedence and bounded missing-mark treatment, separate from
+// the immutable availability amendment and original acquisition.
+class PanelSourceResolution {
+public:
+    [[nodiscard]] static PanelSourceResolution load(const std::filesystem::path& file,
+        const PanelInputPolicy& parent);
+    [[nodiscard]] const std::string& identity() const noexcept;
+    [[nodiscard]] const nlohmann::json& document() const noexcept;
+    [[nodiscard]] bool permits_missing_closes(const nlohmann::json& remaining,
+        const nlohmann::json& recovery) const;
+private:
+    PanelSourceResolution(nlohmann::json settings, std::string identity);
+    nlohmann::json settings_;
+    std::string identity_;
+};
 } // namespace trading

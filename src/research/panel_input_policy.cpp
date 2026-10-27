@@ -92,4 +92,36 @@ PanelInputAvailability PanelInputPolicy::evaluate(const CalendarSession& session
     }
     return result;
 }
+PanelSourceResolution::PanelSourceResolution(nlohmann::json settings, std::string identity)
+    : settings_(std::move(settings)), identity_{std::move(identity)} {}
+
+PanelSourceResolution PanelSourceResolution::load(const std::filesystem::path& file, const PanelInputPolicy& parent) {
+    const auto text = read_text_file(file, 64U * 1024U);
+    if (sha256(text) != TRADING_EXTENSION_SOURCE_RESOLUTION_SHA256) {
+        throw std::invalid_argument("source resolution differs from its registered build identity");
+    }
+    auto settings = parse_json_document(text);
+    if (settings.at("schema_version").get<int>() != 1 || settings.at("parent_input_policy_sha256") != parent.identity()) {
+        throw std::invalid_argument("source resolution parent identity mismatch");
+    }
+    return {std::move(settings), sha256(text)};
+}
+const std::string& PanelSourceResolution::identity() const noexcept { return identity_; }
+const nlohmann::json& PanelSourceResolution::document() const noexcept { return settings_; }
+bool PanelSourceResolution::permits_missing_closes(const nlohmann::json& remaining, const nlohmann::json& recovery) const {
+    if (remaining.empty()) { return true; }
+    const auto& allowed = settings_.at("unavailable_close_allowlist");
+    if (!recovery.contains("manifest_sha256") || recovery.at("required").get<std::size_t>() != allowed.size() || remaining.size() > allowed.size()) {
+        return false;
+    }
+    std::set<std::string> seen;
+    for (const auto& row : remaining) {
+        const auto key = row.at("symbol").get<std::string>() + '/' + row.at("date").get<std::string>();
+        if (!row.at("open_available").get<bool>() || row.at("close_available").get<bool>() || !seen.insert(key).second ||
+            std::none_of(allowed.begin(), allowed.end(), [&](const auto& item) {
+                return item.at("symbol") == row.at("symbol") && item.at("date") == row.at("date");
+            })) { return false; }
+    }
+    return true;
+}
 } // namespace trading

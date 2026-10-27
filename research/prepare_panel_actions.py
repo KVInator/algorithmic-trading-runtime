@@ -1,9 +1,10 @@
-"""Prepare cash-distribution evidence from free issuer sources; split coverage stays unverified."""
+"""Prepare immutable issuer cash records and free full-horizon corporate-action cross-checks."""
 
 from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+from urllib.parse import quote
 from decimal import Decimal
 from html.parser import HTMLParser
 import hashlib
@@ -27,18 +28,20 @@ class IssuerSources:
 
     def collect(self, symbol: str) -> dict:
         suffix = ".xlsx" if symbol == "SPY" else ".json" if symbol == "QQQ" else ".html"
-        relative = f"sealed_sources/{symbol}{suffix}"
+        return self.collect_resource(f"sealed_sources/{symbol}{suffix}", self.urls[symbol])
+
+    def collect_resource(self, relative: str, url: str) -> dict:
         path = self.directory / relative
         receipt = path.with_suffix(path.suffix + ".provenance.json")
         if not path.exists():
             if receipt.exists():
-                raise ValueError("Issuer provenance exists without its source file")
-            request = urllib.request.Request(self.urls[symbol], headers={"User-Agent": "AlgorithmicTradingRuntime/1.0"})
+                raise ValueError("Source provenance exists without its source file")
+            request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 AlgorithmicTradingRuntime/1.0"})
             with urllib.request.urlopen(request, timeout=45) as stream:
                 data = stream.read(20 * 1024 * 1024 + 1)
             if len(data) > 20 * 1024 * 1024:
-                raise ValueError("Issuer source exceeds its 20-MiB bound")
-            record = {"file": relative, "url": self.urls[symbol], "sha256": hashlib.sha256(data).hexdigest(),
+                raise ValueError("Action source exceeds its 20-MiB bound")
+            record = {"file": relative, "url": url, "sha256": hashlib.sha256(data).hexdigest(),
                       "retrieved_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
             path.parent.mkdir(parents=True, exist_ok=True)
             with path.open("xb") as stream:
@@ -46,8 +49,8 @@ class IssuerSources:
             with receipt.open("x", encoding="utf-8", newline="\n") as stream:
                 stream.write(json.dumps(record, indent=2) + "\n")
         record = json.loads(receipt.read_text())
-        if record["file"] != relative or record["url"] != self.urls[symbol] or hashlib.sha256(path.read_bytes()).hexdigest() != record["sha256"]:
-            raise ValueError("Issuer source provenance differs")
+        if record["file"] != relative or record["url"] != url or hashlib.sha256(path.read_bytes()).hexdigest() != record["sha256"]:
+            raise ValueError("Action source provenance differs")
         return record
 
 
@@ -85,6 +88,9 @@ class PanelIssuerPreparation:
 
     def run(self):
         sources = IssuerSources(self.directory)
+        policy_file = Path(__file__).resolve().parent / "extension_source_resolution.json"
+        policy = json.loads(policy_file.read_bytes())
+        policy_sha = hashlib.sha256(policy_file.read_bytes()).hexdigest()
         records, distributions, coverage = [], [], []
         for symbol in ("SPY", "QQQ", "IWM", "TLT"):
             print(f"{symbol}: authenticating issuer source; existing cached files are retained.", flush=True)
@@ -130,20 +136,53 @@ class PanelIssuerPreparation:
             distributions.extend(bounded)
             coverage.append({"symbol": symbol, "cash_complete": min(dates) < "2016-01-01" and max(dates) > "2025-12-31",
                              "splits_complete": False, "source_files": [record["file"]], "coverage_locator": "full returned issuer cash-distribution table; does not establish split history"})
-            print(f"{symbol}: retained {len(bounded)} issuer cash records; split coverage unverified.")
-        coverage.append({"symbol": "GLD", "cash_complete": False, "splits_complete": False, "source_files": [], "coverage_locator": "independent full-horizon evidence still required"})
-        result = {"schema_version": 1, "evidence_origin": "provider", "first_ex_date": "2016-01-01", "last_ex_date": "2025-12-31",
-                  "sources": records, "coverage": coverage, "cash_distributions": sorted(distributions, key=lambda r: (r["symbol"], r["ex_date"])), "splits": []}
-        path = self.directory / "reference.json"
+            print(f"{symbol}: retained {len(bounded)} issuer cash records.")
+        gld = sources.collect_resource("sealed_sources/GLD.html", policy["gld_issuer_url"])
+        if policy["gld_issuer_statement"] not in (self.directory / gld["file"]).read_text(encoding="utf-8"):
+            raise ValueError("GLD issuer income statement is unavailable")
+        records.append(gld)
+        coverage.append({"symbol": "GLD", "cash_complete": True, "splits_complete": False,
+                         "source_files": [gld["file"]], "coverage_locator": "issuer income statement plus full-horizon event cross-check"})
+        for row in coverage:
+            symbol = row["symbol"]
+            print(f"{symbol}: authenticating 2016-2025 secondary event coverage.", flush=True)
+            record = sources.collect_resource(f"sealed_sources/{symbol}_events.json",
+                                              policy["secondary_event_url"].replace("{symbol}", quote(symbol, safe="")))
+            record.update(kind="secondary_events", symbol=symbol)
+            records.append(record)
+            body = json.loads((self.directory / record["file"]).read_bytes())
+            chart = body["chart"]
+            if chart["error"] is not None or len(chart["result"]) != 1:
+                raise ValueError("Secondary event response is incomplete")
+            result = chart["result"][0]
+            expected_months = {f"{year}-{month:02}" for year in range(2016, 2026) for month in range(1, 13)}
+            months = [datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m") for t in result["timestamp"]]
+            if (result["meta"]["symbol"] != symbol or result["meta"]["currency"] != "USD"
+                    or result["meta"]["dataGranularity"] != "1mo"
+                    or len(months) != policy["secondary_months"] or set(months) != expected_months):
+                raise ValueError("Secondary event symbol, currency or horizon mismatch")
+            events = result.get("events", {})
+            if events.get("splits"):
+                raise ValueError(f"{symbol}: nonempty secondary split history requires reconciliation")
+            if symbol == "GLD" and (events.get("dividends") or events.get("capitalGains")):
+                raise ValueError("GLD secondary history contradicts zero cash distributions")
+            row["splits_complete"] = True
+            row["source_files"].append(record["file"])
+            row["coverage_locator"] += "; 120 monthly coverage timestamps and zero returned split events"
+        result = {"schema_version": 2, "evidence_origin": "provider", "first_ex_date": "2016-01-01", "last_ex_date": "2025-12-31",
+                  "source_resolution_sha256": policy_sha, "sources": records, "coverage": coverage,
+                  "cash_distributions": sorted(distributions, key=lambda r: (r["symbol"], r["ex_date"])), "splits": []}
+        # The original incomplete reference and every existing raw receipt remain intact.
+        path = self.directory / "reference_resolved.json"
         text = json.dumps(result, indent=2) + "\n"
         if path.exists():
             if path.read_text() != text:
-                raise ValueError("Existing issuer reference differs; reviewed evidence is never overwritten")
+                raise ValueError("Existing resolved reference differs; reviewed evidence is never overwritten")
         else:
             with path.open("x", encoding="utf-8", newline="\n") as stream:
                 stream.write(text)
-        print("Cash reference prepared. GLD and independent split coverage remain unresolved; finalization stays blocked.")
-        print("Keep issuer sources and the reference local; share only coverage/reconciliation summaries.")
+        print("Action reference ready: issuer cash authority, five full-horizon split cross-checks and GLD cash coverage.")
+        print("Next: run panel_finalize. Existing prices and the original issuer reference are retained.")
 
 
 def main():

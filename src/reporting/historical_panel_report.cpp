@@ -14,7 +14,7 @@ std::filesystem::path HistoricalPanelReport::write_readiness(const nlohmann::jso
         << "<title>Panel input readiness</title><style>body{font:16px/1.5 system-ui;margin:32px;color:#16334a}"
         << "main{max-width:1100px;margin:auto}table{border-collapse:collapse;width:100%}th,td{padding:9px;text-align:left;border-bottom:1px solid #ccd5dc}"
         << "pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f0f4f7;padding:18px}</style><main><h1>Panel input readiness</h1>"
-        << "<p>The registered protocol is unchanged. No strategy was fitted or scored. Detailed missing intervals and cash discrepancies "
+        << "<p>The parent protocol and archive are retained; active amendments are identified below. No strategy was fitted or scored. Detailed missing intervals and cash discrepancies "
         << "cover development inputs only. Missing bars have undetermined cause; none are imputed.</p>"
         << "<p>Qualified development years: " << assessment.at("qualified_development_years") << " / required "
         << assessment.at("minimum_development_years") << ". Missing daily endpoints: " << assessment.at("missing_daily_endpoints").size()
@@ -30,6 +30,14 @@ std::filesystem::path HistoricalPanelReport::write_readiness(const nlohmann::jso
             << assessment.at("input_policy_assessment").at("qualified_operational_development_years")
             << ". Daily endpoints still unavailable after recovery: " << assessment.at("remaining_daily_endpoints").size()
             << ". Operational coverage and feature availability have different meanings; neither establishes strategy activation or a completed study.</p>";
+    }
+    if (assessment.contains("source_resolution_sha256")) {
+        html << "<h2>Source resolution</h2><p>Issuer cash events are authoritative; provider conflicts remain in the audit. "
+            << "Split coverage uses a retained secondary event-feed cross-check. The three registered unavailable closing marks remain NA; "
+            << "daily close history resets rather than bridging the gap. No prices or volume are imputed.</p>";
+    }
+    if (assessment.contains("registration")) {
+        html << "<p><strong>Study inputs registered and original-snapshot bridge verified.</strong> Model fitting and expanded scoring have not started.</p>";
     }
     html << "<h2>Retained evidence</h2><p>Daily endpoint flags contain no prices. Cash amounts, where present, "
         << "describe pre-2024 distribution discrepancies, not trading results. Vintage comparison is still a separate gate.</p><pre>"

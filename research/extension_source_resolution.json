@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "amendment_id": "MULTI-ASSET-01-SOURCE-01",
+  "registered_date": "2026-10-28",
+  "parent_input_policy_sha256": "af45ca4552ef58d5de5d9305b140c57eecd42ffc02453867b127d2f6886ad99e",
+  "cash_authority": "issuer_one_event_per_symbol_ex_date",
+  "provider_cash_conflicts": "retain_all_records_and_disagreements_do_not_sum_duplicate_announcements",
+  "provider_only_cash": "block",
+  "split_authority": "full_horizon_secondary_event_feed_must_agree_with_provider",
+  "secondary_event_url": "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1=1451606400&period2=1767225600&interval=1mo&events=div%2Csplits",
+  "secondary_period1": 1451606400,
+  "secondary_period2": 1767225600,
+  "secondary_months": 120,
+  "gld_issuer_url": "https://www.ssga.com/us/en/individual/etfs/spdr-gold-shares-gld",
+  "gld_issuer_statement": "GLD does not generate any income",
+  "gld_cash_absence": "issuer_income_statement_and_zero_full_horizon_secondary_cash_events_and_zero_provider_cash_events",
+  "payable_date_convention": "retain_issuer_declared_date_cash_available_first_exchange_session_on_or_after",
+  "unavailable_close_allowlist": [
+    {
+      "symbol": "SPY",
+      "date": "2019-08-12"
+    },
+    {
+      "symbol": "IWM",
+      "date": "2019-08-12"
+    },
+    {
+      "symbol": "GLD",
+      "date": "2019-08-12"
+    }
+  ],
+  "unavailable_close_condition": "authenticated_exact_time_recovery_attempt_required_no_open_gaps_no_other_close_gaps",
+  "unavailable_close_handling": "keep_NA_reset_consecutive_daily_close_history_exclude_unobservable_daily_outcomes_do_not_interpolate_or_bridge_returns",
+  "reserved_policy": "automated_action_reconciliation_and_availability_only_no_price_or_strategy_review"
+}

@@ -38,8 +38,10 @@ registered risk accounting audit.
 
 `verify_historical_panel.py` authenticates the extension archive and produces
 price-free coverage evidence. `prepare_panel_actions.py` reuses the issuer
-workbook reader and extracts the Invesco/iShares cash tables; it leaves
-unverified GLD/split coverage incomplete. `extension_precision.py` supplies a
+workbook reader and extracts the Invesco/iShares cash tables. It retains a separate
+resolved reference using issuer cash authority, GLD issuer evidence and full-horizon
+secondary event responses. The source-resolution policy and original failure
+assessment remain separately identified. `extension_precision.py` supplies a
 controlled analytical/Monte Carlo planning reference, separate from market
 outcomes and final block-bootstrap validation.
 

@@ -348,6 +348,84 @@ class PanelVerifier:
         require(actual["required"] == len(planned) and actual["recovered"] == len(recovered) and actual["complete"] == (planned == recovered), "Closing recovery counts differ")
         return recovered
 
+    def verify_action_resolution(self, assessment: dict, policy: dict) -> None:
+        actions = assessment["actions"]
+        if not actions.get("issuer_reconciled"):
+            return
+        reference = (self.directory / "issuer/reference_resolved.json" if assessment["evidence_origin"] == "provider"
+                     else self.directory.parent / "issuer/resolved.json")
+        require(self.digest(reference) == actions["issuer_reference_sha256"], "Resolved action reference identity differs")
+        doc = self.load(reference)
+        require(doc["schema_version"] == 2 and doc["source_resolution_sha256"] == assessment["source_resolution_sha256"], "Action source policy differs")
+        sources = {}
+        secondary = {}
+        issuer_gld = False
+        months = {f"{year}-{month:02}" for year in range(2016, 2026) for month in range(1, 13)}
+        for source in doc["sources"]:
+            path = (reference.parent / source["file"]).resolve()
+            require(path.is_relative_to(reference.parent.resolve()) and not path.is_symlink(), "Action source escaped its root")
+            require(source["file"] not in sources and self.digest(path) == source["sha256"], "Action source identity differs")
+            sources[source["file"]] = source
+            if source.get("kind") == "secondary_events":
+                symbol = source["symbol"]
+                require(symbol in self.symbols and symbol not in secondary and source["url"] == policy["secondary_event_url"].replace("{symbol}", symbol), "Secondary source provenance differs")
+                chart = self.load(path)["chart"]
+                require(chart["error"] is None and len(chart["result"]) == 1, "Secondary event response failed")
+                result = chart["result"][0]
+                require(result["meta"]["symbol"] == symbol and result["meta"]["currency"] == "USD" and result["meta"]["dataGranularity"] == "1mo", "Secondary instrument metadata differs")
+                stamps = [datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m") for t in result["timestamp"]]
+                require(len(stamps) == 120 and set(stamps) == months, "Secondary event horizon incomplete")
+                events = result.get("events", {})
+                require(not events.get("splits"), "Secondary split history contradicts zero-event coverage")
+                if symbol == "GLD":
+                    require(not events.get("dividends") and not events.get("capitalGains"), "GLD cash coverage contradiction")
+                secondary[symbol] = source["file"]
+            elif source["url"] == policy["gld_issuer_url"]:
+                issuer_gld = policy["gld_issuer_statement"] in path.read_text(encoding="utf-8")
+        require(set(secondary) == set(self.symbols) and issuer_gld, "Incomplete action cross-check coverage")
+        for row in doc["coverage"]:
+            require(row["cash_complete"] and row["splits_complete"] and secondary[row["symbol"]] in row["source_files"], "Action coverage declaration differs")
+        canonical_file = self.directory / "sealed/accounting_actions.json"
+        require(self.digest(canonical_file) == actions["canonical_actions_sha256"], "Canonical action identity differs")
+        canonical = self.load(canonical_file)
+        expected = sorted(doc["cash_distributions"], key=lambda r: (r["symbol"], r["ex_date"]))
+        require(canonical["cash_distributions"] == expected and canonical["splits"] == doc["splits"] == [], "Canonical cash authority differs")
+        require(len({(r["symbol"], r["ex_date"]) for r in expected}) == len(expected) and all(r["symbol"] != "GLD" for r in expected), "Canonical cash event duplicated or GLD contradiction")
+        require(canonical["source_resolution_sha256"] == assessment["source_resolution_sha256"], "Canonical source policy identity differs")
+
+    def verify_registration(self, summary: dict, assessment: dict) -> None:
+        registered = assessment["registration"]
+        manifest_file = self.directory / "study_manifest.json"
+        require(self.digest(manifest_file) == registered["study_manifest_sha256"], "Study registration identity differs")
+        manifest = self.load(manifest_file)
+        for key in ("protocol_sha256", "acquisition_manifest_sha256", "source_resolution_sha256", "evidence_origin"):
+            require(manifest[key] == assessment[key], "Study registration provenance differs")
+        require(manifest["input_policy_sha256"] == assessment["input_policy_assessment"]["policy_sha256"], "Registered input policy differs")
+        require(manifest["closing_recovery_manifest_sha256"] == assessment["closing_mark_recovery"].get("manifest_sha256"), "Registered recovery identity differs")
+        require(manifest["source_sha256"] == assessment["source_sha256"], "Registered source inventory differs")
+        require(registered["strategy_scored"] is False and registered["reserved_strategy_inputs_opened"] is False, "Registration review overstates completion")
+        for key in ("issuer_reference_sha256", "canonical_actions_sha256"):
+            require(manifest[key] == assessment["actions"][key], "Registered action provenance differs")
+        require(manifest["research_inputs_ready"] is True and registered["research_inputs_ready"] is True and manifest["strategy_scored"] is False and manifest["reserved_strategy_inputs_opened"] is False, "Registration completion or reserved claims differ")
+        require(manifest["unavailable_daily_endpoints"] == assessment["remaining_daily_endpoints"], "Registered unavailable daily mask differs")
+        for file, field in (("vintage_bridge.json", "vintage_bridge_sha256"), ("eligibility_masks.json", "eligibility_masks_sha256")):
+            require(self.digest(self.directory / file) == manifest[field], "Registered artifact identity differs")
+        require(registered["vintage_bridge_sha256"] == manifest["vintage_bridge_sha256"], "Bridge identity differs")
+        masks = self.load(self.directory / "eligibility_masks.json")["rows"]
+        require(len(masks) == len(summary["coverage"]), "Registered mask row count differs")
+        recovered = self.verify_closing_recovery(summary, assessment["closing_mark_recovery"])
+        consecutive = dict.fromkeys(self.symbols, 0)
+        for row, mask in zip(summary["coverage"], masks):
+            symbol, day = row["symbol"], row["date"]
+            for key, value in row.items():
+                require(mask[key] == value, "Original coverage was changed during registration")
+            available = row["close_available"] or (symbol, day) in recovered
+            source = "unavailable" if not available else "authenticated_closing_recovery" if (symbol, day) in recovered else "original_archive"
+            require(mask["daily_close_available"] == available and mask["daily_close_source"] == source, "Daily close provenance differs")
+            expected = day > "2016-12-31" and consecutive[symbol] >= 253 and row["open_available"] and available
+            require(mask["daily_risk_inputs_ready"] == expected, "Consecutive daily history crossed an unavailable mark")
+            consecutive[symbol] = consecutive[symbol] + 1 if available else 0
+
     def verify_readiness(self, summary: dict, directory: Path) -> Path:
         assessment = self.load(directory / "summary.json")
         require(assessment["kind"] == "historical_panel_readiness" and assessment["schema_version"] == 1, "Readiness schema mismatch")
@@ -390,10 +468,24 @@ class PanelVerifier:
             recovered = self.verify_closing_recovery(summary, assessment["closing_mark_recovery"])
             remaining = [r for r in endpoints if not r["open_available"] or (r["symbol"], r["date"]) not in recovered]
             require(assessment["remaining_daily_endpoints"] == remaining, "Remaining daily endpoint mask differs")
-            active = not remaining and (not applies or qualified >= rules["minimum_scored_years"])
+            missing_allowed = False
+            if "source_resolution_sha256" in assessment:
+                policy_file = Path(__file__).resolve().parent / "extension_source_resolution.json"
+                require(self.digest(policy_file) == assessment["source_resolution_sha256"], "Source resolution identity differs")
+                policy = self.load(policy_file)
+                require(policy["parent_input_policy_sha256"] == assessment["input_policy_assessment"]["policy_sha256"], "Source resolution parent differs")
+                allowlist = {(r["symbol"], r["date"]) for r in policy["unavailable_close_allowlist"]}
+                recovery = assessment["closing_mark_recovery"]
+                missing_allowed = not remaining or ("manifest_sha256" in recovery and recovery["required"] == len(allowlist)
+                    and len(remaining) <= len(allowlist) and all(r["open_available"] and not r["close_available"]
+                        and (r["symbol"], r["date"]) in allowlist for r in remaining))
+                require(assessment["unavailable_daily_marks_accepted"] == missing_allowed, "Unregistered daily marks were waived")
+                require(assessment["daily_mark_handling"] == policy["unavailable_close_handling"], "Daily mark convention differs")
+                self.verify_action_resolution(assessment, policy)
+            active = (not remaining or missing_allowed) and (not applies or qualified >= rules["minimum_scored_years"])
             require(assessment["active_coverage_gates_passed"] == active and assessment["active_input_gates_passed"] == (active and actions["issuer_reconciled"]), "Active input gates differ")
-        # Cash reconciliation is checked by the native contracts; this oracle
-        # independently reproduces coverage/gaps and verifies the export boundary.
+        if "registration" in assessment:
+            self.verify_registration(summary, assessment)
         report = directory / "report.html"
         require(report.is_file() and report.stat().st_size <= 16 * 1024 * 1024, "Readiness HTML missing or oversized")
         archive = directory / "review.zip"

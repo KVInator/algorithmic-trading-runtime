@@ -89,21 +89,55 @@ Json remaining_endpoints(const Json& original, std::span<const MinuteBar> recove
     }
     return remaining;
 }
+void validate_secondary_events(const std::filesystem::path& raw, const std::string& symbol) {
+    const auto data = parse_json_document(read_text_file(raw, 8U * 1024U * 1024U));
+    const auto& chart = data.at("chart");
+    if (!chart.at("error").is_null() || chart.at("result").size() != 1) {
+        throw std::invalid_argument("secondary event response is incomplete");
+    }
+    const auto& result = chart.at("result").at(0);
+    const auto& meta = result.at("meta");
+    std::set<std::string> months;
+    for (const auto& timestamp : result.at("timestamp")) {
+        if (!timestamp.is_number_integer()) { throw std::invalid_argument("secondary coverage timestamp must be an integer"); }
+        const auto at = std::chrono::sys_seconds{std::chrono::seconds{timestamp.get<std::int64_t>()}};
+        months.insert(format_utc_seconds(at).substr(0, 7));
+    }
+    bool full_horizon = result.at("timestamp").size() == 120 && months.size() == 120;
+    for (int year = 2016; year <= 2025; ++year) {
+        for (int month = 1; month <= 12; ++month) {
+            full_horizon = full_horizon && months.contains(std::to_string(year) + '-' + (month < 10 ? "0" : "") + std::to_string(month));
+        }
+    }
+    if (meta.at("symbol") != symbol || meta.at("currency") != "USD" || meta.at("dataGranularity") != "1mo" || !full_horizon) {
+        throw std::invalid_argument("secondary event symbol, currency or horizon mismatch");
+    }
+    const auto events = result.value("events", Json::object());
+    if (!events.value("splits", Json::object()).empty() || (symbol == "GLD" &&
+        (!events.value("dividends", Json::object()).empty() || !events.value("capitalGains", Json::object()).empty()))) {
+        throw std::invalid_argument("secondary event history contradicts registered zero-event coverage");
+    }
+}
 } // namespace
 
 nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& dataset,
-    const std::filesystem::path& reference_file, const ExtensionStudyContract& contract, PanelOrigin origin) const {
+    const std::filesystem::path& reference_file, const ExtensionStudyContract& contract, PanelOrigin origin, const PanelSourceResolution* resolution) const {
     if (!std::filesystem::exists(reference_file)) {
-        return {{"issuer_reconciled", false}, {"blockers", {"Independent issuer action reference is missing."}}};
+        return {{"issuer_reconciled", false}, {"blockers", {resolution == nullptr ? "Independent issuer action reference is missing." :
+            "Resolved corporate-action reference is missing; run py -3 -B research/prepare_panel_actions.py."}}};
     }
     const auto doc = parse_json_document(read_text_file(reference_file, 8U * 1024U * 1024U));
     const std::string expected_origin = origin == PanelOrigin::provider ? "provider" : "synthetic";
-    if (doc.at("schema_version").get<int>() != 1 || doc.at("evidence_origin").get<std::string>() != expected_origin ||
+    if (doc.at("schema_version").get<int>() != (resolution == nullptr ? 1 : 2) ||
+        (resolution != nullptr && doc.at("source_resolution_sha256") != resolution->identity()) || doc.at("evidence_origin").get<std::string>() != expected_origin ||
         doc.at("first_ex_date").get<std::string>() != "2016-01-01" || doc.at("last_ex_date").get<std::string>() != "2025-12-31") {
         throw std::invalid_argument("issuer reference origin or horizon mismatch");
     }
     const auto symbols = contract.symbols();
-    Json blockers = Json::array(), source_coverage = Json::array();
+    Json blockers = Json::array(), source_coverage = Json::array(), resolved_conflicts = Json::array();
+    std::map<std::string, std::string> secondary_files;
+    std::set<std::string> secondary_source_files;
+    std::string gld_income_source;
     std::map<std::string, std::set<std::string>> authority;
     std::set<std::string> source_files;
     for (const auto& source : doc.at("sources")) {
@@ -114,10 +148,27 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
             std::filesystem::file_size(raw) > 100U * 1024U * 1024U) {
             throw std::invalid_argument("issuer source identity or size mismatch");
         }
+        if (resolution != nullptr && source.value("kind", std::string{}) == "secondary_events") {
+            const auto symbol = source.at("symbol").get<std::string>();
+            auto expected_url = resolution->document().at("secondary_event_url").get<std::string>();
+            expected_url.replace(expected_url.find("{symbol}"), 8, symbol);
+            if (std::find(symbols.begin(), symbols.end(), symbol) == symbols.end() || url != expected_url ||
+                !secondary_files.emplace(symbol, file).second) { throw std::invalid_argument("secondary event source identity mismatch"); }
+            validate_secondary_events(raw, symbol);
+            secondary_source_files.insert(file);
+            continue;
+        }
+        if (resolution != nullptr && url == resolution->document().at("gld_issuer_url").get<std::string>()) {
+            if (read_text_file(raw, 20U * 1024U * 1024U).find(
+                resolution->document().at("gld_issuer_statement").get<std::string>()) != std::string::npos) { gld_income_source = file; }
+        }
         bool official = false;
         for (const auto host : {"https://www.ssga.com/", "https://www.ishares.com/", "https://www.invesco.com/",
                 "https://dng-api.invesco.com/", "https://www.spdrgoldshares.com/", "https://www.sec.gov/"}) { official = official || url.starts_with(host); }
         if (origin == PanelOrigin::provider && !official) { throw std::invalid_argument("issuer reference requires an identified primary-source URL"); }
+    }
+    if (resolution != nullptr && (secondary_files.size() != symbols.size() || gld_income_source.empty())) {
+        throw std::invalid_argument("resolved reference requires five authenticated event feeds and GLD issuer evidence");
     }
     for (const auto& coverage : doc.at("coverage")) {
         const auto symbol = coverage.at("symbol").get<std::string>();
@@ -134,6 +185,9 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
             const auto file = source.get<std::string>();
             if (!source_files.contains(file)) { throw std::invalid_argument("issuer coverage source is not authenticated"); }
             files.insert(file);
+        }
+        if (resolution != nullptr && (!files.contains(secondary_files.at(symbol)) || (symbol == "GLD" && !files.contains(gld_income_source)))) {
+            throw std::invalid_argument("split coverage does not reference its authenticated event feed");
         }
         if ((coverage.at("cash_complete").get<bool>() || coverage.at("splits_complete").get<bool>()) &&
             (files.empty() || coverage.at("coverage_locator").get<std::string>().empty())) {
@@ -152,11 +206,18 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
     };
     for (const auto& row : doc.at("cash_distributions")) {
         const auto key = validate_source(row);
+        if (secondary_source_files.contains(row.at("source_file").get<std::string>()) ||
+            (resolution != nullptr && row.at("symbol") == "GLD")) {
+            throw std::invalid_argument("canonical cash event contradicts source authority");
+        }
         const auto ex = date(row, "ex_date"), record = date(row, "record_date"), pay = date(row, "payable_date");
         static_cast<void>(number(row, "usd_per_share"));
         if (record < ex || pay < record || !cash.emplace(key, row).second) {
             throw std::invalid_argument("issuer cash action is duplicated or has invalid chronology");
         }
+    }
+    if (resolution != nullptr && !doc.at("splits").empty()) {
+        throw std::invalid_argument("canonical splits contradict zero-event cross-checks");
     }
     for (const auto& row : doc.at("splits")) {
         const auto key = validate_source(row);
@@ -167,6 +228,10 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
     std::map<std::string, double> rates;
     std::map<std::string, Json> development_provider_cash;
     std::size_t completed_dates = 0;
+    const auto cash_conflict = [&](const std::string& reason, const std::string& key) {
+        if (resolution == nullptr) { blockers.push_back(reason + ": " + key); }
+        else { resolved_conflicts.push_back({{"symbol_ex_date", key}, {"reason", reason}, {"authority", "issuer"}}); }
+    };
     const auto manifest = parse_json_document(read_text_file(dataset / "acquisition_manifest.json"));
     for (const auto& interval_ref : manifest.at("actions")) {
         const auto interval = checked(dataset, interval_ref);
@@ -185,7 +250,7 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
                     }
                     const auto key = row.at("symbol").get<std::string>() + '/' + ex;
                     if (kind == "cash_dividends") {
-                        if (!provider_cash.insert(key).second) { blockers.push_back("Multiple provider cash records require explicit reconciliation: " + key); }
+                        if (!provider_cash.insert(key).second) { cash_conflict("Multiple provider cash records", key); }
                         rates[key] += number(row, "rate");
                         if (!contract.reserved(ex)) {
                             if (!development_provider_cash.contains(key)) { development_provider_cash[key] = Json::array(); }
@@ -196,9 +261,13 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
                             development_provider_cash[key].push_back(std::move(detail));
                         }
                         if (!cash.contains(key)) { blockers.push_back("Provider-only cash action: " + key); continue; }
+                        if (resolution != nullptr && std::abs(number(row, "rate") - number(cash.at(key), "usd_per_share")) >
+                            contract.document().at("corporate_actions").at("cash_rate_absolute_tolerance_usd_per_share").get<double>()) {
+                            cash_conflict("Issuer/provider cash amount disagreement", key);
+                        }
                         for (const auto* field : {"record_date", "payable_date"}) {
                             if (!row.contains(field) || row.at(field).is_null() || row.at(field) == "") { ++completed_dates; }
-                            else if (date(row, field) != cash.at(key).at(field).get<std::string>()) { blockers.push_back("Issuer/provider date disagreement: " + key); }
+                            else if (date(row, field) != cash.at(key).at(field).get<std::string>()) { cash_conflict("Issuer/provider date disagreement", key); }
                         }
                     } else if (kind == "forward_splits" || kind == "reverse_splits" || kind == "unit_splits") {
                         provider_splits.insert(key);
@@ -212,7 +281,7 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
         }
     }
     for (const auto& [key, rate] : rates) {
-        if (cash.contains(key) && std::abs(rate - number(cash.at(key), "usd_per_share")) >
+        if (resolution == nullptr && cash.contains(key) && std::abs(rate - number(cash.at(key), "usd_per_share")) >
             contract.document().at("corporate_actions").at("cash_rate_absolute_tolerance_usd_per_share").get<double>()) {
             blockers.push_back("Issuer/provider cash amount disagreement: " + key);
         }
@@ -224,8 +293,12 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
     Json comparisons = Json::array();
     for (const auto& [key, rows] : development_provider_cash) {
         const auto issuer = cash.find(key);
-        const bool amount_differs = issuer != cash.end() && std::abs(rates.at(key) - number(issuer->second, "usd_per_share")) >
-            contract.document().at("corporate_actions").at("cash_rate_absolute_tolerance_usd_per_share").get<double>();
+        const auto tolerance = contract.document().at("corporate_actions").at("cash_rate_absolute_tolerance_usd_per_share").get<double>();
+        const bool amount_differs = issuer != cash.end() && (resolution == nullptr ?
+            std::abs(rates.at(key) - number(issuer->second, "usd_per_share")) > tolerance :
+            std::any_of(rows.begin(), rows.end(), [&](const auto& row) {
+                return std::abs(number(row, "rate") - number(issuer->second, "usd_per_share")) > tolerance;
+            }));
         bool date_differs = false;
         if (issuer != cash.end()) {
             for (const auto& row : rows) {
@@ -244,12 +317,19 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
         {"cash_distributions", cash.size()}, {"splits", splits.size()}, {"issuer_only_cash_records", issuer_only_cash},
         {"issuer_only_split_records", issuer_only_splits}, {"issuer_completed_date_fields", completed_dates},
         {"source_coverage", source_coverage}, {"development_cash_discrepancies", comparisons}};
+    if (resolution != nullptr) {
+        result["source_resolution_sha256"] = resolution->identity();
+        result["resolved_provider_cash_conflicts"] = resolved_conflicts;
+        result["split_coverage_basis"] = "secondary_event_feed_cross_check_not_issuer_split_history";
+    }
     if (blockers.empty()) {
-        // Financial fields remain local; the review record carries counts only.
+        // Canonical financial fields remain local; reserved disagreements export keys only.
         const Json canonical{{"schema_version", 1}, {"protocol_sha256", contract.identity()},
             {"evidence_origin", expected_origin},
             {"issuer_reference_sha256", result.at("issuer_reference_sha256")}, {"cash_distributions", canonical_cash}, {"splits", canonical_splits}};
-        publish(dataset / "sealed/accounting_actions.json", canonical);
+        auto published = canonical;
+        if (resolution != nullptr) { published["source_resolution_sha256"] = resolution->identity(); }
+        publish(dataset / "sealed/accounting_actions.json", published);
         result["canonical_actions_sha256"] = sha256_file(dataset / "sealed/accounting_actions.json");
     }
     return result;
@@ -258,7 +338,11 @@ nlohmann::json PanelActionReference::reconcile(const std::filesystem::path& data
 PanelInputFinalizer::PanelInputFinalizer(std::filesystem::path dataset, ExtensionStudyContract contract, PanelOrigin origin)
     : directory_{std::move(dataset)}, contract_{std::move(contract)}, origin_{origin} {}
 
-nlohmann::json PanelInputFinalizer::assess(const Json& audited_panel, const Json& action_assessment, const PanelInputPolicy* input_policy) const {
+nlohmann::json PanelInputFinalizer::assess(const Json& audited_panel, const Json& action_assessment, const PanelInputPolicy* input_policy, const PanelSourceResolution* resolution) const {
+    if (resolution != nullptr && (input_policy == nullptr || (action_assessment.at("issuer_reconciled").get<bool>() &&
+        (!action_assessment.contains("source_resolution_sha256") || action_assessment.at("source_resolution_sha256") != resolution->identity())))) {
+        throw std::invalid_argument("readiness requires consistent input and action resolution identities");
+    }
     const auto acquisition_sha = sha256_file(directory_ / "acquisition_manifest.json");
     const std::string expected_origin = origin_ == PanelOrigin::provider ? "provider" : "synthetic";
     if (audited_panel.at("acquisition_manifest_sha256").get<std::string>() != acquisition_sha ||
@@ -313,7 +397,13 @@ nlohmann::json PanelInputFinalizer::assess(const Json& audited_panel, const Json
         }
         result["closing_mark_recovery"] = recovery.summary;
         result["remaining_daily_endpoints"] = remaining_endpoints(result.at("missing_daily_endpoints"), recovery.bars);
-        result["active_coverage_gates_passed"] = result.at("remaining_daily_endpoints").empty() &&
+        const bool missing_allowed = resolution != nullptr && resolution->permits_missing_closes(result.at("remaining_daily_endpoints"), recovery.summary);
+        if (resolution != nullptr) {
+            result["source_resolution_sha256"] = resolution->identity();
+            result["unavailable_daily_marks_accepted"] = missing_allowed;
+            result["daily_mark_handling"] = resolution->document().at("unavailable_close_handling");
+        }
+        result["active_coverage_gates_passed"] = (result.at("remaining_daily_endpoints").empty() || missing_allowed) &&
             (origin_ == PanelOrigin::synthetic || assessment.at("operational_year_gate_passed").get<bool>());
         result["active_input_gates_passed"] = result.at("active_coverage_gates_passed").get<bool>() && action_assessment.at("issuer_reconciled").get<bool>();
         result["input_policy_assessment"] = std::move(assessment);
@@ -323,7 +413,11 @@ nlohmann::json PanelInputFinalizer::assess(const Json& audited_panel, const Json
 
 nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Json& action_assessment,
     const FrozenDevelopmentDataset& legacy, std::span<const SessionDownload> legacy_calibration, std::string_view legacy_risk_identity,
-    const PanelInputPolicy* input_policy) const {
+    const PanelInputPolicy* input_policy, const PanelSourceResolution* resolution) const {
+    if (resolution != nullptr && (input_policy == nullptr || !action_assessment.contains("source_resolution_sha256") ||
+        action_assessment.at("source_resolution_sha256") != resolution->identity())) {
+        throw std::invalid_argument("registration requires consistent input and action resolution identities");
+    }
     const auto manifest_file = directory_ / "acquisition_manifest.json";
     const std::string expected_origin = origin_ == PanelOrigin::provider ? "provider" : "synthetic";
     if (audited_panel.at("acquisition_manifest_sha256").get<std::string>() != sha256_file(manifest_file) ||
@@ -339,7 +433,9 @@ nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Js
         recovery = panel.recover_closing_marks(*input_policy, audited_panel, {}, [](auto) {}, false);
     }
     const bool year_gate = input_policy == nullptr ? parent_coverage.at("coverage_gates_passed").get<bool>() :
-        remaining_endpoints(parent_coverage.at("missing_daily_endpoints"), recovery.bars).empty() &&
+        (remaining_endpoints(parent_coverage.at("missing_daily_endpoints"), recovery.bars).empty() ||
+            (resolution != nullptr && resolution->permits_missing_closes(
+                remaining_endpoints(parent_coverage.at("missing_daily_endpoints"), recovery.bars), recovery.summary))) &&
             (origin_ == PanelOrigin::synthetic || amended.at("operational_year_gate_passed").get<bool>());
     if (!year_gate) {
         throw std::invalid_argument("panel is input-limited: inspect the readiness report for daily-mark and development-year failures");
@@ -393,7 +489,7 @@ nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Js
         const bool has_recovered_close = recovered_close(recovery.bars, symbol, day);
         const bool daily_close_available = row.at("close_available").get<bool>() || has_recovered_close;
         mask["daily_close_available"] = daily_close_available;
-        mask["daily_close_source"] = has_recovered_close ? "authenticated_closing_recovery" : "original_archive";
+        mask["daily_close_source"] = !daily_close_available ? "unavailable" : has_recovered_close ? "authenticated_closing_recovery" : "original_archive";
         const bool original_complete = row.at("intraday_eligible").get<bool>();
         bool base = original_complete, reversion_history_valid = original_complete;
         bool momentum_feature_valid = true, continuation_feature_valid = true, reversion_feature_valid = true;
@@ -433,7 +529,7 @@ nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Js
     publish(directory_ / "vintage_bridge.json", {{"schema_version", 1}, {"legacy_manifest_sha256", legacy.manifest_sha256},
         {"legacy_risk_acquisition_sha256", std::string{legacy_risk_identity}}, {"new_acquisition_sha256", acquisition_sha}, {"rows", bridge}, {"strategy_returns_compared", false}});
     publish(directory_ / "eligibility_masks.json", {{"schema_version", 1}, {"protocol_sha256", contract_.identity()}, {"rows", masks}});
-    const Json result{{"schema_version", 1}, {"kind", "extension_study_manifest"}, {"protocol_sha256", contract_.identity()},
+    Json result{{"schema_version", 1}, {"kind", "extension_study_manifest"}, {"protocol_sha256", contract_.identity()},
         {"input_policy_sha256", input_policy == nullptr ? Json(nullptr) : Json(input_policy->identity())},
         {"parent_coverage_assessment", parent_coverage},
         {"closing_recovery_manifest_sha256", recovery.summary.contains("manifest_sha256") ? recovery.summary.at("manifest_sha256") : Json(nullptr)},
@@ -445,6 +541,11 @@ nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Js
         {"first_scored_input_dates", first_scored}, {"model_fit_availability_evaluated", false},
         {"source_sha256", TRADING_SOURCE_SHA256}, {"compiler", TRADING_COMPILER_ID}, {"build_configuration", TRADING_BUILD_CONFIGURATION},
         {"reserved_strategy_inputs_opened", false}, {"strategy_scored", false}, {"research_inputs_ready", true}};
+    if (resolution != nullptr) {
+        result["source_resolution_sha256"] = resolution->identity();
+        result["unavailable_daily_endpoints"] = remaining_endpoints(parent_coverage.at("missing_daily_endpoints"), recovery.bars);
+        result["daily_mark_handling"] = resolution->document().at("unavailable_close_handling");
+    }
     publish(directory_ / "study_manifest.json", result);
     return result;
 }

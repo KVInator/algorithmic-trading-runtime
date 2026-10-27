@@ -111,3 +111,10 @@ only after its raw page is authenticated; it cannot repair other missing intrada
 slots. Empty or invalid responses supply no price. A successful empty response
 is retained and is not repeatedly requested. Corporate-action reconciliation,
 daily marking and the vintage bridge remain independent registration gates.
+
+
+The subsequent [source resolution](extension_source_resolution.json) is pinned
+separately and does not rewrite this amendment. It supplies issuer cash authority,
+a free full-horizon split cross-check and an exact three-key allowance for
+unavailable daily closes after empty authenticated recovery. The original missing
+flags remain; affected daily outcomes are NA and 253-close history restarts.

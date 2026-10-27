@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 27 October 2026: **M0-M1 complete; M2 input-limited; M3-M10 not started.**
+Status recorded 28 October 2026: **M0-M1 complete; M2 input-limited; M3-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -517,3 +517,57 @@ M2 remains open. Actual closing evidence, QQQ cash/date resolutions, independent
 GLD/split coverage and the final vintage bridge are still required. No issuer
 coverage flag, amount tolerance or action-disagreement gate was relaxed by this
 input amendment. The original v1 results and acquisition snapshots are preserved.
+
+
+## Source resolution after the provider recovery
+
+The subsequent Windows recovery made three requests and returned zero closing
+bars. Its retained manifest is
+`8372e7ddf07e50f14ff44d08a0aaedd89fc696693748f0b975b91924de2a051b`.
+Repeating the same successful empty requests cannot supply the observations.
+[MULTI-ASSET-01-SOURCE-01](../research/extension_source_resolution.json) therefore
+registers two bounded changes before expanded scoring:
+
+- Only the three SPY/IWM/GLD closes on 2019-08-12 may remain unavailable after
+  authenticated recovery. Their daily outcomes remain NA and consecutive close
+  history resets; no valuation or return bridges the gap. Other endpoint gaps
+  still block registration. Parent coverage failures remain in the manifest.
+- The retained issuer cash table determines one canonical distribution per
+  symbol/ex-date. Provider disagreements are retained as resolved conflicts;
+  missing issuer events still block, and duplicate announcements are never
+  summed. Declared issuer payment dates remain unchanged; cash availability is
+  the first exchange session on or after the declared date.
+
+Split coverage uses five retained secondary event responses requesting the full
+2016-2025 horizon, each validated against all 120 monthly coverage timestamps.
+No split events were returned. GLD cash absence combines the issuer's
+[no-income statement](https://www.ssga.com/us/en/individual/etfs/spdr-gold-shares-gld),
+zero secondary cash events and zero provider cash events. These are explicitly
+cross-provider completeness assumptions, replacing the unresolved requirement
+for an independent issuer split history. They do not prove that either feed is
+infallible. Nonempty or conflicting split evidence remains blocking.
+
+The preparation command writes a separate resolved reference and retains every
+old file. The finalizer binds both amendments, canonical actions, missing masks
+and the original SPY vintage comparison. M2 remains pending the Windows run of
+this final registration; expanded strategy scoring has not started. No v1 result
+or reserved-price observation is changed by the source resolution.
+
+
+Source-resolution verification used GNU 13.3.0 Release with warnings as errors.
+All 16 applications built; 156 native panel checks and the independent archive,
+readiness and registration checks passed. Truncated event coverage, a wrong
+instrument, nonempty split evidence, contradictory GLD cash and inconsistent
+resolution identities were rejected. Separate tampering checks rejected altered
+missing dates, forged resolution/registration hashes and erased missing masks.
+The actual free issuer/secondary source bundle reconciled 241 canonical cash
+events against the supplied pre-2024 provider discrepancies while retaining five
+conflict records. A cached preparation rerun completed with network access
+disabled and preserved the original reference. Existing offline-demo and
+publication checks passed. Windows/MSVC and the full private-archive vintage
+bridge remain local verification requirements.
+
+| Source-resolution record | SHA-256 |
+| --- | --- |
+| Source resolution | `9237188b4ac24282a4296e2622948666e8d8da0a78c8be103453658093d9d734` |
+| Supplied post-recovery readiness summary | `15424df8eca18e4defc394a4f3038f700a0a31bfd4d02f03f1a56e14804bf346` |

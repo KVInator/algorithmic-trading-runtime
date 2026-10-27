@@ -5,13 +5,13 @@
 
 namespace trading {
 
-// Issuer records supply absent provider dates/records with explicit provenance.
-// Contradictory nonempty provider observations remain blocking discrepancies.
+// Issuer records supply canonical cash events. Source conflicts remain blocking
+// unless the separately registered source-authority amendment is supplied.
 class PanelActionReference {
 public:
     [[nodiscard]] nlohmann::json reconcile(const std::filesystem::path& dataset,
         const std::filesystem::path& reference_file, const ExtensionStudyContract& contract,
-        PanelOrigin origin) const;
+        PanelOrigin origin, const PanelSourceResolution* resolution = nullptr) const;
 };
 
 class PanelInputFinalizer {
@@ -20,13 +20,13 @@ public:
     // Diagnose every input gate before registration. Detailed gap times and cash
     // discrepancies are restricted to development; no strategy is evaluated.
     [[nodiscard]] nlohmann::json assess(const nlohmann::json& audited_panel,
-        const nlohmann::json& action_assessment, const PanelInputPolicy* input_policy = nullptr) const;
+        const nlohmann::json& action_assessment, const PanelInputPolicy* input_policy = nullptr, const PanelSourceResolution* resolution = nullptr) const;
     // The caller first authenticates the legacy snapshot with its original loader.
     // Publication is immutable and occurs only after all prerequisite checks pass.
     [[nodiscard]] nlohmann::json finalize(const nlohmann::json& audited_panel,
         const nlohmann::json& action_assessment, const FrozenDevelopmentDataset& legacy,
         std::span<const SessionDownload> legacy_calibration = {}, std::string_view legacy_risk_identity = {},
-        const PanelInputPolicy* input_policy = nullptr) const;
+        const PanelInputPolicy* input_policy = nullptr, const PanelSourceResolution* resolution = nullptr) const;
 private:
     std::filesystem::path directory_;
     ExtensionStudyContract contract_;

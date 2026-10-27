@@ -83,6 +83,7 @@ public:
         const std::filesystem::path root{TRADING_PROJECT_ROOT};
         const auto contract = trading::ExtensionStudyContract::load(root / "research/extension_protocol.json");
         const auto input_policy = trading::PanelInputPolicy::load(root / "research/extension_input_policy.json", contract);
+        const auto resolution = trading::PanelSourceResolution::load(root / "research/extension_source_resolution.json", input_policy);
         directory_ = trading::create_unique_directory(root / "scratch/runs", "panel_check");
         const trading::CalendarSession policy_day{"2023-01-04", "09:30", "16:00"};
         const auto missing_at = [&](std::initializer_list<int> slots) {
@@ -316,7 +317,134 @@ public:
         const auto empty_readiness = trading::PanelInputFinalizer{directory_ / "closing_empty", contract, trading::PanelOrigin::synthetic}.assess(empty_summary,
             action_reference.reconcile(directory_ / "closing_empty", issuer / "absent.json", contract, trading::PanelOrigin::synthetic), &input_policy);
         check("empty recovery preserves every unresolved daily endpoint", empty_readiness.at("remaining_daily_endpoints").size() == 3 && !empty_readiness.at("active_coverage_gates_passed").get<bool>());
-        const auto empty_report = trading::HistoricalPanelReport{}.write_readiness(empty_readiness, directory_ / "reports");
+        static_cast<void>(trading::HistoricalPanelReport{}.write_readiness(empty_readiness, directory_ / "reports"));
+
+        // Resolved source receipts are deliberately constructed, not market evidence.
+        auto resolved_reference = closing_reference;
+        resolved_reference["schema_version"] = 2;
+        resolved_reference["source_resolution_sha256"] = resolution.identity();
+        Json monthly = Json::array();
+        for (int year = 2016; year <= 2025; ++year) {
+            for (int month = 1; month <= 12; ++month) {
+                const auto clock = std::to_string(year) + '-' + (month < 10 ? "0" : "") + std::to_string(month) + "-01T00:00:00Z";
+                monthly.push_back(trading::parse_utc_seconds(clock).time_since_epoch().count());
+            }
+        }
+        trading::write_new_text_file(issuer / "gld_statement.html", resolution.document().at("gld_issuer_statement").get<std::string>());
+        resolved_reference["sources"].push_back({{"file", "gld_statement.html"}, {"sha256", trading::sha256_file(issuer / "gld_statement.html")},
+            {"url", resolution.document().at("gld_issuer_url")}, {"retrieved_utc", "2026-10-28T00:00:00Z"}});
+        for (auto& coverage_row : resolved_reference["coverage"]) {
+            const auto symbol = coverage_row.at("symbol").get<std::string>();
+            const auto file = symbol + "_events.json";
+            const Json event_feed{{"chart", {{"error", nullptr}, {"result", {{{"meta", {{"symbol", symbol}, {"currency", "USD"},
+                {"dataGranularity", "1mo"}}}, {"timestamp", monthly}, {"events", Json::object()}}}}}}};
+            trading::write_new_text_file(issuer / file, event_feed.dump());
+            auto url = resolution.document().at("secondary_event_url").get<std::string>();
+            url.replace(url.find("{symbol}"), 8, symbol);
+            resolved_reference["sources"].push_back({{"file", file}, {"sha256", trading::sha256_file(issuer / file)},
+                {"url", url}, {"retrieved_utc", "2026-10-28T00:00:00Z"}, {"kind", "secondary_events"}, {"symbol", symbol}});
+            coverage_row["source_files"].push_back(file);
+            if (symbol == "GLD") { coverage_row["source_files"].push_back("gld_statement.html"); }
+        }
+        auto& qqq_cash = resolved_reference["cash_distributions"].at(1);
+        check("constructed canonical source order is explicit", qqq_cash.at("symbol") == "QQQ");
+        qqq_cash["usd_per_share"] = 0.55;
+        qqq_cash["payable_date"] = "2019-06-11";
+        trading::write_new_text_file(issuer / "resolved.json", resolved_reference.dump(2) + '\n');
+        const auto resolved_actions = action_reference.reconcile(directory_ / "closing_empty", issuer / "resolved.json", contract,
+            trading::PanelOrigin::synthetic, &resolution);
+        check("registered issuer authority resolves nonempty provider amount and date conflicts", resolved_actions.at("issuer_reconciled").get<bool>() &&
+            resolved_actions.at("resolved_provider_cash_conflicts").size() == 2);
+        const auto canonical_resolved = Json::parse(trading::read_text_file(directory_ / "closing_empty/sealed/accounting_actions.json"));
+        check("issuer amount is retained without averaging provider observations", canonical_resolved.at("cash_distributions").at(1).at("usd_per_share").get<double>() == 0.55);
+        const trading::PanelInputFinalizer empty_finalizer{directory_ / "closing_empty", contract, trading::PanelOrigin::synthetic};
+        auto resolved_readiness = empty_finalizer.assess(empty_summary, resolved_actions, &input_policy, &resolution);
+        check("only explicitly registered unavailable closing marks permit registration", resolved_readiness.at("active_input_gates_passed").get<bool>() &&
+            resolved_readiness.at("remaining_daily_endpoints").size() == 3 && resolved_readiness.at("unavailable_daily_marks_accepted").get<bool>());
+        const auto resolved_registered = empty_finalizer.finalize(empty_summary, resolved_actions, {}, {}, {}, &input_policy, &resolution);
+        check("source resolution and original missing observations are bound to the study", resolved_registered.at("source_resolution_sha256") == resolution.identity() &&
+            resolved_registered.at("unavailable_daily_endpoints").size() == 3);
+        const auto absent_masks = Json::parse(trading::read_text_file(directory_ / "closing_empty/eligibility_masks.json"));
+        for (const auto& mask : absent_masks.at("rows")) {
+            if (mask.at("symbol") == "QQQ" || mask.at("symbol") == "TLT") { continue; }
+            check("unavailable closes remain NA and cannot form a daily observation", !mask.at("daily_close_available").get<bool>() &&
+                mask.at("daily_close_source") == "unavailable" && !mask.at("daily_risk_inputs_ready").get<bool>());
+        }
+        const Json recovery_identity{{"manifest_sha256", "constructed"}, {"required", 3}};
+        auto extra_gap = resolved_readiness.at("remaining_daily_endpoints");
+        extra_gap.at(0)["date"] = "2019-08-13";
+        check("new daily gaps are never implicitly waived", !resolution.permits_missing_closes(extra_gap, recovery_identity));
+        extra_gap = resolved_readiness.at("remaining_daily_endpoints");
+        extra_gap.at(0)["open_available"] = false;
+        check("unavailable opens remain blocking", !resolution.permits_missing_closes(extra_gap, recovery_identity));
+        check("missing source attempts cannot justify a waiver", !resolution.permits_missing_closes(resolved_readiness.at("remaining_daily_endpoints"), Json::object()));
+        auto missing_secondary = resolved_reference;
+        missing_secondary["sources"].erase(missing_secondary["sources"].size() - 1);
+        trading::write_new_text_file(issuer / "missing_secondary.json", missing_secondary.dump());
+        reject("missing secondary event feed cannot assert split coverage", [&] { static_cast<void>(action_reference.reconcile(directory_ / "closing_empty",
+            issuer / "missing_secondary.json", contract, trading::PanelOrigin::synthetic, &resolution)); });
+        const auto reject_secondary = [&](const std::string& label, const std::string& symbol, const Json& payload, const std::string& file) {
+            trading::write_new_text_file(issuer / file, payload.dump());
+            auto invalid = resolved_reference;
+            for (auto& source : invalid["sources"]) {
+                if (source.value("kind", std::string{}) == "secondary_events" && source.at("symbol") == symbol) {
+                    source["file"] = file;
+                    source["sha256"] = trading::sha256_file(issuer / file);
+                }
+            }
+            for (auto& row : invalid["coverage"]) {
+                if (row.at("symbol") != symbol) { continue; }
+                for (auto& source : row["source_files"]) { if (source == symbol + "_events.json") { source = file; } }
+            }
+            const auto reference_file = issuer / (file + ".reference.json");
+            trading::write_new_text_file(reference_file, invalid.dump());
+            reject(label, [&] { static_cast<void>(action_reference.reconcile(directory_ / "closing_empty", reference_file,
+                contract, trading::PanelOrigin::synthetic, &resolution)); });
+        };
+        const auto spy_feed = Json::parse(trading::read_text_file(issuer / "SPY_events.json"));
+        auto invalid_feed = spy_feed;
+        invalid_feed["chart"]["result"][0]["timestamp"].erase(0);
+        reject_secondary("truncated event horizon cannot establish split absence", "SPY", invalid_feed, "truncated_events.json");
+        invalid_feed = spy_feed;
+        invalid_feed["chart"]["result"][0]["meta"]["symbol"] = "QQQ";
+        reject_secondary("another instrument cannot establish split absence", "SPY", invalid_feed, "wrong_symbol_events.json");
+        invalid_feed = spy_feed;
+        invalid_feed["chart"]["result"][0]["events"]["splits"] = {{"example", {{"numerator", 2}, {"denominator", 1}}}};
+        reject_secondary("nonempty split evidence cannot be discarded", "SPY", invalid_feed, "nonempty_splits.json");
+        invalid_feed = Json::parse(trading::read_text_file(issuer / "GLD_events.json"));
+        invalid_feed["chart"]["result"][0]["events"]["dividends"] = {{"example", {{"amount", 0.5}}}};
+        reject_secondary("GLD cash contradictions remain blocking", "GLD", invalid_feed, "gld_cash_events.json");
+        auto wrong_resolution = resolved_actions;
+        wrong_resolution["source_resolution_sha256"] = std::string(64, '0');
+        reject("registration rejects inconsistent source-resolution identities", [&] {
+            static_cast<void>(empty_finalizer.finalize(empty_summary, wrong_resolution, {}, {}, {}, &input_policy, &resolution));
+        });
+
+        auto duplicate_reference = resolved_reference;
+        duplicate_reference["cash_distributions"] = reference.at("cash_distributions");
+        trading::write_new_text_file(issuer / "resolved_duplicates.json", duplicate_reference.dump());
+        const auto duplicate_actions = action_reference.reconcile(directory_ / "diagnosis", issuer / "resolved_duplicates.json", contract,
+            trading::PanelOrigin::synthetic, &resolution);
+        check("duplicate announcements resolve to one issuer cash event", duplicate_actions.at("issuer_reconciled").get<bool>() &&
+            duplicate_actions.at("resolved_provider_cash_conflicts").size() == 2);
+        const auto duplicate_canonical = Json::parse(trading::read_text_file(directory_ / "diagnosis/sealed/accounting_actions.json"));
+        std::size_t qqq_events = 0;
+        for (const auto& row : duplicate_canonical.at("cash_distributions")) {
+            if (row.at("symbol") == "QQQ" && row.at("ex_date") == "2023-06-01") {
+                ++qqq_events;
+                check("duplicate provider records do not double cash income", row.at("usd_per_share").get<double>() == 0.5);
+            }
+        }
+        check("exactly one cash entitlement survives duplicate announcements", qqq_events == 1);
+        auto provider_only = duplicate_reference;
+        provider_only["cash_distributions"].erase(3);
+        trading::write_new_text_file(issuer / "resolved_provider_only.json", provider_only.dump());
+        check("provider-only cash remains blocking under issuer authority", !action_reference.reconcile(directory_ / "complete",
+            issuer / "resolved_provider_only.json", contract, trading::PanelOrigin::synthetic, &resolution).at("issuer_reconciled").get<bool>());
+        resolved_readiness["registration"] = {{"study_manifest_sha256", trading::sha256_file(directory_ / "closing_empty/study_manifest.json")},
+            {"vintage_bridge_sha256", resolved_registered.at("vintage_bridge_sha256")}, {"research_inputs_ready", true},
+            {"strategy_scored", false}, {"reserved_strategy_inputs_opened", false}};
+        const auto resolved_report = trading::HistoricalPanelReport{}.write_readiness(resolved_readiness, directory_ / "reports");
 
         const std::vector<trading::CalendarRange> history_ranges{{"2023-01-01", "2023-01-31"}, {"2023-02-01", "2023-02-01"}};
         const trading::HistoricalPanelDataset history_dataset{directory_ / "history", contract, trading::PanelOrigin::synthetic, history_ranges};
@@ -388,7 +516,7 @@ public:
             {"readiness_reports", {{"complete", std::filesystem::relative(readiness_report, directory_).generic_string()},
                 {"diagnosis", std::filesystem::relative(diagnostic_report, directory_).generic_string()},
                 {"closing", std::filesystem::relative(closing_report, directory_).generic_string()},
-                {"closing_empty", std::filesystem::relative(empty_report, directory_).generic_string()}}},
+                {"closing_empty", std::filesystem::relative(resolved_report, directory_).generic_string()}}},
             {"additional_archives", {"closing", "closing_empty"}},
             {"source_sha256", TRADING_SOURCE_SHA256}, {"protocol_sha256", contract.identity()}};
         trading::write_new_text_file(directory_ / "checks.json", checks.dump(2) + '\n');
