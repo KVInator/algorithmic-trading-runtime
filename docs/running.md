@@ -208,7 +208,13 @@ is needed for these checks.
    takes hours: roughly 50,000 bar pages, with about 10.5 hours of pacing alone.
    Rerunning resumes the same vintage and authenticates earlier pages without
    downloading them again. Leave one writer running; do not run two copies.
-4. After completion, run the independent verifier from the repository root:
+4. Wait for the final `Status: prices_acquired_action_reconciliation_required`
+   and `Visual report` lines. December 2025 price progress alone is not completion:
+   corporate-action collection follows, including a January-March 2026 process-date
+   tail for late-processed events. Completion writes `acquisition_manifest.json`
+   in the dataset root. If that file is absent, resume `panel_acquire.exe` and retain
+   all existing responses. If acquisition stops, retain its final error lines.
+   After completion, run the independent verifier from the repository root:
 
 ```sh
 py -3 -B research/verify_historical_panel.py scratch/datasets/extension_panel_2016_2025

@@ -289,6 +289,12 @@ def main():
             require(result["evidence_origin"] == "synthetic", "Constructed panel origin mismatch")
         print("Verified four constructed panel archives, raw evidence, calendar grids and masks.")
     else:
+        if (directory / "dataset_contract.json").is_file() and not (directory / "acquisition_manifest.json").exists():
+            raise SystemExit(
+                f"Panel acquisition is incomplete: {directory / 'acquisition_manifest.json'} is missing.\n"
+                "Run panel_acquire.exe again to resume saved responses. Wait for its final Status and Visual report "
+                "before running this verifier. Keep the existing dataset directory."
+            )
         verifier = PanelVerifier(directory)
         summary = verifier.verify()
         bundle = verifier.export(summary, directory / "review")
@@ -299,5 +305,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except FileNotFoundError as error:
+        raise SystemExit(f"Panel verification failed: required file not found: {error.filename}") from None
     except (ValueError, KeyError, TypeError, OSError, zipfile.BadZipFile) as error:
         raise SystemExit(f"Panel verification failed: {type(error).__name__}; inspect local evidence.") from None
