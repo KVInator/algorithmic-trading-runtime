@@ -25,6 +25,19 @@ Configuration Properties > Debugging > Command** and select its `.exe`.
 The working directory is the repository root. **Clean Solution** removes only
 that configuration's native outputs; private datasets and run directories remain.
 
+To retain the console after a manual run, use **Debug > Start Without Debugging
+(Ctrl+F5)**. In **Tools > Options > Debugging > General**, clear **Automatically
+close the console when debugging stops**. This is a local Visual Studio setting,
+not a build setting; changing it requires no rebuild. Microsoft's
+[console application guide](https://learn.microsoft.com/en-us/visualstudio/ide/getting-started-with-cpp-in-visual-studio)
+describes console retention and the run shortcuts. Directly opening an executable
+can still close its window at exit. Launching it from an existing PowerShell
+window retains the output in that window, for example:
+
+```powershell
+& .\scratch\native\Release\panel_finalize.exe
+```
+
 For a terminal build, the driver discovers the installed x64 MSVC toolchain:
 
 ```sh
