@@ -2,6 +2,7 @@
 #include "development_study_dataset.hpp"
 #include "historical_panel.hpp"
 #include "panel_input_finalizer.hpp"
+#include "historical_panel_report.hpp"
 #include "risk_input_dataset.hpp"
 #include "session_storage.hpp"
 #include "content_digest.hpp"
@@ -17,18 +18,21 @@ int main() {
         const auto issuer_file = dataset_root / "issuer/reference.json";
         const trading::ConsoleProgress progress;
         progress("Historical panel | issuer reconciliation, vintage bridge and study registration");
-        if (!std::filesystem::exists(issuer_file)) {
-            std::cout << "Status: issuer_reference_required\nRequired file: " << issuer_file.string()
-                << "\nReference schema and primary-source download routes: research/extension_protocol.md\n"
-                << "No strategy was fitted or scored. The acquired archive is preserved.\n";
-            return 2;
-        }
         const trading::HistoricalPanelDataset dataset{dataset_root, contract, trading::PanelOrigin::provider};
         const auto audit = dataset.audit(progress);
         const auto actions = trading::PanelActionReference{}.reconcile(dataset_root, issuer_file, contract, trading::PanelOrigin::provider);
-        if (!actions.at("issuer_reconciled").get<bool>()) {
-            std::cout << "Status: action_discrepancies_require_review\n";
+        const trading::PanelInputFinalizer finalizer{dataset_root, contract, trading::PanelOrigin::provider};
+        progress("Assessing registered gates and development-only gap intervals");
+        const auto readiness = finalizer.assess(audit, actions);
+        const auto report = trading::HistoricalPanelReport{}.write_readiness(readiness, root / "scratch/runs");
+        std::cout << "Readiness summary: " << (report / "summary.json").string()
+            << "\nVisual report: " << (report / "report.html").string() << '\n';
+        if (!readiness.at("input_gates_passed").get<bool>()) {
+            std::cout << "Status: input_limited; registration not attempted\nQualified development years: "
+                << readiness.at("qualified_development_years") << " / " << readiness.at("minimum_development_years")
+                << "\nMissing daily endpoints: " << readiness.at("missing_daily_endpoints").size() << '\n';
             for (const auto& item : actions.at("blockers")) { std::cout << item.get<std::string>() << '\n'; }
+            std::cout << "Exit 2 denotes unresolved input prerequisites. No strategy was fitted or scored.\n";
             return 2;
         }
         const auto legacy = trading::DevelopmentStudyDataset{root}.load(progress);
@@ -36,7 +40,7 @@ int main() {
         const auto risk = trading::RiskInputDataset{risk_root, root / "research/spy_distribution_reference.json"}.load();
         std::vector<trading::SessionDownload> calibration;
         for (const auto& input : risk.prices) { calibration.push_back(trading::load_session_download(input.directory, input.input.request)); }
-        const auto result = trading::PanelInputFinalizer{dataset_root, contract, trading::PanelOrigin::provider}.finalize(
+        const auto result = finalizer.finalize(
             audit, actions, legacy, calibration, trading::sha256_file(risk_root / "acquisition_manifest.json"));
         std::cout << "Status: registered_inputs_ready\nStudy manifest: " << (dataset_root / "study_manifest.json").string()
             << "\nReserved strategy inputs opened: " << result.at("reserved_strategy_inputs_opened")

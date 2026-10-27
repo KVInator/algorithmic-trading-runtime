@@ -238,12 +238,37 @@ completeness or GLD's history from a dividend table. The initial reference is
 therefore intentionally incomplete, with its unresolved declarations visible.
 Do not mark coverage complete without supporting whole-horizon source evidence.
 
-Once those sources have been reconciled, select `$(OutDir)panel_finalize.exe`.
-It authenticates the panel, issuer evidence and original registered 496-session
-SPY dataset before writing `study_manifest.json`, masks and the source-vintage
-bridge. Exit 2 means an expected unresolved prerequisite; exit 1 indicates a
-verification/software failure. Neither is permission to score. The acquisition
-manifest alone always retains `research_inputs_ready=false`.
+After source preparation, select `$(OutDir)panel_finalize.exe` and run with
+**Ctrl+F5**. It uses saved responses without network requests. Before attempting
+registration it writes `scratch/runs/panel_readiness_<suffix>/summary.json` and
+`report.html`, even when an issuer reference is absent or incomplete. These
+contain all coverage/daily-mark gates, contiguous pre-2024 missing intervals,
+all incomplete issuer coverage declarations and pre-2024 cash discrepancies.
+They contain no bar prices or detailed reserved-year gaps. Missing-interval
+causes remain undetermined; no bars or payments are invented.
+The provider's [bar-construction rules](https://docs.alpaca.markets/us/docs/market-data-faq)
+allow an absent bar when there are no trades or no trades eligible to update
+prices. Coverage flags alone do not distinguish those cases from missing data.
+
+Verify the readiness coverage/gap calculations and create its review ZIP:
+
+```sh
+py -3 -B research/verify_historical_panel.py scratch/datasets/extension_panel_2016_2025 --readiness scratch/runs/panel_readiness_0
+```
+
+Use the actual printed readiness suffix. **Share the readiness directory's
+`review.zip`; raw responses and issuer source files stay local.** This ZIP has
+two files, `summary.json` and `report.html`. The independent oracle reproduces
+annual coverage, endpoint gates and exact missing intervals. It does not claim
+independent issuer reconciliation; native contracts check the source-comparison
+logic, and unresolved economic records still require source review.
+
+`Status: input_limited` and exit 2 denote expected unresolved prerequisites.
+They are not a completed study registration. Exit 1 indicates invalid evidence
+or a software failure. If all input gates pass, the finalizer then authenticates
+the original SPY snapshot and writes the vintage bridge, masks and study
+manifest. Readiness assessment alone cannot publish those records. The
+acquisition manifest always retains `research_inputs_ready=false`.
 
 The controlled precision design can be reproduced independently:
 

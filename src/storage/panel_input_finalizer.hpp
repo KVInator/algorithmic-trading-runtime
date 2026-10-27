@@ -17,6 +17,10 @@ public:
 class PanelInputFinalizer {
 public:
     PanelInputFinalizer(std::filesystem::path dataset, ExtensionStudyContract contract, PanelOrigin origin);
+    // Diagnose every input gate before registration. Detailed gap times and cash
+    // discrepancies are restricted to development; no strategy is evaluated.
+    [[nodiscard]] nlohmann::json assess(const nlohmann::json& audited_panel,
+        const nlohmann::json& action_assessment) const;
     // The caller first authenticates the legacy snapshot with its original loader.
     // Publication is immutable and occurs only after all prerequisite checks pass.
     [[nodiscard]] nlohmann::json finalize(const nlohmann::json& audited_panel,

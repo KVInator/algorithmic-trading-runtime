@@ -87,6 +87,7 @@ class PanelIssuerPreparation:
         sources = IssuerSources(self.directory)
         records, distributions, coverage = [], [], []
         for symbol in ("SPY", "QQQ", "IWM", "TLT"):
+            print(f"{symbol}: authenticating issuer source; existing cached files are retained.", flush=True)
             record = sources.collect(symbol)
             records.append(record)
             source = self.directory / record["file"]

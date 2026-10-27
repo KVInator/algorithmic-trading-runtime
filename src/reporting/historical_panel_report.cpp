@@ -6,6 +6,32 @@
 #include <sstream>
 
 namespace trading {
+std::filesystem::path HistoricalPanelReport::write_readiness(const nlohmann::json& assessment,
+    const std::filesystem::path& run_root) const {
+    const auto directory = create_unique_directory(run_root, "panel_readiness");
+    std::ostringstream html;
+    html << "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+        << "<title>Panel input readiness</title><style>body{font:16px/1.5 system-ui;margin:32px;color:#16334a}"
+        << "main{max-width:1100px;margin:auto}table{border-collapse:collapse;width:100%}th,td{padding:9px;text-align:left;border-bottom:1px solid #ccd5dc}"
+        << "pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f0f4f7;padding:18px}</style><main><h1>Panel input readiness</h1>"
+        << "<p>The registered protocol is unchanged. No strategy was fitted or scored. Detailed missing intervals and cash discrepancies "
+        << "cover development inputs only. Missing bars have undetermined cause; none are imputed.</p>"
+        << "<p>Qualified development years: " << assessment.at("qualified_development_years") << " / required "
+        << assessment.at("minimum_development_years") << ". Missing daily endpoints: " << assessment.at("missing_daily_endpoints").size()
+        << ". Issuer actions reconciled: " << assessment.at("actions").at("issuer_reconciled") << ".</p>"
+        << "<table><tr><th>Year</th><th>Common dates</th><th>Regular dates</th><th>Qualifies</th></tr>";
+    for (const auto& year : assessment.at("development_years")) {
+        html << "<tr><td>" << ReportText{year.at("year").get<std::string>()}.html() << "</td><td>" << year.at("common_dates")
+            << "</td><td>" << year.at("regular_dates") << "</td><td>" << year.at("qualifies") << "</td></tr>";
+    }
+    html << "</table><h2>Retained evidence</h2><p>Daily endpoint flags contain no prices. Cash amounts, where present, "
+        << "describe pre-2024 distribution discrepancies, not trading results. Vintage comparison is still a separate gate.</p><pre>"
+        << ReportText{assessment.dump(2)}.html() << "</pre><p><a href=\"summary.json\">Readiness evidence</a></p></main></html>";
+    write_new_text_file(directory / "summary.json", assessment.dump(2) + '\n');
+    write_new_text_file(directory / "report.html", html.str());
+    return directory;
+}
+
 std::filesystem::path HistoricalPanelReport::write(const nlohmann::json& summary, const std::filesystem::path& run_root) const {
     const auto directory = create_unique_directory(run_root, "historical_panel");
     std::ostringstream csv, html;

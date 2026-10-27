@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 import hashlib
 import io
@@ -39,6 +39,7 @@ class PanelVerifier:
     def __init__(self, directory: Path):
         self.directory = directory.resolve()
         self.response_files: set[str] = set()
+        self.development_gap_intervals: list[dict] = []
 
     @staticmethod
     def digest(path: Path) -> str:
@@ -187,6 +188,18 @@ class PanelVerifier:
         missing = [at for at in grid if at not in observed]
         require([timestamp_ns(t) for t in record["missing_minutes_utc"]] == missing, "Panel missing-minute mask mismatch")
         regular = day["close"] == "16:00"
+        if day["date"] < "2024":
+            runs = []
+            for at in missing:
+                if not runs or at != runs[-1][-1] + 60 * 10**9:
+                    runs.append([])
+                runs[-1].append(at)
+            for run in runs:
+                def clock(ns):
+                    return datetime.fromtimestamp(ns // 10**9, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                self.development_gap_intervals.append({"symbol": symbol, "date": day["date"], "regular": regular,
+                    "start_utc": clock(run[0]), "end_exclusive_utc": clock(run[-1] + 60 * 10**9),
+                    "missing_minutes": len(run), "cause": "undetermined"})
         diagnostic = symbol == "SPY" and day["date"] == "2023-01-03"
         expected = {"symbol": symbol, "date": day["date"], "regular": regular, "expected_minutes": len(grid),
                     "observed_minutes": len(observations), "missing_minutes": len(missing), "open_available": opening in observed,
@@ -245,6 +258,59 @@ class PanelVerifier:
         require(record.get("unsupported_types", []) == unsupported and record["issuer_reconciled"] is False, "Panel unsupported action policy mismatch")
         return {k: v for k, v in record.items() if k != "pages"}
 
+    def verify_readiness(self, summary: dict, directory: Path) -> Path:
+        assessment = self.load(directory / "summary.json")
+        require(assessment["kind"] == "historical_panel_readiness" and assessment["schema_version"] == 1, "Readiness schema mismatch")
+        for field in ("protocol_sha256", "acquisition_manifest_sha256", "evidence_origin"):
+            require(assessment[field] == summary[field], "Readiness provenance mismatch")
+        for field in ("research_inputs_ready", "strategy_scored", "reserved_strategy_inputs_opened", "vintage_bridge_verified"):
+            require(assessment[field] is False, "Readiness report makes a premature completion claim")
+        contract = self.load(Path(__file__).resolve().parent / "extension_protocol.json")
+        rules = contract["eligibility"]
+        rows = summary["coverage"]
+        years = []
+        for year in sorted({r["date"][:4] for r in rows if contract["archive"]["initialization_last"] < r["date"] <= contract["archive"]["development_last"]}):
+            regular = [r for r in rows if r["date"].startswith(year) and r["symbol"] == "SPY" and r["regular"]]
+            if not regular:
+                continue
+            common = sum(r["common_intraday_eligible"] for r in regular)
+            fraction = Decimal(common) / len(regular)
+            qualifies = common >= rules["minimum_common_development_dates_per_qualified_year"] and fraction >= rules["minimum_common_development_calendar_coverage"]
+            years.append(dict(year=year, common_dates=common, regular_dates=len(regular), coverage_fraction=fraction, qualifies=qualifies))
+        require(len(assessment["development_years"]) == len(years), "Readiness year count mismatch")
+        for actual, expected in zip(assessment["development_years"], years):
+            for key, value in expected.items():
+                require(abs(actual[key] - value) < Decimal("1e-15") if key == "coverage_fraction" else actual[key] == value, "Readiness annual coverage mismatch")
+        endpoints = [{k: row[k] for k in ("symbol", "date", "open_available", "close_available")}
+                     for row in rows if not row["open_available"] or not row["close_available"]]
+        qualified = sum(y["qualifies"] for y in years)
+        applies = summary["evidence_origin"] == "provider"
+        passes = not endpoints and (not applies or qualified >= rules["minimum_scored_years"])
+        require(assessment["missing_daily_endpoints"] == endpoints and assessment["qualified_development_years"] == qualified, "Readiness endpoint/year gate mismatch")
+        require(assessment["minimum_development_years"] == rules["minimum_scored_years"] and assessment["year_gate_applies"] == applies, "Readiness threshold mismatch")
+        require(assessment["coverage_gates_passed"] == passes, "Readiness coverage decision mismatch")
+        require(assessment["development_gap_intervals"] == self.development_gap_intervals, "Readiness gap intervals differ from authenticated bars")
+        require(assessment["reserved_gapped_symbol_days_details_omitted"] == sum(r["reserved"] and r["missing_minutes"] > 0 for r in rows), "Readiness reserved gap count mismatch")
+        actions = assessment["actions"]
+        for comparison in actions.get("development_cash_discrepancies", []):
+            require(comparison["symbol_ex_date"].split("/")[1] < "2024-01-01", "Reserved cash detail leaked into readiness review")
+        require(assessment["input_gates_passed"] == (passes and actions["issuer_reconciled"]), "Readiness combined gate mismatch")
+        # Cash reconciliation is checked by the native contracts; this oracle
+        # independently reproduces coverage/gaps and verifies the export boundary.
+        report = directory / "report.html"
+        require(report.is_file() and report.stat().st_size <= 16 * 1024 * 1024, "Readiness HTML missing or oversized")
+        archive = directory / "review.zip"
+        if not archive.exists():
+            with zipfile.ZipFile(archive, "x", compression=zipfile.ZIP_DEFLATED) as stream:
+                for name in ("summary.json", "report.html"):
+                    stream.write(directory / name, name)
+        else:
+            with zipfile.ZipFile(archive) as stream:
+                require(stream.namelist() == ["summary.json", "report.html"], "Readiness ZIP contains unexpected files")
+                for name in stream.namelist():
+                    require(stream.read(name) == (directory / name).read_bytes(), "Existing readiness ZIP differs")
+        return archive
+
     def export(self, summary, directory: Path):
         directory.mkdir(parents=True, exist_ok=True)
         text = json.dumps(summary, indent=2, default=str) + "\n"
@@ -281,13 +347,18 @@ class PanelVerifier:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
+    parser.add_argument("--readiness", type=Path, help="Verify native readiness coverage/gaps and bundle its summary and HTML")
     args = parser.parse_args()
     directory = args.directory.resolve()
     if (directory / "checks.json").exists():
-        for child in ("complete", "interrupted", "outage", "history"):
-            result = PanelVerifier(directory / child).verify()
+        checks = PanelVerifier.load(directory / "checks.json")
+        for child in ("complete", "interrupted", "outage", "history", *(["diagnosis"] if "readiness_reports" in checks else [])):
+            verifier = PanelVerifier(directory / child)
+            result = verifier.verify()
             require(result["evidence_origin"] == "synthetic", "Constructed panel origin mismatch")
-        print("Verified four constructed panel archives, raw evidence, calendar grids and masks.")
+            if child in checks.get("readiness_reports", {}):
+                verifier.verify_readiness(result, directory / checks["readiness_reports"][child])
+        print("Verified constructed panel archives, raw evidence, calendar grids, masks and available readiness reports.")
     else:
         if (directory / "dataset_contract.json").is_file() and not (directory / "acquisition_manifest.json").exists():
             raise SystemExit(
@@ -300,6 +371,9 @@ def main():
         bundle = verifier.export(summary, directory / "review")
         print(f"Panel archive verified: {summary['response_attempts_verified']} retained HTTP attempts.")
         print(f"Share only: {bundle}")
+        if args.readiness:
+            bundle = verifier.verify_readiness(summary, args.readiness.resolve())
+            print(f"Readiness coverage and gap checks passed. Share readiness evidence: {bundle}")
 
 
 if __name__ == "__main__":

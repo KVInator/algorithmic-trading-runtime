@@ -435,6 +435,26 @@ strategy evaluation. The original-SPY vintage bridge is still pending.
 Reserved-year review used coverage metadata only; no prices, fitted models,
 returns or spread estimates were inspected.
 
+The readiness workflow now reports every source-coverage declaration alongside
+coverage gates and actual pre-2024 gap intervals. Incomplete split coverage no
+longer prevents cash amount/date comparisons from being reported. Duplicate
+provider records remain explicit discrepancies and cannot publish canonical
+income. Detailed reserved gaps and reserved cash discrepancy amounts are
+excluded from the review export. No eligibility rule or pinned protocol was
+changed. [Run instructions](running.md#extension-panel-acquisition-and-registration)
+describe the free source preparation and existing finalizer entry point.
+
+The implementation checkpoint built all 16 Linux Release applications with
+GNU 13.3.0 and warnings as errors. All 105 native panel checks passed, including
+missing references, grouped gaps, duplicate cash actions and blocked registration.
+The independent oracle verified five constructed archives and both readiness
+reports, including exact gap intervals; four altered-report cases were rejected.
+The source inventory is
+`cc8bf7d8edf338e87fda49b3e2beaccf0ef42ad04dffedcacfb795a4e3ed750a`.
+This verifies the software, not the outstanding provider discrepancies. The
+private Windows archive must produce the detailed readiness report before
+source resolutions or an eligibility amendment can be assessed.
+
 | Evidence identity | SHA-256 |
 | --- | --- |
 | Registered extension protocol | `269d6e677a3e62a21ede6e88659edb2f7a998bfe0137e62b13458e411f0c55ee` |

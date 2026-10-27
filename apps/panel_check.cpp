@@ -11,6 +11,7 @@
 #include <array>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 
 namespace {
 using Json = nlohmann::json;
@@ -40,6 +41,9 @@ public:
                 for (std::size_t i = 0; i < request.expected_minutes(); ++i) {
                     const auto day = trading::format_utc_seconds(request.start()).substr(0, 10);
                     if (request.symbol() == "GLD" && day == "2023-01-03" && i == 10) { continue; }
+                    if (diagnostic_faults && ((request.symbol() == "GLD" && day == "2023-01-03" && (i == 11 || i == 12 || i == 20)) ||
+                        (request.symbol() == "SPY" && day == "2023-01-03" && i == 389) ||
+                        (request.symbol() == "GLD" && day == "2025-01-02" && i == 15))) { continue; }
                     const auto at = request.start() + std::chrono::minutes{static_cast<int>(i)};
                     all.push_back({{"t", trading::format_utc_seconds(at)}, {"o", 100}, {"h", 101}, {"l", 99}, {"c", 100.5}, {"v", 1000}});
                 }
@@ -57,12 +61,18 @@ public:
                     rows.push_back({{"id", request.symbol() + year}, {"symbol", request.symbol()}, {"process_date", year + "-06-01"},
                         {"ex_date", year + "-06-01"}, {"record_date", year + "-06-02"}, {"payable_date", year + "-06-10"}, {"rate", 0.5}});
                     if (year == "2022") { rows.at(0).erase("record_date"); rows.at(0).erase("payable_date"); }
+                    if (diagnostic_faults && request.symbol() == "QQQ" && year == "2023") {
+                        auto duplicate = rows.at(0);
+                        duplicate["id"] = "QQQ2023second";
+                        duplicate["payable_date"] = "2023-06-11";
+                        rows.push_back(std::move(duplicate));
+                    }
                 }
                 return trading::MarketDataResponse{200, Json{{"corporate_actions", {{"cash_dividends", rows}}}, {"next_page_token", nullptr}}.dump()};
             }};
     }
     std::size_t calls{}, bar_calls{}, interrupt_at{};
-    bool deny{}, transient{}, always_transient{}, retried{}, bad_calendar{};
+    bool deny{}, transient{}, always_transient{}, retried{}, bad_calendar{}, diagnostic_faults{};
 };
 
 class PanelChecks {
@@ -164,9 +174,13 @@ public:
             trading::PanelOrigin::synthetic).at("issuer_reconciled").get<bool>());
         auto incomplete = reference;
         incomplete["coverage"][0]["splits_complete"] = false;
+        incomplete["coverage"][1]["splits_complete"] = false;
+        incomplete["cash_distributions"][0]["usd_per_share"] = 0.6;
         trading::write_new_text_file(issuer / "incomplete.json", incomplete.dump(2) + '\n');
-        check("cash history does not establish split completeness", !action_reference.reconcile(directory_ / "complete", issuer / "incomplete.json", contract,
-            trading::PanelOrigin::synthetic).at("issuer_reconciled").get<bool>());
+        const auto incomplete_actions = action_reference.reconcile(directory_ / "complete", issuer / "incomplete.json", contract, trading::PanelOrigin::synthetic);
+        check("cash history does not establish split completeness", !incomplete_actions.at("issuer_reconciled").get<bool>());
+        check("incomplete coverage reports all symbols and amount contradictions", incomplete_actions.at("blockers").size() == 3 &&
+            incomplete_actions.at("source_coverage").size() == 5 && incomplete_actions.at("development_cash_discrepancies").size() == 1);
         auto bad_source = reference;
         bad_source["sources"][0]["sha256"] = std::string(64, '0');
         trading::write_new_text_file(issuer / "bad_source.json", bad_source.dump(2) + '\n');
@@ -175,11 +189,51 @@ public:
         legacy.manifest_sha256 = "constructed_legacy_fixture";
         legacy.sessions.push_back(dataset.load_development_session("SPY", "2023-01-03", acquisition_sha));
         const trading::PanelInputFinalizer finalizer{directory_ / "complete", contract, trading::PanelOrigin::synthetic};
+        const auto missing_reference = finalizer.assess(summary, action_reference.reconcile(directory_ / "complete",
+            issuer / "absent.json", contract, trading::PanelOrigin::synthetic));
+        check("absent issuer reference still reports price gaps", !missing_reference.at("input_gates_passed").get<bool>() &&
+            missing_reference.at("development_gap_intervals").size() == 1);
+        const auto readiness = finalizer.assess(summary, incomplete_actions);
+        check("assessment does not turn incomplete actions into ready inputs", !readiness.at("input_gates_passed").get<bool>() && !readiness.at("research_inputs_ready").get<bool>());
+        check("single missing minute has exact half-open interval", readiness.at("development_gap_intervals").size() == 1 &&
+            readiness.at("development_gap_intervals").at(0).at("start_utc").get<std::string>() == "2023-01-03T14:40:00Z" &&
+            readiness.at("development_gap_intervals").at(0).at("end_exclusive_utc").get<std::string>() == "2023-01-03T14:41:00Z");
+        const auto readiness_report = trading::HistoricalPanelReport{}.write_readiness(readiness, directory_ / "reports");
+        check("readiness report contains structured evidence and HTML", std::filesystem::exists(readiness_report / "summary.json") && std::filesystem::exists(readiness_report / "report.html"));
+        auto wrong_identity = summary;
+        wrong_identity["acquisition_manifest_sha256"] = std::string(64, '0');
+        reject("assessment rejects a different acquisition identity", [&] { static_cast<void>(finalizer.assess(wrong_identity, action_result)); });
         const auto registered = finalizer.finalize(summary, action_result, legacy);
         check("study manifest published only after prerequisites", registered.at("research_inputs_ready").get<bool>() && !registered.at("strategy_scored").get<bool>());
         check("reserved prices remain closed after registration", !registered.at("reserved_strategy_inputs_opened").get<bool>());
         check("registration is idempotent", finalizer.finalize(summary, action_result, legacy) == registered);
         reject("unreconciled actions cannot register inputs", [&] { static_cast<void>(finalizer.finalize(summary, Json{{"issuer_reconciled", false}}, legacy)); });
+
+        PanelFixture diagnostic_fixture;
+        diagnostic_fixture.diagnostic_faults = true;
+        const trading::HistoricalPanelDataset diagnostic_dataset{directory_ / "diagnosis", contract, trading::PanelOrigin::synthetic, ranges};
+        const auto diagnostic_summary = diagnostic_dataset.collect(diagnostic_fixture.fetchers(), no_wait);
+        auto diagnostic_reference = incomplete;
+        diagnostic_reference["cash_distributions"][2]["usd_per_share"] = 0.7;
+        trading::write_new_text_file(issuer / "diagnostic.json", diagnostic_reference.dump(2) + '\n');
+        const auto diagnostic_actions = action_reference.reconcile(directory_ / "diagnosis", issuer / "diagnostic.json", contract, trading::PanelOrigin::synthetic);
+        const trading::PanelInputFinalizer diagnostic_finalizer{directory_ / "diagnosis", contract, trading::PanelOrigin::synthetic};
+        const auto diagnostic = diagnostic_finalizer.assess(diagnostic_summary, diagnostic_actions);
+        check("daily endpoint gap is reported alongside action blockers", diagnostic.at("missing_daily_endpoints").size() == 1 && diagnostic.at("actions").at("blockers").size() > 3);
+        check("contiguous missing minutes merge without bridging a valid minute", diagnostic.at("development_gap_intervals").size() == 3 &&
+            diagnostic.at("development_gap_intervals").at(1).at("missing_minutes").get<int>() == 3 &&
+            diagnostic.at("development_gap_intervals").at(2).at("missing_minutes").get<int>() == 1);
+        check("reserved gap details stay omitted", diagnostic.at("reserved_gapped_symbol_days_details_omitted").get<int>() == 1 &&
+            std::all_of(diagnostic.at("development_gap_intervals").begin(), diagnostic.at("development_gap_intervals").end(),
+                [](const auto& gap) { return gap.at("date").template get<std::string>() < "2024"; }));
+        check("duplicate action cash is retained as a discrepancy", diagnostic_actions.at("development_cash_discrepancies").size() == 2 &&
+            diagnostic_actions.at("development_cash_discrepancies").at(0).at("provider_records").size() == 2);
+        check("reserved action amounts stay omitted", std::all_of(diagnostic_actions.at("development_cash_discrepancies").begin(), diagnostic_actions.at("development_cash_discrepancies").end(),
+            [](const auto& comparison) { return comparison.at("symbol_ex_date").template get<std::string>().substr(4) < "2024"; }));
+        check("blocked reconciliation cannot publish canonical actions", !std::filesystem::exists(directory_ / "diagnosis/sealed/accounting_actions.json"));
+        reject("daily endpoint gaps block registration with otherwise reconciled actions", [&] { static_cast<void>(diagnostic_finalizer.finalize(diagnostic_summary, action_result, legacy)); });
+        check("assessment cannot publish the study manifest", !std::filesystem::exists(directory_ / "diagnosis/study_manifest.json"));
+        const auto diagnostic_report = trading::HistoricalPanelReport{}.write_readiness(diagnostic, directory_ / "reports");
 
         const std::vector<trading::CalendarRange> history_ranges{{"2023-01-01", "2023-01-31"}, {"2023-02-01", "2023-02-01"}};
         const trading::HistoricalPanelDataset history_dataset{directory_ / "history", contract, trading::PanelOrigin::synthetic, history_ranges};
@@ -248,6 +302,8 @@ public:
         trading::write_new_text_file(changed, bytes);
         reject("altered raw attempt rejected", [&] { static_cast<void>(retry.audit()); });
         const Json checks{{"evidence_origin", "synthetic"}, {"network_requests", 0}, {"checks", labels_},
+            {"readiness_reports", {{"complete", std::filesystem::relative(readiness_report, directory_).generic_string()},
+                {"diagnosis", std::filesystem::relative(diagnostic_report, directory_).generic_string()}}},
             {"source_sha256", TRADING_SOURCE_SHA256}, {"protocol_sha256", contract.identity()}};
         trading::write_new_text_file(directory_ / "checks.json", checks.dump(2) + '\n');
         std::cout << "Historical panel | constructed acquisition, masks and access controls\nChecks passed: " << labels_.size()
