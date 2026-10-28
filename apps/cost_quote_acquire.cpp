@@ -9,10 +9,20 @@
 #endif
 int main(int argc, char **argv) {
     try {
-        if (argc > 2) {
-            throw std::invalid_argument("usage: cost_quote_acquire [new-or-existing-quote-directory]");
-        }
         const std::filesystem::path root{TRADING_PROJECT_ROOT};
+        if (argc == 3 && std::string{argv[1]} == "--render") {
+            const auto output = trading::create_unique_directory(root / "scratch/runs", "cost_quotes_view");
+            trading::CostQuoteReport{}.render_existing(output, std::filesystem::path{argv[2]});
+            std::cout << "M6 | saved quote report rendered; network requests sent: 0\n"
+                      << "Original summary bytes preserved.\nVisual report: "
+                      << (output / "report.html").string()
+                      << "\nManifest: " << (output / "summary.json").string() << '\n';
+            return 0;
+        }
+        if (argc > 2 || (argc == 2 && std::string{argv[1]} == "--render")) {
+            throw std::invalid_argument(
+                "usage: cost_quote_acquire [quote-directory] | --render summary.json");
+        }
         const trading::ConsoleProgress progress;
         progress("M6 | fixed pre-2024 SIP quote windows; no strategy scoring");
         const auto plan =

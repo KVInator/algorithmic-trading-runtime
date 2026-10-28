@@ -500,3 +500,20 @@ Set Command Arguments first to
 `/d /s /k ""$(OutDir)cost_execution_check.exe""`, then to
 `/d /s /k ""$(OutDir)cost_quote_acquire.exe""` for the provider acquisition.
 Neither command requires changing the solution or restoring CMake/CTest.
+
+To regenerate the plots from an existing acquisition summary, use the rendering
+mode after pulling and building the updated application:
+
+```powershell
+& .\scratch\native\Release\cost_quote_acquire.exe --render scratch/runs/cost_quotes_0/summary.json
+py -3 -B research/verify_cost_quotes.py scratch/runs/cost_quotes_view_0 --report-only
+```
+
+Open the printed `report.html` in a browser. This mode creates a new
+`cost_quotes_view_<suffix>` directory and preserves the original summary bytes.
+It performs zero requests and does not load credentials or the raw archive.
+Use the actual printed suffix. Static coverage/status plots and the initial
+spread detail remain visible when scripts are disabled. Enabled scripts allow
+switching between the pre-rendered instrument/year views; empty groups show
+an explicit unavailable message. `--report-only` verifies saved arithmetic and
+displayed marks; omit that flag for the full local raw-response verification.

@@ -167,7 +167,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
-| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: contract and quote-acquisition checkpoint implemented; historical acquisition and cost/account/execution comparisons remain open |
+| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: Windows quote input checkpoint accepted with 232/910 eligible windows; cost/account/execution comparisons remain open |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
@@ -796,8 +796,10 @@ quote windows, complete pagination or explicit page-cap failure, authenticated
 resume and latest-record eligibility. The existing panel raw-response archive
 is reused without changing its artifact format. Constructed cases exercise
 pagination, denial, retries, interruptions, invalid geometry, nanosecond clocks,
-conflicting duplicates and tampered evidence. Windows/provider acceptance is
-pending; synthetic fixtures do not establish historical access or spreads.
+conflicting duplicates and tampered evidence. Windows/provider input acceptance
+completed on 28 October 2026: 1,322 retained HTTP responses, 232 eligible windows,
+all in 2022-2023. The [acceptance and coverage record](cost_execution.md#windows-quote-acceptance-and-coverage)
+retains the original artifact identities and the limits of compact review.
 
 Historical cost/delay outcomes, quote-reference comparisons, continuous daily-risk
 accounts and the 680 synthetic execution evaluations remain to be implemented.

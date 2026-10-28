@@ -49,9 +49,11 @@ Independent review verified the broker history, client attribution and peer call
 **M6 is in progress:** the [cost and execution contract](docs/cost_execution.md)
 registers the cost/delay comparisons and 680 synthetic execution cases. Its
 first checkpoint provides a resumable, fully paginated sample of 910 pre-2024
-SIP quote windows selected from input masks. Constructed acquisition checks
-pass; provider acquisition, execution evaluation and continuous daily-risk
-accounts remain open. Registered synthetic cases are not executed results.
+SIP quote windows selected from input masks. Windows acquisition retained 1,322
+responses; 232 windows pass the fixed eligibility rule, all in 2022-2023.
+The report shows static coverage/spread plots and explicit unavailable groups.
+Cost/account comparisons and synthetic execution evaluation remain open.
+Registered synthetic cases are not executed results.
 
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
 until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)

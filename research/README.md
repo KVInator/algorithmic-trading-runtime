@@ -74,6 +74,9 @@ quote sample, synthetic execution matrix and continuous-account missing-price
 rule. `verify_cost_quotes.py` authenticates every retained response and page
 continuation, reconstructs the fixed sample from the accepted input masks,
 and independently checks latest-quote eligibility, units, age and spreads.
+It also verifies the static report's coverage cells, status bars, scatter
+coordinates and complete window tables. `--report-only` checks those saved
+representations without accessing or authenticating the raw response archive.
 The [M6 implementation note](../docs/cost_execution.md) distinguishes the
 completed acquisition checkpoint from the account and execution comparisons
 that remain to be implemented. No M6 economic result is available yet.

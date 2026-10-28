@@ -3,6 +3,7 @@
 import argparse
 from collections import Counter
 from decimal import Decimal
+from html.parser import HTMLParser
 import hashlib
 import json
 from pathlib import Path
@@ -84,6 +85,186 @@ def classify(quote, instant):
         spread = 20000 * (ask - bid) / (ask + bid)
         result.update(spread_bps=spread, half_spread_bps=spread / 2)
     return result
+
+
+class ReportMarkup(HTMLParser):
+    """Read static marks and tables without executing presentation JavaScript."""
+
+    def __init__(self, html):
+        super().__init__()
+        self.version = None
+        self.svg = None
+        self.article = None
+        self.coverage, self.statuses, self.panels, self.plots, self.table = {}, {}, {}, {}, {}
+        self.row, self.cell = None, None
+        self.feed(html)
+
+    def handle_starttag(self, tag, pairs):
+        a = dict(pairs)
+        if tag == "meta" and a.get("name") == "quote-report-version":
+            self.version = a.get("content")
+        if tag == "svg":
+            self.svg = a.get("id")
+            if self.svg and self.svg.startswith("spread-"):
+                self.plots[self.svg[7:]] = dict(limit=float(a["data-ymax"]), points={})
+        if tag == "article" and a.get("class") == "sample-detail":
+            self.article = a["data-key"]
+            require(self.article not in self.panels, "Duplicate static detail")
+            self.panels[self.article] = "hidden" in a
+        if tag == "g" and self.svg == "coverage-chart" and "data-symbol" in a:
+            key = (a["data-symbol"], a["data-year"])
+            require(key not in self.coverage, "Duplicate coverage cell")
+            self.coverage[key] = (int(a["data-eligible"]), int(a["data-total"]))
+        if tag == "rect" and self.svg == "status-chart" and "data-status" in a:
+            require(a["data-status"] not in self.statuses, "Duplicate status bar")
+            self.statuses[a["data-status"]] = (int(a["data-count"]), float(a["width"]))
+        if tag == "circle" and self.svg and self.svg.startswith("spread-"):
+            points = self.plots[self.svg[7:]]["points"]
+            require(a["data-window-id"] not in points, "Duplicate spread mark")
+            points[a["data-window-id"]] = (float(a["cx"]), float(a["cy"]))
+        if tag == "tr" and "data-window-id" in a:
+            self.row = a["data-window-id"]
+            require(self.row not in self.table, "Duplicate displayed window")
+            self.table[self.row] = []
+        if tag == "td" and self.row is not None:
+            self.cell = []
+
+    def handle_data(self, value):
+        if self.cell is not None:
+            self.cell.append(value)
+
+    def handle_endtag(self, tag):
+        if tag == "td" and self.cell is not None:
+            self.table[self.row].append("".join(self.cell))
+            self.cell = None
+        if tag == "tr":
+            self.row = None
+        if tag == "svg":
+            self.svg = None
+        if tag == "article":
+            self.article = None
+
+
+class ReportVerifier:
+    """Check saved-report representation; this does not authenticate raw HTTP."""
+
+    def __init__(self, run):
+        self.run = Path(run)
+        self.summary = json.loads((self.run / "summary.json").read_text(encoding="utf-8"))
+
+    def verify(self):
+        s = self.summary
+        require(s["kind"] == "cost_quote_sample" and s["policy_sha256"] == POLICY, "Report contract differs")
+        rows = s["windows"]
+        counts = Counter(r["status"] for r in rows)
+        require(dict(counts) == s["status_counts"], "Saved coverage differs")
+        require(len({r["id"] for r in rows}) == len(rows), "Duplicate saved window")
+        for row in rows:
+            if row["status"] != "eligible":
+                continue
+            m = row["measurement"]
+            require(
+                0 < m["bid_units"] < m["ask_units"] and min(m["bid_shares"], m["ask_shares"]) > 0,
+                "Saved eligible geometry differs",
+            )
+            spread = 20000 * (m["ask_units"] - m["bid_units"]) / (m["ask_units"] + m["bid_units"])
+            require(
+                abs(m["spread_bps"] - spread) <= 1e-12 * max(1, spread)
+                and abs(m["half_spread_bps"] - spread / 2) <= 1e-12 * max(1, spread),
+                "Saved spread arithmetic differs",
+            )
+            require(
+                m["age_nanoseconds"] == timestamp_ns(row["end"]) - timestamp_ns(m["source_timestamp"]),
+                "Saved quote age differs",
+            )
+        html = (self.run / "report.html").read_text(encoding="utf-8")
+        embedded = re.search(r"const data=(\{.*?\});\s*const symbol=", html, re.S)
+        require(embedded is not None and json.loads(embedded[1]) == s, "Displayed quote records differ")
+        markup = ReportMarkup(html)
+        if markup.version is None:
+            return len(rows), counts["eligible"], False
+        require(markup.version == "2", "Unknown quote report version")
+        expected = {}
+        ordered = []
+        for symbol in s["plan"]["symbols"]:
+            for d in s["plan"]["sample_dates"]:
+                year = d[:4]
+                selected = [r for r in rows if r["symbol"] == symbol and r["date"].startswith(year)]
+                expected[(symbol, year)] = (sum(r["status"] == "eligible" for r in selected), len(selected))
+                ordered.append((symbol + "-" + year, selected))
+        require(markup.coverage == expected, "Static coverage heatmap differs")
+        require(set(markup.statuses) == set(counts), "Static status bars differ")
+        for status, (n, width) in markup.statuses.items():
+            require(
+                n == counts[status] and abs(width - 970 * n / len(rows)) <= 0.00051,
+                "Static status width/count differs",
+            )
+        require(
+            set(markup.plots) == set(markup.panels) == {key for key, _ in ordered},
+            "Static detail inventory differs",
+        )
+        initial = next(
+            (key for key, selected in ordered if any(r["status"] == "eligible" for r in selected)),
+            ordered[0][0],
+        )
+        require(
+            [key for key, hidden in markup.panels.items() if not hidden] == [initial],
+            "Initial detail lacks eligible records or is not unique",
+        )
+        require(set(markup.table) == {r["id"] for r in rows}, "Static table lost windows")
+        for key, selected in ordered:
+            eligible = [r for r in selected if r["status"] == "eligible"]
+            plot = markup.plots[key]
+            require(
+                set(plot["points"]) == {r["id"] for r in eligible},
+                "Static scatter includes ineligible or missing points",
+            )
+            if not eligible:
+                continue
+            limit = max(r["measurement"]["half_spread_bps"] for r in eligible) * 1.1
+            require(abs(plot["limit"] - limit) <= 1e-12 * max(1, limit), "Static spread scale differs")
+            for row in eligible:
+                x, y = plot["points"][row["id"]]
+                wanted_x = 100 + (row["decision_minute"] - 30) / 355 * 820
+                wanted_y = 245 - row["measurement"]["half_spread_bps"] / plot["limit"] * 205
+                require(
+                    abs(x - wanted_x) <= 0.00051 and abs(y - wanted_y) <= 0.00051,
+                    "Static spread coordinates differ",
+                )
+        for row in rows:
+            cells = markup.table[row["id"]]
+            require(
+                len(cells) == 7
+                and cells[:4]
+                == [
+                    row["end"],
+                    f"{row['decision_minute']} / {row['delay_minutes']}",
+                    row["status"],
+                    f"{len(row['pages'])} / {row['records']}",
+                ],
+                "Static window table identity differs",
+            )
+            if row["status"] == "eligible":
+                require(
+                    abs(float(cells[4]) - row["measurement"]["half_spread_bps"]) <= 0.000000501,
+                    "Static spread label differs",
+                )
+            else:
+                require(cells[4] == "NA", "Ineligible spread displayed as a value")
+            m = row["measurement"]
+            if m is None:
+                require(cells[5:] == ["NA", "NA"], "Unestimated geometry displayed as a value")
+            else:
+                require(
+                    cells[5] == f"{m['bid_shares']} / {m['ask_shares']}"
+                    and abs(float(cells[6]) - m["age_nanoseconds"] / 1e6) <= 0.000000501,
+                    "Static size/age labels differ",
+                )
+        require(
+            "No eligible quotes in this selection" in html or all(n for n, _ in expected.values()),
+            "Missing empty-selection explanation",
+        )
+        return len(rows), counts["eligible"], True
 
 
 class QuoteVerifier:
@@ -332,9 +513,7 @@ class QuoteVerifier:
             ),
             "Sample status differs",
         )
-        page = (self.run / "report.html").read_text(encoding="utf-8")
-        match = re.search(r"const data=(\{.*?\});\s*const symbol=", page, re.S)
-        require(match is not None and json.loads(match[1]) == s, "Displayed quote records differ")
+        ReportVerifier(self.run).verify()
         if bundle:
             with zipfile.ZipFile(self.run / "review.zip", "w", zipfile.ZIP_DEFLATED) as z:
                 for name in ["summary.json", "report.html"]:
@@ -396,9 +575,21 @@ def verify(path):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("directory", type=Path)
+    p.add_argument(
+        "--report-only",
+        action="store_true",
+        help="Check saved report representation without accessing raw HTTP archives",
+    )
     args = p.parse_args()
     try:
-        verify(args.directory)
+        if args.report_only:
+            n, eligible, static = ReportVerifier(args.directory).verify()
+            print(
+                f"Verified saved-report representation: {n} windows, {eligible} eligible; static plots: {static}."
+            )
+            print("Raw HTTP archives were not reauthenticated by this report-only check.")
+        else:
+            verify(args.directory)
     except (ValueError, KeyError, TypeError, OSError, StopIteration) as e:
         raise SystemExit(f"Quote verification failed: {e}") from e
 
