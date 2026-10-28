@@ -30,7 +30,9 @@ class AlpacaMarketDataClient {
     get_historical_bars(const HistoricalBarRequest &request,
                         const std::optional<std::string> &page_token = std::nullopt) const;
     [[nodiscard]] MarketDataResponse get_market_calendar(const CalendarRange &range) const;
-    [[nodiscard]] MarketDataResponse get_historical_ticks(const HistoricalTickRequest &request) const;
+    [[nodiscard]] MarketDataResponse
+    get_historical_ticks(const HistoricalTickRequest &request,
+                         const std::optional<std::string> &page_token = std::nullopt) const;
     [[nodiscard]] MarketDataResponse get_corporate_action_probe(int year) const;
     [[nodiscard]] MarketDataResponse
     get_corporate_actions(const CorporateActionRequest &request,

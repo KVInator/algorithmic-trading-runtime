@@ -49,8 +49,10 @@ AlpacaMarketDataClient::get_historical_bars(const HistoricalBarRequest &bar_requ
 MarketDataResponse AlpacaMarketDataClient::get_market_calendar(const CalendarRange &range) const {
     return get_page(true, range.path());
 }
-MarketDataResponse AlpacaMarketDataClient::get_historical_ticks(const HistoricalTickRequest &request) const {
-    return get_page(false, request.path());
+MarketDataResponse
+AlpacaMarketDataClient::get_historical_ticks(const HistoricalTickRequest &request,
+                                          const std::optional<std::string> &page_token) const {
+    return get_page(false, request.path(page_token));
 }
 
 MarketDataResponse AlpacaMarketDataClient::get_corporate_action_probe(int year) const {
