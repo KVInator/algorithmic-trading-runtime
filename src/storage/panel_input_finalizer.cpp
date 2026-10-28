@@ -537,7 +537,7 @@ nlohmann::json PanelInputFinalizer::finalize(const Json& audited_panel, const Js
         {"acquisition_manifest_sha256", acquisition_sha}, {"canonical_actions_sha256", action_assessment.at("canonical_actions_sha256")},
         {"issuer_reference_sha256", action_assessment.at("issuer_reference_sha256")},
         {"vintage_bridge_sha256", sha256_file(directory_ / "vintage_bridge.json")},
-        {"eligibility_masks_sha256", sha256_file(directory_ / "eligibility_masks.json")},
+        {"eligibility_masks_sha256", sha256_file(directory_ / "eligibility_masks.json", 16U * 1024U * 1024U)},
         {"first_scored_input_dates", first_scored}, {"model_fit_availability_evaluated", false},
         {"source_sha256", TRADING_SOURCE_SHA256}, {"compiler", TRADING_COMPILER_ID}, {"build_configuration", TRADING_BUILD_CONFIGURATION},
         {"reserved_strategy_inputs_opened", false}, {"strategy_scored", false}, {"research_inputs_ready", true}};

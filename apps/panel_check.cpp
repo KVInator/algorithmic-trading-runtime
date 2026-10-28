@@ -85,6 +85,12 @@ public:
         const auto input_policy = trading::PanelInputPolicy::load(root / "research/extension_input_policy.json", contract);
         const auto resolution = trading::PanelSourceResolution::load(root / "research/extension_source_resolution.json", input_policy);
         directory_ = trading::create_unique_directory(root / "scratch/runs", "panel_check");
+        const std::string larger_artifact(4U * 1024U * 1024U + 1, 'x');
+        const auto larger_file = directory_ / "large_artifact.txt";
+        trading::write_new_text_file(larger_file, larger_artifact);
+        reject("ordinary file hashing retains the four-MiB bound", [&] { static_cast<void>(trading::sha256_file(larger_file)); });
+        check("registered larger files use an explicit hashing bound", trading::sha256_file(larger_file, 16U * 1024U * 1024U) == trading::sha256(larger_artifact));
+        reject("explicit hashing bound is enforced", [&] { static_cast<void>(trading::sha256_file(larger_file, larger_artifact.size() - 1)); });
         const trading::CalendarSession policy_day{"2023-01-04", "09:30", "16:00"};
         const auto missing_at = [&](std::initializer_list<int> slots) {
             std::vector<std::chrono::sys_seconds> result;

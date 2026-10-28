@@ -312,6 +312,11 @@ digest. A changed financial field is rejected. No acquisition manifest or cached
 response is rewritten. The finalizer authenticates these legacy inputs before
 the full panel scan, and inventory failures identify the differing field paths.
 
+The full eligibility mask is approximately 13 MB. Finalization reads and hashes
+it with an explicit 16-MiB bound; the ordinary 4-MiB artifact bound is unchanged.
+If an earlier run wrote the masks and bridge before stopping at hashing, keep
+both files. The next run checks their contents and reuses them without rewriting.
+
 After pulling and rebuilding, run the preparation command above, then
 `panel_finalize.exe`, then verify its printed readiness directory with
 `--readiness`. Expected success is `Status: registered_inputs_ready`.
