@@ -12,6 +12,7 @@ independent references and publication rendering.
 | Fractional accounting | `LongCashAccount` | Cash, shares, dividend receivables/payments, splits and chronological equity |
 | Order accounting | `OrderRuntime`, `JournaledRuntime` | Whole shares, integer units, reservations, stable IDs and routing gates |
 | Shared capital | `SharedCapitalBook`, `JournaledSharedCapital`, `SharedStrategyAdapter` | One global balance, five inventories, fifteen owners, netting and schema-4 recovery |
+| Independent peer | `BrokerState`, `BrokerService`, `ProcessBrokerPeer`, `SharedBrokerSession` | Independent portfolio ledger, schema-5 broker history, framed child process and activity-first recovery |
 | Exact message bridge | `BrokerDecimal`, `BrokerTimestamp`, `PaperExecutionState`, `JournaledPaperRuntime` | Validated external precision, durable identities and schema-3 nanodollars |
 | Scheduling/matching | Strategy adapters, `OfflinePipeline`, `SimulatedBroker`, `SimulatedPaperWire`, `PaperControl` | Shared target path, finite quote budgets, independent peer state and durable control |
 | Measurement | `ExecutionMeasurementStudy`, `ExecutionQuality`, `RuntimeBenchmark` | Matched declared schedules or timed calls; explicit denominators and bounds |
@@ -45,6 +46,11 @@ It does not copy client balances to construct a matching snapshot. Quote sequenc
 budgets are finite; advancing virtual time does not refresh displayed liquidity.
 `PaperControl` owns deadline/stop evidence separately from execution accounting.
 Historical Windows HTTP/credentials remain separate from this offline peer.
+
+The [independent process peer](process_broker.md) extends the same matcher to
+five symbols and explicit limit-order lifecycle policies. Its broker journal
+is owned separately from the shared-client journal. The process route uses
+anonymous pipes; its in-process route calls the same service directly.
 
 The [runtime](execution_runtime.md), [journal](journal_recovery.md),
 [paper bridge](paper_execution.md), [broker](paper_broker.md),

@@ -1,6 +1,7 @@
 # Multi-instrument research and execution extension
 
-Status recorded 28 October 2026: **M0-M4 complete; M5-M10 not started.**
+Status recorded 28 October 2026: **M0-M4 complete; M5 implemented with Windows
+acceptance pending; M6-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -149,7 +150,7 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 | D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
 | D6 | Legacy defaults retain SPY contracts; explicit panel mode supports pre-2024 five-instrument primary replay | M3 complete: original-SPY parity and all primary pre-2024 panel records verified |
 | D7 | Shared cash, pending-fill claims, internal ownership transfers and bounded flat handover are implemented | M4 complete: Windows native and independent checks pass; all final account states match the GNU reference |
-| D8 | Process framing, durable broker history, lifecycle/fee/cash policies and schema migration remain unspecified | M5: explicit bounded contracts and twelve-family fault acceptance |
+| D8 | Independent peer history, process framing, explicit lifecycle/fee/cash policy and schema-5 replay are implemented | M5: twelve-family constructed acceptance and independent replay; Windows acceptance pending |
 | D9 | Historical executable-price references, size assumptions and source/receipt delays require separate evidence | M6: bounded quote sample and fixed synthetic stress matrix, with unestimated quantities explicit |
 | D10 | Final period has known GLD research exposure and unverified exposure elsewhere | M2: carry the M0 qualifications into registration; M8/M9: preserve the project-specific lock and report labels |
 
@@ -166,7 +167,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Complete: Windows Release inputs registered; source actions, amendments, masks and original-SPY vintage bridge bound to the study manifest |
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
-| M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
+| M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Implemented: 313 local checks in twelve families, independent broker/client replay and sanitizer checks; Windows acceptance pending |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Not started |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
@@ -757,3 +758,26 @@ synthetic broker process remains M5;
 historical cost/execution and daily-risk accounts remain M6, stability and
 uncertainty M7, reserved-year evaluations M8-M9 and publication M10. No frozen
 input identity, original research result or reserved-year access rule changes.
+
+## M5 independent broker implementation
+
+The [registered synthetic broker policy](../research/synthetic_broker_protocol.md)
+defines the independent account, fixed per-share fee, immediate trade-date cash,
+DAY/IOC/GTC lifecycle, framed process messages and bounded durable history.
+The [implementation and run record](process_broker.md) uses the existing FIFO
+matcher in both the in-process and separate C++ peer routes. The broker owns
+its account independently; shared-client intent and attribution remain in M4's
+journal. No broker snapshot is copied into the client ledger to obtain parity.
+
+Local verification passed 313 constructed checks across twelve families and
+twenty-one child processes. The independent oracle rebuilt 139 broker commits,
+98 client inputs and 294 logical peer calls. The suite includes simultaneous
+five-instrument ownership, stable terminal lookup/activity pages, missed-response
+recovery, cancellation races, client/broker restarts, uncertain appends and
+damaged tails. The process report replays saved broker and client ledgers.
+
+Windows acceptance remains pending. The next accepted package is therefore
+still M5; M0-M4 remain complete. M6 extends cost/execution and daily-risk
+accounts, M7 stability/risk matching/uncertainty, M8-M9 the registered reserved
+periods, and M10 publication. Existing research outcomes, acquisition inputs
+and reserved-year boundaries remain unchanged.

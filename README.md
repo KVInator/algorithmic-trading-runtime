@@ -40,6 +40,10 @@ exercises one cash balance, fifteen strategy owners, netting, aggregate admissio
 limits and durable recovery. Windows Release acceptance passed 182 native checks
 in 15 synthetic cases, with 163 durable transitions independently verified.
 Broader historical economic comparisons remain later work.
+The [M5 broker extension](docs/process_broker.md) adds a separate native process,
+independent durable activities, DAY/IOC/GTC limits, explicit fees and recovery
+through missed responses or client/broker restarts. Its constructed acceptance
+suite and independent verifier are implemented; Windows acceptance is pending.
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
 until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)
 retains the artifact identities and review limits. The results below describe

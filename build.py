@@ -56,6 +56,7 @@ class ProjectSources:
     """Own the source inventory and exact registered protocol identities."""
 
     frozen = {
+        "synthetic_broker_protocol.md": "1f9a6198eb444932b943aee788bdbfc0957e2a335efe016d23126401c20c46ea",
         "spy_distribution_reference.json": "d753b529129a27a9db03dff41f36b52557ce558e90f5dc5f8ca0f1ccd25da66a",
         "extension_source_resolution.json": "9237188b4ac24282a4296e2622948666e8d8da0a78c8be103453658093d9d734",
         "extension_input_policy.json": "af45ca4552ef58d5de5d9305b140c57eecd42ffc02453867b127d2f6886ad99e",
@@ -358,6 +359,7 @@ class ApplicationBuild:
                 (self.root / "research/scheduled_releases_2022_2023.csv").read_bytes()
             ),
             "TRADING_EXTENSION_PROTOCOL_SHA256": self.sources.frozen["extension_protocol.json"],
+            "TRADING_BROKER_PROTOCOL_SHA256": self.sources.frozen["synthetic_broker_protocol.md"],
             "TRADING_EXTENSION_SOURCE_RESOLUTION_SHA256": self.sources.frozen["extension_source_resolution.json"],
             "TRADING_EXTENSION_INPUT_POLICY_SHA256": self.sources.frozen["extension_input_policy.json"],
             "TRADING_SOURCE_SHA256": source_digest,

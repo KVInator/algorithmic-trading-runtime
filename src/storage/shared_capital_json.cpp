@@ -126,4 +126,16 @@ SharedFlatCheckpoint parse_shared_checkpoint(const Json& j) {
     if (shared_checkpoint_json(c) != j) { throw std::invalid_argument("noncanonical flat checkpoint"); }
     return c;
 }
+Json broker_order_json(const OrderRequest& order) { return order_json(order); }
+OrderRequest parse_broker_order(const Json& value) {
+    const auto order = parse_order(value);
+    if (order_json(order) != value) { throw std::invalid_argument("noncanonical broker order fields"); }
+    return order;
+}
+Json broker_report_json(const BrokerReport& report) { return report_json(report); }
+BrokerReport parse_broker_report(const Json& value) {
+    const auto report = parse_report(value);
+    if (report_json(report) != value) { throw std::invalid_argument("noncanonical broker report fields"); }
+    return report;
+}
 } // namespace trading::execution

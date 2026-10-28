@@ -422,3 +422,28 @@ Expected local evidence is 182 native checks, 15 cases and 163 audited durable
 transitions. The verifier creates a small synthetic `review.zip`. The
 [shared-capital contract](shared_capital.md) describes its ownership, budget,
 expiry and recovery conventions and records the completed Windows acceptance.
+
+## Independent broker process (M5)
+
+Build **Release | x64**, which builds both the diagnostic and its worker. Run
+`process_broker_diagnostic.exe` using the existing retained-console setup:
+Command remains `$(SystemRoot)\System32\cmd.exe`, Working Directory remains
+`$(ProjectDir)`, and Command Arguments becomes
+`/d /s /k ""$(OutDir)process_broker_diagnostic.exe""`.
+
+The diagnostic launches `synthetic_broker_peer.exe` automatically. Do not launch
+that worker manually. The two malformed-frame fixtures intentionally stop their
+children; the parent checks those failures and continues to its final totals.
+No private data, credential, subscription or historical replay is required.
+
+```sh
+py -3 -B research/verify_process_broker.py scratch/runs/process_broker_0 --self-check
+```
+
+Use the actual printed suffix. The verifier writes a compact synthetic
+`review.zip`. The [process contract](process_broker.md) describes the twelve
+scenario families, fee/cash conventions and bounded recovery. Windows acceptance
+remains pending.
+Expected evidence is 313 native checks, twelve scenario families and twenty-one
+child processes. The independent verifier checks 139 broker commits, 98 client
+inputs and 294 logical calls. The saved report has 28 broker/client ledger views.

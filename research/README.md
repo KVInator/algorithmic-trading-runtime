@@ -60,6 +60,15 @@ deliberate semantic corruption without relying on checksums. The
 [shared-capital note](../docs/shared_capital.md) defines the accounting contract
 and its synthetic scope.
 
+`synthetic_broker_protocol.md` registers the independent peer's account, fees,
+cash availability, lifecycle, process framing and recovery bounds before its
+acceptance run. `verify_process_broker.py` independently rebuilds FIFO matching,
+quote consumption, broker cash/inventory, terminal history and paged reads,
+then checks shared-client attribution against those independently generated
+reports. Its semantic checks deliberately alter fees, liquidity, lifecycle,
+schema and owner attribution without relying on checksums. Process methods and
+acceptance commands are in [independent broker process](../docs/process_broker.md).
+
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate
 performance remain unopened. Failed gates authorize neither a new search nor
