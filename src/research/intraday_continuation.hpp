@@ -30,6 +30,7 @@ struct IntradayContinuationFeatures {
 // SPY windows and applies the registered dataset/exclusion policy.
 class IntradayContinuationHistory {
 public:
+    explicit IntradayContinuationHistory(ResearchInputMode mode = ResearchInputMode::legacy_complete);
     void append(const HistoricalBarRequest& session, std::span<const MinuteBar> bars);
     [[nodiscard]] bool ready() const noexcept;
     [[nodiscard]] std::size_t size() const noexcept;
@@ -46,6 +47,8 @@ private:
         std::array<double, 390> cumulative_volumes{};
     };
     std::deque<SessionProfile> sessions_;
+    ResearchInputMode mode_;
+    std::string symbol_;
 };
 
 enum class ContinuationVariant { price_only, volume_conditioned };
@@ -63,7 +66,8 @@ struct IntradayContinuationDecision {
 
 class IntradayContinuationStrategy {
 public:
-    IntradayContinuationStrategy(HistoricalBarRequest session, ContinuationVariant variant);
+    IntradayContinuationStrategy(HistoricalBarRequest session, ContinuationVariant variant,
+        ResearchInputMode mode = ResearchInputMode::legacy_complete);
     [[nodiscard]] IntradayContinuationDecision decide(
         const IntradayContinuationHistory& history,
         std::span<const MinuteBar> completed_bars,
@@ -77,6 +81,7 @@ public:
 private:
     HistoricalBarRequest session_;
     ContinuationVariant variant_;
+    ResearchInputMode mode_;
 };
 
 struct IntradayContinuationReplay {

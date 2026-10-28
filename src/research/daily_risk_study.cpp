@@ -239,15 +239,11 @@ DailyRiskResult DailyRiskStudy::run(const RiskStudyInputs& inputs, const Session
     for (const auto delay : risk_rules::delays) {
         for (std::size_t i = 0; i < inputs.development.size(); ++i) {
             const auto end = inputs.calibration.size() + i;
-            long double daily = 0, intraday = 0;
-            std::vector<std::string> missing;
-            for (auto j = end - risk_rules::history; j < end; ++j) {
-                const auto& m = result.measurements[j]; daily += m.daily2;
-                if (m.rv5) { intraday += *m.rv5; } else { missing.push_back(m.date); }
-            }
+            auto estimate = LaggedRiskEstimator{}.estimate(std::span{result.measurements}.subspan(end - risk_rules::history, risk_rules::history));
+            auto missing = std::move(estimate.missing_dates);
             const auto& previous_session = i ? inputs.development[i-1] : inputs.calibration.back();
-            const double hd = static_cast<double>(daily / risk_rules::history);
-            const auto hi = missing.empty() ? std::optional<double>{static_cast<double>(intraday / risk_rules::history)} : std::nullopt;
+            const double hd = estimate.daily;
+            const auto hi = estimate.intraday;
             RiskForecast f{inputs.development[i].calendar().date(), delay,
                 format_utc_seconds(previous_session.calendar().close_utc() + minutes{5}),
                 result.measurements[end - risk_rules::history].date, result.measurements[end - 1].date,

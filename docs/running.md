@@ -90,6 +90,7 @@ these checks are explicit local commands.
 | `panel_check` | Constructed resumable panel, calendar/mask, action-reconciliation, vintage-bridge and access-control checks |
 | `panel_acquire` | Resumable 2016-2025 five-instrument archive; Windows historical-data credentials; long-running |
 | `panel_finalize` | Local issuer reconciliation and original-snapshot bridge; publishes the new study manifest only after prerequisites pass |
+| `panel_replay` | M3: original-SPY parity, prior-only five-instrument decisions and primary reference outcomes through 2023; requires the registered M2 archive |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
 | `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
 | `reversion_validation` | Thirteen seeded finite-sample/noise controls; full interval experiment |
@@ -358,3 +359,37 @@ registered LF bytes by the build only when their content is otherwise identical.
 Acquisition pages, run journals and original result identities retain raw-byte
 hashes. `research/verify_publication.py` checks these identities, local
 links, embedded-view controls and static asset boundaries without private data.
+
+
+## Causal panel replay (M3)
+
+The M2 archive and its original SPY development/risk snapshots are required.
+No acquisition or source-preparation rerun is needed.
+
+1. Pull the current source and build **Release | x64**.
+2. Run `panel_check.exe` for constructed acquisition, engine, missing-data and
+   causal replay checks. It prints its evidence directory.
+3. Run `panel_replay.exe` with the existing console setup. For a retained `cmd /k`
+   console, change the executable in **Command Arguments**; keep Command as
+   `$(SystemRoot)\System32\cmd.exe` and Working Directory as `$(ProjectDir)`.
+4. Run the independent verification using the actual printed suffix:
+
+```sh
+py -3 -B research/verify_panel_replay.py scratch/runs/panel_replay_0
+```
+
+The native success status is `causal_panel_replay_completed`. It verifies
+original-reference parity before opening the expanded development streams.
+Progress reports every 25 dates. The report has an instrument selector for
+saved target traces; the five bounded JSONL files retain all records locally.
+The verifier creates `review.zip` containing the summary and HTML report.
+
+For the constructed run, both independent checks accept its printed directory:
+
+```sh
+py -3 -B research/verify_historical_panel.py scratch/runs/panel_check_0
+py -3 -B research/verify_panel_replay.py scratch/runs/panel_check_0
+```
+
+Use the actual native `panel_check` suffix. Detailed methods and subsequent
+work are in [causal panel replay](panel_replay.md).

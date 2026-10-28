@@ -151,7 +151,7 @@ class PanelVerifier:
                 "response_attempts_verified": len(self.response_files), "coverage": coverage, "action_coverage": actions,
                 "strategy_scored": False, "research_inputs_ready": False, "issuer_reconciled": False}
 
-    def session(self, record, day, symbol, protocol):
+    def session(self, record, day, symbol, protocol, captured: list | None = None):
         require(record["symbol"] == symbol and record["date"] == day["date"] and record["protocol_sha256"] == protocol, "Panel session identity mismatch")
         value = date.fromisoformat(day["date"])
         opening = utc_clock(value, 9, 30)
@@ -180,6 +180,8 @@ class PanelVerifier:
                 numeric(bar, "v")
                 require(low > 0 and low <= o <= h and low <= c <= h, "Panel OHLC observation invalid")
                 observations.append(at)
+                if captured is not None:
+                    captured.append(bar)
             token = body["next_page_token"]
             require(token is None or isinstance(token, str) and 0 < len(token) <= 4096 and token not in tokens, "Panel pagination token invalid")
             if token is not None:

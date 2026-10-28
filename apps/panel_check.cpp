@@ -4,6 +4,8 @@
 #include "historical_panel.hpp"
 #include "historical_panel_report.hpp"
 #include "panel_input_finalizer.hpp"
+#include "panel_replay_dataset.hpp"
+#include "panel_replay_checks.hpp"
 #include "response_bytes.hpp"
 #include "journal_storage.hpp"
 #include "utc_timestamp.hpp"
@@ -451,6 +453,18 @@ public:
             {"vintage_bridge_sha256", resolved_registered.at("vintage_bridge_sha256")}, {"research_inputs_ready", true},
             {"strategy_scored", false}, {"reserved_strategy_inputs_opened", false}};
         const auto resolved_report = trading::HistoricalPanelReport{}.write_readiness(resolved_readiness, directory_ / "reports");
+        const trading::PanelReplayDataset replay_inputs{directory_ / "closing_empty", contract, input_policy, resolution,
+            trading::PanelOrigin::synthetic, trading::sha256_file(directory_ / "closing_empty/study_manifest.json")};
+        trading::PanelReplayReport replay_smoke{directory_ / "reports", replay_inputs.provenance(), {{"passed", true}, {"scope", "constructed_registered_input"}}, directory_ / "closing_empty"};
+        reject("replay loader rejects a different study identity", [&] {
+            static_cast<void>(trading::PanelReplayDataset{directory_ / "closing_empty", contract, input_policy, resolution,
+                trading::PanelOrigin::synthetic, std::string(64, '0')});
+        });
+        replay_inputs.replay([&](auto day) { check("registered reader emits all five instruments", day.size() == 5); replay_smoke.append(std::move(day)); });
+        const auto replay_smoke_report = replay_smoke.finish();
+        const auto replay_report = trading::PanelReplayChecks{}.run(directory_ / "reports", input_policy,
+            [&](const auto& label, bool value) { check(label, value); }, [&](const auto& label, auto action) { reject(label, action); });
+
 
         const std::vector<trading::CalendarRange> history_ranges{{"2023-01-01", "2023-01-31"}, {"2023-02-01", "2023-02-01"}};
         const trading::HistoricalPanelDataset history_dataset{directory_ / "history", contract, trading::PanelOrigin::synthetic, history_ranges};
@@ -524,6 +538,7 @@ public:
                 {"closing", std::filesystem::relative(closing_report, directory_).generic_string()},
                 {"closing_empty", std::filesystem::relative(resolved_report, directory_).generic_string()}}},
             {"additional_archives", {"closing", "closing_empty"}},
+            {"replay_reports", {std::filesystem::relative(replay_report, directory_).generic_string(), std::filesystem::relative(replay_smoke_report, directory_).generic_string()}},
             {"source_sha256", TRADING_SOURCE_SHA256}, {"protocol_sha256", contract.identity()}};
         trading::write_new_text_file(directory_ / "checks.json", checks.dump(2) + '\n');
         std::cout << "Historical panel | constructed acquisition, masks and access controls\nChecks passed: " << labels_.size()

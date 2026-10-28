@@ -30,7 +30,10 @@ still qualifies only four and remains recorded as failed. The three unavailable
 secondary split cross-checks are bound to the new study manifest. These are input
 registration findings, not expanded strategy results.
 
-**Next: M3, multi-instrument causal replay and original-reference parity.**
+**M3 implementation is ready for local verification:** the [causal panel runner](docs/panel_replay.md)
+extends the existing engines across five instruments, enforces prior-only
+histories and checks the original SPY reference path before expanded replay.
+The full Windows archive run is pending.
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
 until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)
 retains the artifact identities and review limits. The results below describe

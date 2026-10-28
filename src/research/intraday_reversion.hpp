@@ -1,6 +1,7 @@
 #pragma once
 
 #include "session_download.hpp"
+#include "research_session.hpp"
 
 #include <array>
 #include <cstddef>
@@ -26,9 +27,14 @@ struct OpeningAnchorResidual {
 // 10:00, 10:05, ..., 12:00. Only the exact completed 150-minute prefix is accepted.
 class OpeningAnchorMeasurement {
 public:
+    explicit OpeningAnchorMeasurement(ResearchInputMode mode = ResearchInputMode::legacy_complete);
     [[nodiscard]] std::chrono::sys_seconds decision_time(const HistoricalBarRequest& session) const;
     [[nodiscard]] OpeningAnchorResidual measure(const HistoricalBarRequest& session,
         std::span<const MinuteBar> completed) const;
+    [[nodiscard]] std::optional<OpeningAnchorResidual> observe(const HistoricalBarRequest& session,
+        std::span<const MinuteBar> completed) const;
+private:
+    ResearchInputMode mode_;
 };
 
 enum class ReversionFitStatus {

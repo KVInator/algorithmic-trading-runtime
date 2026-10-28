@@ -25,15 +25,18 @@ struct ReversionPrior {
 // Unavailable anchors occupy a slot and cannot be replaced by older data.
 class ReversionHistory {
 public:
+    explicit ReversionHistory(ResearchInputMode mode = ResearchInputMode::legacy_complete);
     [[nodiscard]] bool ready() const noexcept;
     [[nodiscard]] ReversionPrior prior(const HistoricalBarRequest& current) const;
     [[nodiscard]] std::optional<OpeningAnchorResidual> complete(const HistoricalBarRequest& session,
                                                                 std::span<const MinuteBar> bars,
-                                                                std::chrono::sys_seconds completed_at);
+                                                                std::chrono::sys_seconds completed_at, bool feature_allowed = true);
 
 private:
     std::deque<ReversionHistorySlot> slots_;
-    OpeningAnchorMeasurement measurement_{};
+    ResearchInputMode mode_;
+    std::string symbol_;
+    OpeningAnchorMeasurement measurement_;
     PooledReversionEstimator estimator_{};
 };
 
@@ -55,12 +58,14 @@ struct ReversionDecision {
 
 class ReversionStrategy {
 public:
+    explicit ReversionStrategy(ResearchInputMode mode = ResearchInputMode::legacy_complete);
     [[nodiscard]] ReversionDecision decide(const HistoricalBarRequest& session,
                                            std::span<const MinuteBar> completed,
                                            const ReversionHistory& history) const;
 
 private:
-    OpeningAnchorMeasurement measurement_{};
+    ResearchInputMode mode_;
+    OpeningAnchorMeasurement measurement_;
     PooledReversionEstimator estimator_{};
 };
 } // namespace trading

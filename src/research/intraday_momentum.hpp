@@ -2,6 +2,7 @@
 
 #include "alpaca_bar_request.hpp"
 #include "minute_bar.hpp"
+#include "research_session.hpp"
 
 #include <chrono>
 #include <optional>
@@ -20,7 +21,8 @@ struct MomentumDecision {
 // it does not perform a calendar lookup or choose the date's UTC offset.
 class IntradayMomentumStrategy {
 public:
-    explicit IntradayMomentumStrategy(HistoricalBarRequest session);
+    explicit IntradayMomentumStrategy(HistoricalBarRequest session,
+        ResearchInputMode mode = ResearchInputMode::legacy_complete);
 
     [[nodiscard]] MomentumDecision decide(std::span<const MinuteBar> completed_bars,
                                           std::chrono::sys_seconds at) const;
@@ -30,6 +32,7 @@ public:
 
 private:
     HistoricalBarRequest session_;
+    ResearchInputMode mode_;
 };
 
 struct LongPriceReturn {

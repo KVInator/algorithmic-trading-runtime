@@ -11,7 +11,7 @@ wording is historical. The report describes the completed implementations and ev
 | SPY-TOD-01 revision 1 | [Protocol](intraday_continuation_protocol.md), [descriptive diagnostics](continuation_diagnostics.md) | Positive volume-variant point return, failed registered screens; volume increment unconfirmed |
 | SPY-MR-01 revision 1 | [Protocol](intraday_reversion_protocol.md), [settings](intraday_reversion_protocol.json), [development result](../docs/reversion_development.md) | Cost-dominated; primary net -0.4171%; 83 active dates |
 | SPY-RISK-01 revision 1 | [Protocol](daily_risk_protocol.md), [settings](daily_risk_protocol.json), [result](daily_risk_development_result.json) | No advancement; primary CER increment over daily-only -1.5430 pp/year |
-| MULTI-ASSET-01 edition 1 and INPUT-01 | [Dataset/study contract](extension_protocol.md), [registered settings](extension_protocol.json), [input amendment](extension_input_policy.md) | Parent complete-grid assessment retained; operational/feature masks and exact-time mark recovery implemented; action evidence and final registration pending |
+| MULTI-ASSET-01 edition 1 and INPUT-01 | [Dataset/study contract](extension_protocol.md), [registered settings](extension_protocol.json), [input amendment](extension_input_policy.md) | Windows M2 inputs registered; original failed complete-grid assessment and explicit amendments retained; M3 causal replay implementation available for local verification |
 
 The reversion [synthetic design](reversion_validation.md) and
 [sampling/noise findings](reversion_validation_result.md) explain why numerical OU
@@ -44,6 +44,13 @@ secondary event responses. The source-resolution policy and original failure
 assessment remain separately identified. `extension_precision.py` supplies a
 controlled analytical/Monte Carlo planning reference, separate from market
 outcomes and final block-bootstrap validation.
+
+`verify_panel_replay.py` independently reconstructs the M3 primary features,
+fixed-slot histories, pooled AR(1) fit, cash/long targets, delayed reference
+returns and lagged risk estimates. Its historical route authenticates source
+pages through the existing panel oracle and rejects reserved-year access.
+The analytic fixture is explicitly synthetic. Replay methods and boundaries
+are described in [causal panel replay](../docs/panel_replay.md).
 
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate

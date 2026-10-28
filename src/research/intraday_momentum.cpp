@@ -24,8 +24,9 @@ double relative_return(double from, double to) {
 
 } // namespace
 
-IntradayMomentumStrategy::IntradayMomentumStrategy(HistoricalBarRequest session)
-    : session_{std::move(session)} {
+IntradayMomentumStrategy::IntradayMomentumStrategy(HistoricalBarRequest session, ResearchInputMode mode)
+    : session_{std::move(session)}, mode_{mode} {
+    if (mode_ == ResearchInputMode::registered_panel) { require_panel_regular_session(session_); return; }
     const auto day = std::chrono::floor<std::chrono::days>(session_.start());
     const auto utc_open = session_.start() - day;
     if (session_.symbol() != "SPY" || session_.expected_minutes() != 390 ||
@@ -52,11 +53,14 @@ MomentumDecision IntradayMomentumStrategy::decide(std::span<const MinuteBar> com
     }
     const HistoricalBarRequest history_window{session_.symbol(), session_.start(), at,
                                               session_.page_size()};
-    if (!audit_session(history_window, completed_bars).complete()) {
+    if (mode_ == ResearchInputMode::legacy_complete && !audit_session(history_window, completed_bars).complete()) {
         throw std::invalid_argument("momentum decision requires every completed minute before 15:30");
     }
-    const auto signal = relative_return(completed_bars.front().prices().open,
-                                        completed_bars.back().prices().close);
+    const ResearchSessionView observed{history_window, completed_bars};
+    const auto* opening = observed.at(0);
+    const auto* signal_close = observed.at(359);
+    if (opening == nullptr || signal_close == nullptr) { throw std::invalid_argument("momentum opening or decision-close feature is unavailable"); }
+    const auto signal = relative_return(opening->prices().open, signal_close->prices().close);
     return {at, signal, signal > 0};
 }
 

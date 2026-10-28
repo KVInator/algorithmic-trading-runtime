@@ -15,7 +15,8 @@ double as_finite(long double value) {
     if (!std::isfinite(result)) { throw std::overflow_error("reversion calculation exceeds finite double units"); }
     return result;
 }
-void validate_session(const HistoricalBarRequest& session) {
+void validate_session(const HistoricalBarRequest& session, ResearchInputMode mode) {
+    if (mode == ResearchInputMode::registered_panel) { require_panel_regular_session(session); return; }
     const auto date = format_utc_seconds(session.start()).substr(0, 10);
     const auto calendar = development_calendar(CalendarRange{date, date});
     if (calendar.size() != 1 || !calendar.front().regular() || session.symbol() != "SPY" ||
@@ -25,8 +26,10 @@ void validate_session(const HistoricalBarRequest& session) {
 }
 } // namespace
 
+OpeningAnchorMeasurement::OpeningAnchorMeasurement(ResearchInputMode mode) : mode_{mode} {}
+
 std::chrono::sys_seconds OpeningAnchorMeasurement::decision_time(const HistoricalBarRequest& session) const {
-    validate_session(session);
+    validate_session(session, mode_);
     return session.start() + std::chrono::minutes{reversion_prefix_minutes};
 }
 OpeningAnchorResidual OpeningAnchorMeasurement::measure(const HistoricalBarRequest& session,
@@ -36,21 +39,33 @@ OpeningAnchorResidual OpeningAnchorMeasurement::measure(const HistoricalBarReque
     if (completed.size() != reversion_prefix_minutes || !audit_session(prefix, completed).complete()) {
         throw std::invalid_argument("reversion requires exactly 150 completed contiguous minutes");
     }
+    const auto result = observe(session, completed);
+    if (!result) { throw std::invalid_argument("opening anchor or fixed-grid observations are unavailable"); }
+    return *result;
+}
+std::optional<OpeningAnchorResidual> OpeningAnchorMeasurement::observe(const HistoricalBarRequest& session,
+    std::span<const MinuteBar> completed) const {
+    const auto at = decision_time(session);
+    const HistoricalBarRequest prefix{session.symbol(), session.start(), at, session.page_size()};
+    const ResearchSessionView observed{prefix, completed};
     long double volume = 0, weighted_close = 0;
     for (std::size_t i = 0; i < 30; ++i) {
-        const long double v = completed[i].volume();
+        const auto* bar = observed.at(i);
+        if (bar == nullptr) { return {}; }
+        const long double v = bar->volume();
         if (v == 0) { continue; }
         const long double next_volume = volume + v;
-        weighted_close += v / next_volume * (static_cast<long double>(completed[i].prices().close) - weighted_close);
+        weighted_close += v / next_volume * (static_cast<long double>(bar->prices().close) - weighted_close);
         volume = next_volume;
     }
-    if (volume <= 0) { throw std::invalid_argument("opening reference requires positive observed volume"); }
+    if (volume <= 0) { return {}; }
     const auto anchor = as_finite(weighted_close);
     if (anchor <= 0) { throw std::invalid_argument("opening reference is not positive"); }
     OpeningAnchorResidual result{at, anchor, {}};
     for (std::size_t i = 0; i < result.values.size(); ++i) {
-        // Log differences avoid overflow in a ratio of otherwise finite prices.
-        result.values[i] = std::log(completed[29 + 5 * i].prices().close) - std::log(anchor);
+        const auto* bar = observed.at(29 + 5 * i);
+        if (bar == nullptr) { return {}; }
+        result.values[i] = std::log(bar->prices().close) - std::log(anchor);
     }
     return result;
 }

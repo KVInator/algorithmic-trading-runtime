@@ -35,10 +35,10 @@ std::optional<double> realized_variation(const RiskSessionReferences& session,
 }
 } // namespace
 
-RiskSessionReferences::RiskSessionReferences(CalendarSession calendar, std::vector<MinuteBar> bars)
+RiskSessionReferences::RiskSessionReferences(CalendarSession calendar, std::vector<MinuteBar> bars, std::string symbol, ResearchInputMode mode)
     : calendar_{std::move(calendar)}, bars_{std::move(bars)} {
-    static_cast<void>(audit_session(calendar_.bar_request(), bars_));
-    static_cast<void>(close());
+    static_cast<void>(audit_session(calendar_.bar_request(std::move(symbol)), bars_));
+    if (mode == ResearchInputMode::legacy_complete) { static_cast<void>(close()); }
 }
 const CalendarSession& RiskSessionReferences::calendar() const noexcept { return calendar_; }
 std::optional<double> RiskSessionReferences::open_at(std::chrono::sys_seconds at) const {
@@ -49,6 +49,7 @@ std::optional<double> RiskSessionReferences::close_at(std::chrono::sys_seconds a
     const auto it = std::lower_bound(bars_.begin(), bars_.end(), at, [](const auto& bar, const auto& t) { return bar.start() < t; });
     return it != bars_.end() && it->start() == at ? std::optional<double>{it->prices().close} : std::nullopt;
 }
+std::optional<double> RiskSessionReferences::observed_close() const { return close_at(calendar_.close_utc() - std::chrono::minutes{1}); }
 double RiskSessionReferences::close() const {
     const auto result = close_at(calendar_.close_utc() - std::chrono::minutes{1});
     if (!result) { throw std::invalid_argument("missing closing reference on " + calendar_.date()); }
@@ -92,6 +93,21 @@ HoldingRiskMeasurement measure_holding_risk(const RiskSessionReferences& first, 
     add(*exit + dividend);
     if (!std::isfinite(squared)) { throw std::overflow_error("holding-risk outcome exceeds the finite range"); }
     return {endpoint * endpoint, squared};
+}
+LaggedRiskEstimate LaggedRiskEstimator::estimate(std::span<const DailyRiskMeasurement> prior) const {
+    if (prior.size() != 20) { throw std::invalid_argument("primary risk estimate requires twenty earlier measurements"); }
+    long double daily = 0, intraday = 0;
+    std::vector<std::string> missing;
+    std::string previous;
+    for (const auto& row : prior) {
+        if ((!previous.empty() && row.date <= previous) || !std::isfinite(row.daily2) || row.daily2 < 0 ||
+            (row.rv5 && (!std::isfinite(*row.rv5) || *row.rv5 < 0))) { throw std::invalid_argument("invalid prior risk measurement"); }
+        previous = row.date;
+        daily += row.daily2;
+        if (row.rv5) { intraday += *row.rv5; } else { missing.push_back(row.date); }
+    }
+    return {static_cast<double>(daily / 20), missing.empty() ? std::optional<double>{static_cast<double>(intraday / 20)} : std::nullopt,
+        std::move(missing)};
 }
 double risk_budget_weight(double h) { return std::min(1.0, .10 / std::sqrt(252 * positive(h))); }
 

@@ -12,7 +12,8 @@
 namespace trading {
 namespace {
 
-void validate_session(const HistoricalBarRequest& session) {
+void validate_session(const HistoricalBarRequest& session, ResearchInputMode mode) {
+    if (mode == ResearchInputMode::registered_panel) { require_panel_regular_session(session); return; }
     const auto date = format_utc_seconds(session.start()).substr(0, 10);
     const CalendarSession expected{date, "09:30", "16:00"};
     if (session.symbol() != "SPY" || session.start() != expected.open_utc() ||
@@ -38,9 +39,12 @@ void multiply_wealth(double& wealth, double trade_return) {
 
 } // namespace
 
+IntradayContinuationHistory::IntradayContinuationHistory(ResearchInputMode mode) : mode_{mode} {}
+
 void IntradayContinuationHistory::append(const HistoricalBarRequest& session,
                                          std::span<const MinuteBar> bars) {
-    validate_session(session);
+    validate_session(session, mode_);
+    if (!symbol_.empty() && symbol_ != session.symbol()) { throw std::invalid_argument("continuation history cannot mix instruments"); }
     if (!sessions_.empty() && session.start() <= sessions_.back().end) {
         throw std::invalid_argument("history sessions must be strictly chronological and disjoint");
     }
@@ -56,6 +60,7 @@ void IntradayContinuationHistory::append(const HistoricalBarRequest& session,
             bars.front().prices().open, bars[index].prices().close));
         profile.cumulative_volumes[index] = volume;
     }
+    symbol_ = session.symbol();
     sessions_.push_back(std::move(profile));
     if (sessions_.size() > continuation_history_sessions) {
         sessions_.pop_front();
@@ -72,7 +77,8 @@ IntradayContinuationFeatures IntradayContinuationHistory::measure(
     const HistoricalBarRequest& current_session,
     std::span<const MinuteBar> completed_bars,
     std::chrono::sys_seconds at) const {
-    validate_session(current_session);
+    validate_session(current_session, mode_);
+    if (symbol_ != current_session.symbol()) { throw std::invalid_argument("continuation history belongs to another instrument"); }
     if (!ready()) {
         throw std::logic_error("intraday features require 20 complete earlier eligible sessions");
     }
@@ -134,9 +140,9 @@ std::string_view continuation_protocol_sha256() noexcept {
 }
 
 IntradayContinuationStrategy::IntradayContinuationStrategy(
-    HistoricalBarRequest session, ContinuationVariant variant)
-    : session_{std::move(session)}, variant_{variant} {
-    validate_session(session_);
+    HistoricalBarRequest session, ContinuationVariant variant, ResearchInputMode mode)
+    : session_{std::move(session)}, variant_{variant}, mode_{mode} {
+    validate_session(session_, mode_);
     if (variant_ != ContinuationVariant::price_only && variant_ != ContinuationVariant::volume_conditioned) {
         throw std::invalid_argument("unknown continuation variant");
     }
@@ -167,7 +173,19 @@ IntradayContinuationDecision IntradayContinuationStrategy::decide(
     if (std::find(clocks.begin(), clocks.end(), at) == clocks.end()) {
         throw std::invalid_argument("continuation decisions require a registered half-hour clock");
     }
-    auto features = history.measure(session_, completed_bars, at);
+    const auto unavailable = [&] { return IntradayContinuationDecision{at,
+        currently_long ? ContinuationAction::exit_long : ContinuationAction::stay_cash, std::nullopt}; };
+    if (mode_ == ResearchInputMode::registered_panel) {
+        if (!audit_session(HistoricalBarRequest{session_.symbol(), session_.start(), at}, completed_bars).complete() || !history.ready()) {
+            return unavailable();
+        }
+    }
+    IntradayContinuationFeatures features{};
+    try { features = history.measure(session_, completed_bars, at); }
+    catch (const std::domain_error&) {
+        if (mode_ != ResearchInputMode::registered_panel) { throw; }
+        return unavailable();
+    }
     const bool price_condition = features.move > features.typical_absolute_move;
     ContinuationAction action = ContinuationAction::stay_cash;
     if (currently_long) {

@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 28 October 2026: **M0-M2 complete; M3-M10 not started.**
+Status recorded 28 October 2026: **M0-M2 complete; M3 implementation awaiting Windows archive replay; M4-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -146,7 +146,7 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 | D3 | Historical access and source-action reconciliation are registered; completeness uses the declared cross-provider assumptions, and full execution quote windows remain unevaluated | M2 registration below; M6 evaluates complete declared quote windows |
 | D4 | Parent complete-grid coverage remains failed; registered amendments retain three unavailable daily marks and establish canonical action sources | M2 complete: the Windows study manifest binds recovery receipts, actions, masks and the original-SPY vintage bridge; M3 must enforce causal missing-input behavior |
 | D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
-| D6 | Engines and aggregate runners enforce SPY, fixed histories and 2022-2023 gates | M3: parameterize authoritative engines and add the panel driver; keep the v1 reference path |
+| D6 | Legacy defaults retain SPY contracts; explicit panel mode supports pre-2024 five-instrument primary replay | M3 implementation and independent oracle are in place; original-SPY parity must pass before the full Windows panel run |
 | D7 | One-symbol cash, pending-fill limits, internal ownership transfers and journal growth need a shared-account contract | M4: one global ledger, deterministic netting/allocation and bounded durable handover |
 | D8 | Process framing, durable broker history, lifecycle/fee/cash policies and schema migration remain unspecified | M5: explicit bounded contracts and twelve-family fault acceptance |
 | D9 | Historical executable-price references, size assumptions and source/receipt delays require separate evidence | M6: bounded quote sample and fixed synthetic stress matrix, with unestimated quantities explicit |
@@ -163,7 +163,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M0 | Baseline and research inventory | Release identities, implementation map, exposure log, scope and decision register | Complete |
 | M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
 | M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Complete: Windows Release inputs registered; source actions, amendments, masks and original-SPY vintage bridge bound to the study manifest |
-| M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Not started |
+| M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Implemented; constructed checks and independent oracle available; full Windows archive replay pending |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Not started |
@@ -619,8 +619,62 @@ review remains tied to the same unchanged acquisition-manifest identity.
 | Windows build-source inventory | `d5f8e21919f6456275f4c70b7a286add91d63a6fa8a165be5543813f47a043cc` |
 
 The source inventory is a build identity, not an independently established Git
-commit. M2 is complete. M3 next implements prior-only five-instrument replay,
+commit. M2 is complete. M3 implements prior-only five-instrument replay,
 original-reference parity and the registered missing-input controls. Shared
 capital, the expanded synthetic broker, cost/execution research, stability,
 reserved-period evaluation and publication remain M4-M10 work. Completing three
 of eleven milestones is a work-package count, not an estimate of effort spent.
+
+
+## M3 implementation and local acceptance
+
+The [causal replay](panel_replay.md) reuses the existing numerical engines with
+an explicit panel mode. Legacy defaults retain their original SPY and
+complete-grid contracts. The registered M2 study manifest is authenticated
+without rewriting it; expanded price access is restricted to 2016-2023.
+
+The runner checks the original SPY reference path before the wider replay.
+It then emits primary intraday candidate/control targets and bar-reference
+outcomes, dividend-aware risk measurements and prior-only risk sizing targets.
+Cross-instrument outcome masks are applied after decisions. Missing features
+produce the registered paired cash behavior; an unavailable execution reference
+stops that policy path and remains NA. The report does not assert a continuous
+account across an unavailable execution or valuation mark.
+
+The constructed suite includes a 300-date five-instrument analytic stream,
+source-reader registration smoke coverage, future-data perturbations, missing
+prefix liquidation, unavailable execution, zero-volume features, missing
+reversion slots, daily-history resets and original-default parity. An independent
+Python oracle rebuilds the features, fit, targets and arithmetic from raw source
+pages or the declared analytic fixture. Full provider-data replay and Windows
+verification remain pending; no expanded historical result is reported here.
+
+Local GNU 13.3.0 Release verification on 28 October 2026 produced:
+
+| Check | Observed result |
+| --- | --- |
+| Application build | All 17 applications compiled with warnings as errors |
+| Native panel checks | 187 checks passed, with no network requests |
+| Independent replay oracle | 300 dates across five instruments, plus a five-instrument registered-reader fixture; source features, histories, decisions, arithmetic and displayed records verified |
+| Independent acquisition/readiness oracle | Seven constructed archives and their available readiness reports verified |
+| Semantic corruption checks | Seven altered records rejected after refreshing their stream hashes, including future cutoffs, changed targets, risk forecasts, duplicate policies, false masks and reserved dates |
+| Original numerical/account regressions | Momentum, continuation, risk measurement and the full daily-risk contract suite passed against the current library |
+| Existing combined demonstration | 259 checks in 24 cases; independent verification passed |
+| Existing capability contracts | 46 checks passed |
+| Publication and repository checks | Registered identities, publication hashes/links and repository hygiene passed |
+| Instrumented changed paths | AddressSanitizer and UndefinedBehaviorSanitizer passed all 187 panel checks; unchanged library units were not instrumented |
+
+The archived daily-risk suite's pre-M1 rejection of a 2020 date was replaced by
+an ordering assertion for the already extended calendar; its numerical,
+causality and account assertions were retained. LeakSanitizer cannot run under
+this environment's process tracing and was disabled for the instrumented run.
+All five target-chart selector branches were executed and their generated SVGs
+rendered and inspected. A full browser layout check was unavailable locally.
+These are constructed engineering checks, not the Windows provider-data run
+needed to accept M3.
+
+M3 covers primary settings and causal records. Shared-capital ownership/netting
+remains M4; the separate synthetic peer remains M5. Broader cost/delay and
+execution research, risk-account ledger extension, registered stability
+variants, risk-matched comparisons and uncertainty analysis remain M6-M7.
+Validation in 2024 and final evaluation in 2025 remain gated to M8 and M9.

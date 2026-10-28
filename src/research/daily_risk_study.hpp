@@ -3,6 +3,7 @@
 #include "risk_input_dataset.hpp"
 #include "long_cash_account.hpp"
 #include "return_statistics.hpp"
+#include "research_session.hpp"
 
 #include <array>
 #include <string_view>
@@ -11,14 +12,17 @@
 namespace trading {
 
 // Calendar-bounded raw references. Missing interiors remain missing; the last
-// regular-session minute is mandatory, including for close-only calibration.
+// regular-session minute is mandatory in legacy mode, including for close-only
+// calibration. Panel mode preserves an unavailable close explicitly.
 class RiskSessionReferences {
 public:
-    RiskSessionReferences(CalendarSession calendar, std::vector<MinuteBar> bars);
+    RiskSessionReferences(CalendarSession calendar, std::vector<MinuteBar> bars,
+        std::string symbol = "SPY", ResearchInputMode mode = ResearchInputMode::legacy_complete);
     [[nodiscard]] const CalendarSession& calendar() const noexcept;
     [[nodiscard]] std::optional<double> open_at(std::chrono::sys_seconds at) const;
     [[nodiscard]] std::optional<double> close_at(std::chrono::sys_seconds bar_start) const;
     [[nodiscard]] double close() const;
+    [[nodiscard]] std::optional<double> observed_close() const;
 private:
     CalendarSession calendar_;
     std::vector<MinuteBar> bars_;
@@ -56,6 +60,15 @@ struct DailyRiskMeasurement {
 
 [[nodiscard]] DailyRiskMeasurement measure_daily_risk(const RiskSessionReferences& session,
     double previous_close, double ex_dividend);
+struct LaggedRiskEstimate {
+    double daily;
+    std::optional<double> intraday;
+    std::vector<std::string> missing_dates;
+};
+class LaggedRiskEstimator {
+public:
+    [[nodiscard]] LaggedRiskEstimate estimate(std::span<const DailyRiskMeasurement> prior) const;
+};
 struct HoldingRiskMeasurement {
     double endpoint2;
     std::optional<double> rv5;
