@@ -11,7 +11,7 @@
 namespace trading::execution {
 
 // Integer arithmetic/state engine. The owning journal contract selects the USD
-// unit: cents in legacy schemas 1/2; nanodollars in the paper bridge schema 3.
+// unit: cents in legacy schemas 1/2; nanodollars in schemas 3/4.
 // Quantities remain whole shares. Serialized legacy cent keys are preserved.
 using Shares = std::int64_t;
 using MoneyUnits = std::int64_t;
@@ -88,6 +88,22 @@ struct BrokerSnapshot {
     Shares position_shares;
     std::vector<BrokerOpenOrder> open_orders;
 };
+struct SymbolInventory {
+    Shares shares{}, reserved_sell_shares{}, outstanding_buy_shares{};
+    bool operator==(const SymbolInventory&) const = default;
+};
+struct PortfolioAccountSnapshot {
+    MoneyUnits cash_units{}, reserved_cash_units{};
+    std::map<std::string, SymbolInventory> positions;
+    std::size_t open_orders{};
+    bool connected{}, reconciliation_required{};
+    bool operator==(const PortfolioAccountSnapshot&) const = default;
+};
+struct PortfolioBrokerSnapshot {
+    MoneyUnits cash_units;
+    std::map<std::string, Shares> positions;
+    std::vector<BrokerOpenOrder> open_orders;
+};
 struct TraceEntry {
     std::size_t sequence;
     std::string input;
@@ -100,12 +116,15 @@ struct TraceEntry {
     bool operator==(const TraceEntry&) const = default;
 };
 
-// Deterministic, single-symbol, unlevered limit-order core. Calls are serialized
+// Deterministic, unlevered limit-order core with one cash balance. Legacy
+// construction retains one symbol; portfolio construction keys its inventory.
+// Calls are serialized
 // in delivery order. Invalid broker messages retain accounting and reservations,
 // latch the entry gate and remain visible in the trace. No transport or clock.
 class OrderRuntime {
 public:
     OrderRuntime(std::string symbol, MoneyUnits initial_cash_units, RuntimeLimits limits);
+    OrderRuntime(std::vector<std::string> symbols, MoneyUnits initial_cash_units, RuntimeLimits limits);
     [[nodiscard]] Outcome submit(const OrderRequest& request);
     [[nodiscard]] Outcome register_target(const TargetIntent& target);
     [[nodiscard]] Outcome request_cancel(const std::string& order_id, const std::string& cancel_id);
@@ -115,7 +134,9 @@ public:
     // Exact comparison, including every open order and its immutable terms.
     // Matching snapshots clear the gate; mismatches never overwrite local state.
     [[nodiscard]] Outcome reconcile(const BrokerSnapshot& broker);
+    [[nodiscard]] Outcome reconcile(const PortfolioBrokerSnapshot& broker);
     [[nodiscard]] AccountSnapshot account() const;
+    [[nodiscard]] PortfolioAccountSnapshot portfolio_account() const;
     [[nodiscard]] std::string_view symbol() const noexcept;
     [[nodiscard]] OrderView order(const std::string& id) const;
     [[nodiscard]] std::vector<OrderView> orders() const;
@@ -124,7 +145,7 @@ public:
 private:
     struct State {
         MoneyUnits cash;
-        Shares position{0};
+        std::map<std::string, Shares> positions;
         std::map<std::string, OrderView> orders;
         std::map<std::string, BrokerReport> events;
         std::map<std::string, BrokerReport> executions;
@@ -133,6 +154,7 @@ private:
         std::string latest_target_id;
     };
     [[nodiscard]] AccountSnapshot snapshot(const State& state) const;
+    [[nodiscard]] PortfolioAccountSnapshot portfolio_snapshot(const State& state) const;
     [[nodiscard]] Outcome record(std::string input, std::string order_id,
                                  std::string event_id, Outcome outcome, std::string reason);
     [[nodiscard]] Outcome apply(State& candidate, const BrokerReport& report) const;

@@ -68,6 +68,8 @@ class IntradayContinuationStrategy {
 public:
     IntradayContinuationStrategy(HistoricalBarRequest session, ContinuationVariant variant,
         ResearchInputMode mode = ResearchInputMode::legacy_complete);
+    [[nodiscard]] static ContinuationAction action(const IntradayContinuationFeatures& features,
+        ContinuationVariant variant, bool currently_long);
     [[nodiscard]] IntradayContinuationDecision decide(
         const IntradayContinuationHistory& history,
         std::span<const MinuteBar> completed_bars,

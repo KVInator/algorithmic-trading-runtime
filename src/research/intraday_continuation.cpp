@@ -186,14 +186,17 @@ IntradayContinuationDecision IntradayContinuationStrategy::decide(
         if (mode_ != ResearchInputMode::registered_panel) { throw; }
         return unavailable();
     }
-    const bool price_condition = features.move > features.typical_absolute_move;
-    ContinuationAction action = ContinuationAction::stay_cash;
-    if (currently_long) {
-        action = price_condition ? ContinuationAction::hold_long : ContinuationAction::exit_long;
-    } else if (price_condition && (variant_ == ContinuationVariant::price_only || features.relative_volume > 1.0)) {
-        action = ContinuationAction::enter_long;
+    return {at, action(features, variant_, currently_long), features};
+}
+ContinuationAction IntradayContinuationStrategy::action(const IntradayContinuationFeatures& features,
+    ContinuationVariant variant, bool currently_long) {
+    if (variant != ContinuationVariant::price_only && variant != ContinuationVariant::volume_conditioned) {
+        throw std::invalid_argument("unknown continuation variant");
     }
-    return {at, action, features};
+    const bool price_condition = features.move > features.typical_absolute_move;
+    if (currently_long) { return price_condition ? ContinuationAction::hold_long : ContinuationAction::exit_long; }
+    return price_condition && (variant == ContinuationVariant::price_only || features.relative_volume > 1.0)
+        ? ContinuationAction::enter_long : ContinuationAction::stay_cash;
 }
 
 IntradayContinuationReplayEngine::IntradayContinuationReplayEngine(

@@ -52,6 +52,14 @@ pages through the existing panel oracle and rejects reserved-year access.
 The analytic fixture is explicitly synthetic. Replay methods and boundaries
 are described in [causal panel replay](../docs/panel_replay.md).
 
+`verify_shared_capital.py` reconstructs the schema-4 global cash ledger, owner
+attribution, exact fill/fee allocations, admission budgets and linked recovery
+segments using Python integers. It also checks constructed primary-engine
+features and actual-inventory adapter decisions. The self-check option rejects
+deliberate semantic corruption without relying on checksums. The
+[shared-capital note](../docs/shared_capital.md) defines the accounting contract
+and its synthetic scope.
+
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate
 performance remain unopened. Failed gates authorize neither a new search nor

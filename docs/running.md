@@ -402,3 +402,23 @@ Constructed numerical regression checks are available separately:
 ```sh
 py -3 -B research/verify_panel_replay.py --self-check
 ```
+
+## Shared-capital diagnostic (M4)
+
+Pull the current source and build **Release | x64**. Run
+`shared_capital_diagnostic.exe` with the existing retained-console setup. Change
+only the executable in Command Arguments to
+`/d /s /k ""$(OutDir)shared_capital_diagnostic.exe""`; keep Command as
+`$(SystemRoot)\System32\cmd.exe` and Working Directory as `$(ProjectDir)`.
+
+No private archive, credential, acquisition or historical replay is needed.
+Verify the actual printed directory:
+
+```sh
+py -3 -B research/verify_shared_capital.py scratch/runs/shared_capital_0 --self-check
+```
+
+Expected local evidence is 182 native checks, 15 cases and 163 audited durable
+transitions. The verifier creates a small synthetic `review.zip`. The
+[shared-capital contract](shared_capital.md) describes its ownership, budget,
+expiry and recovery conventions. Windows acceptance remains pending.

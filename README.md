@@ -35,7 +35,10 @@ registration findings, not expanded strategy results.
 Windows native checks and original-SPY reference parity passed. Independent
 verification checked source observations, prior-only histories, fits, targets
 and arithmetic. The common operational development mask contains 1,682 dates
-per instrument. Shared-capital and broader economic comparisons remain later work.
+per instrument. The [M4 shared-capital diagnostic](docs/shared_capital.md) now
+exercises one cash balance, fifteen strategy owners, netting, aggregate admission
+limits and durable recovery. Its evidence is synthetic; Windows acceptance is
+pending. Broader historical economic comparisons remain later work.
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
 until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)
 retains the artifact identities and review limits. The results below describe

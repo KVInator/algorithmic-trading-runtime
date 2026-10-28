@@ -102,34 +102,61 @@ std::string_view name(Outcome outcome) {
 }
 
 OrderRuntime::OrderRuntime(std::string symbol, MoneyUnits cash, RuntimeLimits limits)
-    : symbol_{std::move(symbol)}, limits_{limits}, state_{cash, 0, {}, {}, {}, {}, {}, ""} {
-    if (!token(symbol_) || cash <= 0 || limits_.maximum_position_shares <= 0 || limits_.maximum_open_orders == 0) {
-        throw std::invalid_argument("runtime requires a symbol, positive cash and positive limits");
+    : OrderRuntime(std::vector<std::string>{std::move(symbol)}, cash, limits) {}
+OrderRuntime::OrderRuntime(std::vector<std::string> symbols, MoneyUnits cash, RuntimeLimits limits)
+    : limits_{limits}, state_{cash, {}, {}, {}, {}, {}, {}, ""} {
+    if (symbols.empty() || symbols.size() > 5 || cash <= 0 || limits_.maximum_position_shares <= 0 || limits_.maximum_open_orders == 0) {
+        throw std::invalid_argument("runtime requires registered symbols, positive cash and positive limits");
     }
+    for (const auto& symbol : symbols) {
+        if (!token(symbol) || !state_.positions.emplace(symbol, 0).second) { throw std::invalid_argument("invalid or duplicate runtime symbol"); }
+    }
+    if (symbols.size() == 1) { symbol_ = symbols.front(); }
 }
-AccountSnapshot OrderRuntime::snapshot(const State& state) const {
-    AccountSnapshot value{state.cash, state.position, 0, 0, 0, 0, connected_, reconciliation_required_};
+PortfolioAccountSnapshot OrderRuntime::portfolio_snapshot(const State& state) const {
+    PortfolioAccountSnapshot value{state.cash, 0, {}, 0, connected_, reconciliation_required_};
+    for (const auto& [symbol, shares] : state.positions) { value.positions.emplace(symbol, SymbolInventory{shares, 0, 0}); }
     for (const auto& [id, order] : state.orders) {
         static_cast<void>(id);
         if (terminal(order.status)) { continue; }
         ++value.open_orders;
         const auto remaining = order.request.shares - order.filled_shares;
+        auto& position = value.positions.at(order.request.symbol);
         if (order.request.side == Side::buy) {
             value.reserved_cash_units = add(value.reserved_cash_units,
                 multiply(remaining, add(order.request.limit_units, order.request.fee_per_share_ceiling_units)));
-            value.outstanding_buy_shares = add(value.outstanding_buy_shares, remaining);
-        } else {
-            value.reserved_sell_shares = add(value.reserved_sell_shares, remaining);
-        }
+            position.outstanding_buy_shares = add(position.outstanding_buy_shares, remaining);
+        } else { position.reserved_sell_shares = add(position.reserved_sell_shares, remaining); }
     }
-    if (value.cash_units < value.reserved_cash_units || value.position_shares < value.reserved_sell_shares ||
-        add(value.position_shares, value.outstanding_buy_shares) > limits_.maximum_position_shares ||
-        value.open_orders > limits_.maximum_open_orders) {
+    if (value.cash_units < value.reserved_cash_units || value.open_orders > limits_.maximum_open_orders) {
         throw std::invalid_argument("cash, inventory, position or open-order limit exceeded");
+    }
+    for (const auto& [symbol, position] : value.positions) {
+        static_cast<void>(symbol);
+        if (position.shares < position.reserved_sell_shares ||
+            add(position.shares, position.outstanding_buy_shares) > limits_.maximum_position_shares) {
+            throw std::invalid_argument("cash, inventory, position or open-order limit exceeded");
+        }
     }
     return value;
 }
-AccountSnapshot OrderRuntime::account() const { return snapshot(state_); }
+AccountSnapshot OrderRuntime::snapshot(const State& state) const {
+    const auto portfolio = portfolio_snapshot(state);
+    AccountSnapshot value{portfolio.cash_units, 0, portfolio.reserved_cash_units, 0, 0,
+        portfolio.open_orders, portfolio.connected, portfolio.reconciliation_required};
+    for (const auto& [symbol, position] : portfolio.positions) {
+        static_cast<void>(symbol);
+        value.position_shares = add(value.position_shares, position.shares);
+        value.reserved_sell_shares = add(value.reserved_sell_shares, position.reserved_sell_shares);
+        value.outstanding_buy_shares = add(value.outstanding_buy_shares, position.outstanding_buy_shares);
+    }
+    return value;
+}
+AccountSnapshot OrderRuntime::account() const {
+    if (symbol_.empty()) { throw std::logic_error("multi-symbol runtime requires portfolio_account"); }
+    return snapshot(state_);
+}
+PortfolioAccountSnapshot OrderRuntime::portfolio_account() const { return portfolio_snapshot(state_); }
 std::string_view OrderRuntime::symbol() const noexcept { return symbol_; }
 OrderView OrderRuntime::order(const std::string& id) const { return state_.orders.at(id); }
 std::vector<OrderView> OrderRuntime::orders() const {
@@ -146,7 +173,7 @@ Outcome OrderRuntime::record(std::string input, std::string id, std::string even
     std::string status;
     if (const auto item = state_.orders.find(id); item != state_.orders.end()) { status = name(item->second.status); }
     trace_.push_back({trace_.size() + 1, std::move(input), std::move(id), std::move(event),
-                      outcome, std::move(reason), std::move(status), account()});
+                      outcome, std::move(reason), std::move(status), snapshot(state_)});
     return outcome;
 }
 Outcome OrderRuntime::submit(const OrderRequest& request) {
@@ -155,7 +182,7 @@ Outcome OrderRuntime::submit(const OrderRequest& request) {
     }
     try {
         static_cast<void>(name(request.side));
-        if (!token(request.id) || request.symbol != symbol_ || request.shares <= 0 || request.limit_units <= 0 ||
+        if (!token(request.id) || !state_.positions.contains(request.symbol) || request.shares <= 0 || request.limit_units <= 0 ||
             request.fee_per_share_ceiling_units < 0 || request.fee_per_share_ceiling_units >= request.limit_units ||
             state_.orders.contains(request.id)) {
             throw std::invalid_argument("invalid order terms or reused order ID");
@@ -238,11 +265,11 @@ Outcome OrderRuntime::apply(State& candidate, const BrokerReport& report) const 
             const auto debit = add(notional, report.fee_units);
             if (debit > candidate.cash) { throw std::invalid_argument("fill exceeds cash"); }
             candidate.cash -= debit;
-            candidate.position = add(candidate.position, report.fill_shares);
+            candidate.positions.at(request.symbol) = add(candidate.positions.at(request.symbol), report.fill_shares);
         } else {
-            if (report.fill_shares > candidate.position) { throw std::invalid_argument("fill exceeds inventory"); }
+            if (report.fill_shares > candidate.positions.at(request.symbol)) { throw std::invalid_argument("fill exceeds inventory"); }
             candidate.cash = add(candidate.cash, notional - report.fee_units);
-            candidate.position -= report.fill_shares;
+            candidate.positions.at(request.symbol) -= report.fill_shares;
         }
         order.filled_shares += report.fill_shares;
         order.acknowledged = true;
@@ -322,7 +349,11 @@ void OrderRuntime::reconnect() {
     static_cast<void>(record("reconnect", "", "", Outcome::applied, "connection restored; reconciliation still required"));
 }
 Outcome OrderRuntime::reconcile(const BrokerSnapshot& broker) {
-    bool matches = connected_ && broker.cash_units == state_.cash && broker.position_shares == state_.position;
+    if (symbol_.empty()) { throw std::logic_error("multi-symbol reconciliation requires a complete position map"); }
+    return reconcile(PortfolioBrokerSnapshot{broker.cash_units, {{symbol_, broker.position_shares}}, broker.open_orders});
+}
+Outcome OrderRuntime::reconcile(const PortfolioBrokerSnapshot& broker) {
+    bool matches = connected_ && broker.cash_units == state_.cash && broker.positions == state_.positions;
     std::map<std::string, BrokerOpenOrder> open;
     for (const auto& item : broker.open_orders) {
         if (!open.emplace(item.request.id, item).second) { matches = false; }

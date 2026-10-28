@@ -11,6 +11,7 @@ independent references and publication rendering.
 | Research | `DevelopmentStudy`, `IntradayContinuationStrategy`, `ReversionHistory`, `ReversionStudy`, `DailyRiskStudy` | Completed information, prior-only estimation, frozen rules and complete dated comparisons |
 | Fractional accounting | `LongCashAccount` | Cash, shares, dividend receivables/payments, splits and chronological equity |
 | Order accounting | `OrderRuntime`, `JournaledRuntime` | Whole shares, integer units, reservations, stable IDs and routing gates |
+| Shared capital | `SharedCapitalBook`, `JournaledSharedCapital`, `SharedStrategyAdapter` | One global balance, five inventories, fifteen owners, netting and schema-4 recovery |
 | Exact message bridge | `BrokerDecimal`, `BrokerTimestamp`, `PaperExecutionState`, `JournaledPaperRuntime` | Validated external precision, durable identities and schema-3 nanodollars |
 | Scheduling/matching | Strategy adapters, `OfflinePipeline`, `SimulatedBroker`, `SimulatedPaperWire`, `PaperControl` | Shared target path, finite quote budgets, independent peer state and durable control |
 | Measurement | `ExecutionMeasurementStudy`, `ExecutionQuality`, `RuntimeBenchmark` | Matched declared schedules or timed calls; explicit denominators and bounds |
@@ -19,14 +20,15 @@ independent references and publication rendering.
 
 ## Information and financial boundaries
 
-Research adapters delegate to the same signal engines. Three families run
-separately against one symbol; concurrent strategy ownership is outside scope.
+Research adapters delegate to the same signal engines. The published v1 runs
+three families separately against one symbol. The M4 extension adds concurrent
+ownership across five instruments under the [shared-capital contract](shared_capital.md).
 Fractional historical accounts and integer execution accounts differ in sizing,
 costs, corporate actions and execution evidence. Explicitly aligned cases check
 parity; other cases retain rounding, idle cash, unfilled or rejected quantities.
 
 The core stores neutral integer monetary units. Legacy JSON cent fields retain
-their original meaning; schema 3 declares USD 1e-9. No implicit unit conversion
+their original meaning; schemas 3 and 4 declare USD 1e-9. No implicit unit conversion
 between journal versions is permitted. `JournalFrame` owns framing/checksums for
 all schemas. `ReportText` owns its input and performs text encoding only.
 

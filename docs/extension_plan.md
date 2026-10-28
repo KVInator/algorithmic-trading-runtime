@@ -1,6 +1,7 @@
 # Multi-instrument research and execution extension
 
-Status recorded 28 October 2026: **M0-M3 complete; M4-M10 not started.**
+Status recorded 28 October 2026: **M0-M3 complete; M4 implemented with Windows
+acceptance pending; M5-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -123,7 +124,7 @@ invariants.
 | Measurements | `src/execution/execution_measurement.*`, `runtime_benchmark.*` | Matched multi-symbol/process workloads; separate physical timings from simulated delays |
 | Evidence and verification | `src/reporting/`; `research/verify_*.py`, `build_report.py` | Saved records drive views; independent numerical checks do not become another production engine |
 
-The current `OrderRuntime` stores one symbol and one cash balance. Five separately
+At M0, `OrderRuntime` stored one symbol and one cash balance. Five separately
 funded instances do not establish shared capital. `LongCashAccount` is also
 single-instrument and fractional; it must not be presented as the exact integer
 broker ledger. The schema-3 bridge restricts the synthetic contract to SPY DAY
@@ -148,7 +149,7 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 | D4 | Parent complete-grid coverage remains failed; registered amendments retain three unavailable daily marks and establish canonical action sources | M2 complete: the Windows study manifest binds recovery receipts, actions, masks and the original-SPY vintage bridge; M3 must enforce causal missing-input behavior |
 | D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
 | D6 | Legacy defaults retain SPY contracts; explicit panel mode supports pre-2024 five-instrument primary replay | M3 complete: original-SPY parity and all primary pre-2024 panel records verified |
-| D7 | One-symbol cash, pending-fill limits, internal ownership transfers and journal growth need a shared-account contract | M4: one global ledger, deterministic netting/allocation and bounded durable handover |
+| D7 | Shared cash, pending-fill claims, internal ownership transfers and bounded flat handover are implemented | M4: native and independent local checks pass; Windows acceptance pending |
 | D8 | Process framing, durable broker history, lifecycle/fee/cash policies and schema migration remain unspecified | M5: explicit bounded contracts and twelve-family fault acceptance |
 | D9 | Historical executable-price references, size assumptions and source/receipt delays require separate evidence | M6: bounded quote sample and fixed synthetic stress matrix, with unestimated quantities explicit |
 | D10 | Final period has known GLD research exposure and unverified exposure elsewhere | M2: carry the M0 qualifications into registration; M8/M9: preserve the project-specific lock and report labels |
@@ -165,7 +166,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
 | M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Complete: Windows Release inputs registered; source actions, amendments, masks and original-SPY vintage bridge bound to the study manifest |
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
-| M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
+| M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Implemented: 182 native checks and 163 independently audited transitions; Windows acceptance pending |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Not started |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
@@ -732,3 +733,26 @@ Network requests and broker events were zero. Strategy inputs for 2024 and
 simultaneous inference were not executed by this milestone. M3 is complete;
 M4 next establishes ownership, target netting, aggregate limits and recovery
 under one shared-capital ledger.
+
+## M4 shared-capital implementation
+
+The [shared-capital contract](shared_capital.md) extends the existing integer
+order core to five symbol inventories under one global cash balance. Fifteen
+strategy/instrument owners retain explicit holdings and signed attribution cash
+flows. Primary M3 feature records feed the same strategy engines; continuation
+uses actual owned inventory when deciding whether its entry-volume rule applies.
+
+The constructed diagnostic covers global reservations, internal crossing,
+acknowledgements, partial fills, proportional fees, cancel races, quote/target
+expiry, input permutations, market-move budget breaches, active-order recovery,
+flat segment handover and uncertain durable writes. It records zero network
+requests and no external broker observations or historical shared-capital return.
+The independent Python verifier checks every durable checkpoint, exact
+allocation, admission limit, recovery link and saved report event.
+
+Local Release verification and acceptance commands are recorded in the linked
+contract. Windows Release execution and its independent review remain required
+before M4 is marked complete. The separate synthetic broker process remains M5;
+historical cost/execution and daily-risk accounts remain M6, stability and
+uncertainty M7, reserved-year evaluations M8-M9 and publication M10. No frozen
+input identity, original research result or reserved-year access rule changes.
