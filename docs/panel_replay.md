@@ -75,6 +75,21 @@ The report labels synthetic and provider evidence explicitly. The independent
 verifier reconstructs source-page features, prior histories, pooled fit,
 allocation weights, targets and arithmetic without calling the native engines.
 
+Independent OLS intercept, slope and innovation variance comparisons retain the
+`1e-11 * max(1, |reference|)` tolerance. The equilibrium `a/(1-b)` amplifies
+coefficient differences near a unit slope, so it is checked through its backward
+identity `(1-b) * equilibrium = a`, with a bound for rounding of the saved
+coefficients and derived value. Reversion speed is checked against `-log(b)/5`.
+The independent primary expected-move calculation uses the equivalent expression
+
+\[
+\left(a-(1-b)x\right)b^{1/5}\sum_{j=0}^{5}b^j,
+\]
+
+which avoids dividing by `1-b`. Fit-status and target comparisons remain exact.
+`verify_panel_replay.py --self-check` exercises binary64 online fits, extended
+precision rounding and deliberately corrupted parameters without market data.
+
 The registered pre-2024 calendar contains 2,012 dates, so a complete run writes
 10,060 instrument-date records. The registered common operational mask contains
 1,682 development dates in 2017-2023. These are input-coverage counts; model

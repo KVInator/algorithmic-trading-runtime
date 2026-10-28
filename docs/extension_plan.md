@@ -1,10 +1,10 @@
 # Multi-instrument research and execution extension
 
-Status recorded 28 October 2026: **M0-M2 complete; M3 implementation awaiting Windows archive replay; M4-M10 not started.**
+Status recorded 28 October 2026: **M0-M2 complete; M3 Windows native replay reported complete, independent archive verification pending; M4-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
-No expanded historical result is available yet.
+No expanded historical result has been independently verified yet.
 
 ## Baseline identity and preservation
 
@@ -163,7 +163,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M0 | Baseline and research inventory | Release identities, implementation map, exposure log, scope and decision register | Complete |
 | M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
 | M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Complete: Windows Release inputs registered; source actions, amendments, masks and original-SPY vintage bridge bound to the study manifest |
-| M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Implemented; constructed checks and independent oracle available; full Windows archive replay pending |
+| M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Windows native replay and 187 constructed checks reported successful; independent archive verification pending |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Not started |
@@ -646,8 +646,9 @@ source-reader registration smoke coverage, future-data perturbations, missing
 prefix liquidation, unavailable execution, zero-volume features, missing
 reversion slots, daily-history resets and original-default parity. An independent
 Python oracle rebuilds the features, fit, targets and arithmetic from raw source
-pages or the declared analytic fixture. Full provider-data replay and Windows
-verification remain pending; no expanded historical result is reported here.
+pages or the declared analytic fixture. Independent verification of the Windows
+provider-data run remains pending; no accepted expanded historical result is
+reported here.
 
 Local GNU 13.3.0 Release verification on 28 October 2026 produced:
 
@@ -678,3 +679,15 @@ remains M4; the separate synthetic peer remains M5. Broader cost/delay and
 execution research, risk-account ledger extension, registered stability
 variants, risk-matched comparisons and uncertainty analysis remain M6-M7.
 Validation in 2024 and final evaluation in 2025 remain gated to M8 and M9.
+
+The supplied Windows console record subsequently reports all 187 native panel
+checks passing, original-SPY reference parity passing and
+`causal_panel_replay_completed` with reserved strategy inputs unopened.
+Independent verification stopped at an equilibrium comparison. The verifier's
+fixed tolerance on that ill-conditioned ratio was corrected to validate the
+derived identity after checking the independent OLS coefficients. Constructed
+checks reproduce the previous disagreement and reject corrupted coefficients;
+the [methods note](panel_replay.md) specifies the numerical checks. The native
+research implementation, registered rules, inputs and saved outcomes are
+unchanged. Full Windows independent verification and review of its resulting
+bundle are still required before accepting M3.

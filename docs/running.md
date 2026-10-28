@@ -393,3 +393,12 @@ py -3 -B research/verify_panel_replay.py scratch/runs/panel_check_0
 
 Use the actual native `panel_check` suffix. Detailed methods and subsequent
 work are in [causal panel replay](panel_replay.md).
+
+For the reversion equilibrium comparison correction, existing replay records
+can be verified directly after pulling the updated Python script. Rebuilding
+the native applications or repeating the historical replay is unnecessary.
+Constructed numerical regression checks are available separately:
+
+```sh
+py -3 -B research/verify_panel_replay.py --self-check
+```

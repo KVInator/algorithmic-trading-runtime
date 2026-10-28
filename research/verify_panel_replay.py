@@ -4,12 +4,13 @@ from __future__ import annotations
 import argparse
 from collections import defaultdict, deque
 from datetime import date, datetime, timezone
-from decimal import Decimal
+from decimal import Decimal, localcontext
 import hashlib
 import html
 import re
 import json
 import math
+import random
 from pathlib import Path
 import statistics
 import zipfile
@@ -27,7 +28,8 @@ def same(actual, expected, label):
     if expected is None:
         require(actual is None, label)
     else:
-        require(actual is not None and math.isfinite(actual) and abs(actual - expected) <= 1e-11 * max(1, abs(expected)), label)
+        require(actual is not None and math.isfinite(actual) and abs(actual - expected) <= 1e-11 * max(1, abs(expected)),
+                f"{label}; actual={actual!r}, expected={expected!r}")
 
 
 def clock(seconds):
@@ -84,6 +86,93 @@ def fit(sequences):
     if status == "admissible":
         result.update(equilibrium=intercept / (1 - slope), speed_per_minute=-math.log(slope) / 5)
     return result
+
+
+def verify_reversion_coefficients(actual, expected, context):
+    """Check independent OLS coefficients, then their rounded derived identities.
+
+    The equilibrium a/(1-b) is ill-conditioned near b=1. Applying the primitive
+    coefficient tolerance directly to that ratio gives false disagreements.
+    Its backward residual is checked against rounding of the saved a, b and
+    equilibrium instead. This also covers unrounded extended-precision native
+    intermediates. It does not widen the independent OLS coefficient tolerance.
+    """
+    for key in ("intercept", "slope", "innovation_variance"):
+        same(actual[key], expected.get(key), context + ": Reversion coefficient differs: " + key)
+    if expected["status"] != "admissible":
+        for key in ("equilibrium", "speed_per_minute"):
+            same(actual[key], None, context + ": Inadmissible fit has a derived value: " + key)
+        return False
+    a, b = actual["intercept"], actual["slope"]
+    mu, speed = actual["equilibrium"], actual["speed_per_minute"]
+    require(0 < b < 1 and actual["innovation_variance"] > 0
+            and mu is not None and math.isfinite(mu) and speed is not None and speed > 0,
+            context + ": Invalid admissible reversion parameters")
+    gap = 1 - b
+    product = mu * gap
+    # Half-ulp input intervals allow the native unrounded coefficients. The
+    # remaining ulps cover subtraction, multiplication and output rounding.
+    budget = (.5 * math.ulp(a) + abs(mu) * (.5 * math.ulp(b) + math.ulp(gap))
+              + 4 * (math.ulp(product) + abs(gap) * math.ulp(mu)))
+    error = abs(math.fsum((product, -a)))
+    require(math.isfinite(product) and math.isfinite(budget) and error <= budget,
+            f"{context}: Reversion equilibrium identity differs; residual={error!r}, rounding_bound={budget!r}")
+    same(speed, -math.log(b) / 5, context + ": Reversion speed identity differs")
+    reference = expected["equilibrium"]
+    return abs(mu - reference) > 1e-11 * max(1, abs(reference))
+
+
+def verify_reversion_numerics():
+    """Exercise the binary64/extended-precision cases without market inputs."""
+    checks = 0
+    near_unit_disagreements = 0
+    for gap in (1e-3, 1e-5, 1e-7, 1e-9, 1e-11):
+        rng = random.Random(912)
+        sequences = []
+        for j in range(20):
+            sequence = [.001 * (j - 10)]
+            for _ in range(24):
+                sequence.append(1e-7 + (1 - gap) * sequence[-1] + rng.uniform(-1e-16, 1e-16))
+            sequences.append(sequence)
+        expected = fit(sequences)
+        # Reproduce binary64 online OLS arithmetic, independently of the
+        # two-pass, compensated-sum oracle. No native strategy is called.
+        mx = my = xx = xy = 0.
+        n = 0
+        for sequence in sequences:
+            for x, y in zip(sequence, sequence[1:]):
+                n += 1
+                dx, dy = x - mx, y - my
+                mx += dx / n
+                my += dy / n
+                xx += dx * (x - mx)
+                xy += dx * (y - my)
+        b = xy / xx
+        a = my - b * mx
+        actual = dict(expected, intercept=a, slope=b, equilibrium=a / (1 - b), speed_per_minute=-math.log(b) / 5)
+        near_unit_disagreements += verify_reversion_coefficients(actual, expected, f"constructed gap {gap}")
+        checks += 1
+        for field in ("intercept", "slope", "innovation_variance", "equilibrium", "speed_per_minute"):
+            altered = dict(actual)
+            altered[field] += max(1, abs(altered[field])) * .01
+            try:
+                verify_reversion_coefficients(altered, expected, "constructed corruption")
+            except ValueError:
+                checks += 1
+            else:
+                raise ValueError("Corrupted reversion parameter was accepted: " + field)
+    require(near_unit_disagreements > 0, "Near-unit regression did not reproduce the old comparison failure")
+    # A native extended-precision fit can round its saved slope before the
+    # independently rounded equilibrium. Both must fit their rounding cells.
+    with localcontext() as decimal_context:
+        decimal_context.prec = 60
+        a = Decimal("0.000000100000000000000005")
+        b = Decimal("0.99999990000000005")
+        record = dict(status="admissible", intercept=float(a), slope=float(b), innovation_variance=1e-10,
+                      equilibrium=float(a / (1 - b)), speed_per_minute=-math.log(float(b)) / 5)
+    verify_reversion_coefficients(record, record, "extended-precision rounding")
+    checks += 1
+    print(f"Reversion numerical checks passed: {checks}; {near_unit_disagreements} near-unit disagreements reproduced and validated.")
 
 
 class InputSource:
@@ -179,6 +268,7 @@ class ReplayVerifier:
         self.source = InputSource(self.summary)
         self.common = defaultdict(list)
         self.samples = {}
+        self.conditioned_fits = 0
 
     @staticmethod
     def path(actual, targets, bars, opening, available):
@@ -283,8 +373,7 @@ class ReplayVerifier:
                         actual = row["reversion"]
                         require(actual is not None and actual["complete"] == complete and actual["fit_status"] == fitted["status"] and actual["pairs"] == fitted["pairs"], "Reversion fit/status differs")
                         require(actual["history_first"] == clock(reversion[0][0]) and actual["history_last"] == clock(reversion[-1][0]), "Reversion history slots differ")
-                        for key in ("intercept","slope","innovation_variance","equilibrium","speed_per_minute"):
-                            same(actual[key], fitted.get(key), "Reversion coefficient differs: " + key)
+                        self.conditioned_fits += verify_reversion_coefficients(actual, fitted, symbol + " " + d)
                         same(actual["current"], current[-1] if current else None, "Current residual differs")
                         expected_move = None
                         if complete and current is not None:
@@ -292,8 +381,11 @@ class ReplayVerifier:
                             drift = 6 * math.fsum(b-a for _, seq in reversion for a,b in zip(seq,seq[1:])) / 480
                             actions[1:] = [current[-1] < 0, drift > hurdle, True]
                             if fitted["status"] == "admissible":
-                                speed = fitted["speed_per_minute"]
-                                expected_move = (fitted["equilibrium"] - current[-1]) * math.exp(-speed) * -math.expm1(-speed*30)
+                                b, a = fitted["slope"], fitted["intercept"]
+                                # Thirty minutes is six five-minute steps. This
+                                # equivalent polynomial avoids cancellation of
+                                # the ill-conditioned equilibrium and speed.
+                                expected_move = (a - (1 - b) * current[-1]) * b ** .2 * math.fsum(b ** j for j in range(6))
                                 actions[0] = current[-1] < fitted["equilibrium"] and expected_move > hurdle
                         same(actual["expected_move"], expected_move, "Reversion forecast differs")
                     else:
@@ -373,7 +465,10 @@ class ReplayVerifier:
                     and path.stat().st_size <= 128 * 1024 * 1024 and PanelVerifier.digest(path) == ref["sha256"],
                     "Replay artifact changed or exceeded its bound")
             symbol = path.stem
-            expected = self.instrument(symbol, path)
+            try:
+                expected = self.instrument(symbol, path)
+            except (ValueError, KeyError, TypeError, IndexError) as error:
+                raise ValueError(f"{symbol} replay: {error}") from None
             actual = next(r for r in s["instruments"] if r["symbol"] == symbol)
             require(all(actual[k] == v for k, v in expected.items()), "Instrument summary counts differ")
         for values in self.common.values():
@@ -400,13 +495,21 @@ class ReplayVerifier:
                 for name in z.namelist():
                     require(z.read(name) == (self.directory / name).read_bytes(), "Existing review bundle is stale")
         print(f"Verified causal panel replay: {len(self.common)} dates, five instruments; source, target, history and arithmetic checks passed.")
+        print(f"Equilibrium differences explained by conditioning: {self.conditioned_fits}; primitive tolerances and exact target checks retained.")
         print(f"Review bundle: {bundle}")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("directory", type=Path)
+    parser.add_argument("directory", type=Path, nargs="?")
+    parser.add_argument("--self-check", action="store_true", help="Run constructed reversion rounding/conditioning checks")
     args = parser.parse_args()
+    if args.self_check:
+        verify_reversion_numerics()
+    if args.directory is None:
+        if not args.self_check:
+            parser.error("a replay directory or --self-check is required")
+        return
     directory = args.directory.resolve()
     if (directory / "checks.json").is_file():
         checks = PanelVerifier.load(directory / "checks.json")
