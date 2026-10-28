@@ -52,8 +52,11 @@ first checkpoint provides a resumable, fully paginated sample of 910 pre-2024
 SIP quote windows selected from input masks. Windows acquisition retained 1,322
 responses; 232 windows pass the fixed eligibility rule, all in 2022-2023.
 The report shows static coverage/spread plots and explicit unavailable groups.
-An offline cached inspector audits condition codes and timestamp conflicts
-while preserving the original classifications.
+Cached inspection reproduced every classification: sampled 2017-2021 quotes
+carry `["?"]`, while 2022-2023 quotes carry `["R"]`. Of 76 timestamp conflicts,
+67 change size, three change price and six change exchange metadata only.
+The [diagnosis](docs/cost_execution.md#cached-condition-and-timestamp-diagnosis)
+retains the eligibility rule and limits eligible spread evidence to 2022-2023.
 Cost/account comparisons and synthetic execution evaluation remain open.
 Registered synthetic cases are not executed results.
 

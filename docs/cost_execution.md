@@ -71,15 +71,16 @@ requests and produces unestimated coverage. It does not prompt a purchase, chang
 feed or repeat the denied request. A new archive path is an explicit new provider
 vintage; old evidence remains intact.
 
-`cost_execution_check` exercises twelve constructed acquisition cases plus
-future-clock and checksum rejection. `verify_cost_quotes.py` independently reads
+`cost_execution_check` exercises twelve acquisition fixtures and five additional
+metadata/ambiguity fixtures, plus future-clock and checksum rejection.
+`verify_cost_quotes.py` independently reads
 the raw byte envelopes, authenticates their identities and reconstructs request
 paths, page chains, latest-record selection, exact price/share units, source age
 and spread arithmetic. The provider route also checks the original M2 masks on
 the producing machine. The compact review bundle contains summaries and HTML;
 it is not a replacement for that local raw-evidence verification.
 
-Local verification on 28 October 2026 used GNU 13.3.0, C++20 Release and warnings
+Initial verification on 28 October 2026 used GNU 13.3.0, C++20 Release and warnings
 as errors. The quote diagnostic passed 330 checks in twelve cases, including
 the authenticated accepted-M2 mask plan. The independent oracle verified 1,560
 constructed windows and rejected six deliberately altered arithmetic/coverage
@@ -108,8 +109,11 @@ and were not reauthenticated during that review.
 | Locked | 2 |
 
 The [instrument/date coverage table](evidence/m6_quote_coverage.csv) retains all
-35 sampled instrument-days. Every 2017-2021 group has zero eligible observations;
-2022 contributes 107 and 2023 contributes 125. The sample therefore does not
+35 sampled instrument-days, with the cached condition and conflict counts below.
+Its `latest_condition` column stores the single returned flag; `nonempty_windows`
+and `latest_records` distinguish window coverage from tied-record counts.
+Every 2017-2021 group has zero eligible observations; 2022 contributes 107 and
+2023 contributes 125. The sample therefore does not
 establish eligible spread evidence across all seven years. A `nonregular` result
 records failure of the fixed condition rule; it does not establish that market
 trading itself was abnormal. No eligibility rule or sample was changed after
@@ -176,8 +180,54 @@ Local constructed verification covers seventeen sample cases and 2,210 windows,
 including price/size/metadata conflicts, missing fields, blank/empty/mixed
 condition arrays, duplicate records, incomplete pages and oversized metadata.
 The native total is 355 checks with accepted-M2 metadata, or 354 without it.
-Actual provider condition patterns remain pending the Windows cached inspection;
-no diagnosis of the pre-2022 exclusions or policy change is claimed yet.
+
+Windows cached inspection completed on 28 October 2026 with MSVC 19.51.36260
+Release. It reproduced all 910 original classifications and measurements with
+zero network requests. The producing machine's independent verifier authenticated
+the raw responses and primary replay. Review of the uploaded compact bundle
+verified the 910 diagnostic records, aggregate counts, static charts and table;
+raw responses remain local and were not reauthenticated during compact review.
+
+| Sampled period | Nonempty windows | Latest condition array | Eligible under the registered rule |
+| --- | ---: | --- | ---: |
+| 2017-2021 | 584 of 650 | `["?"]` in every nonempty window | 0 |
+| 2022-2023 | 246 of 260 | `["R"]` in every nonempty window | 232 |
+
+The returned `?` flags explain all 520 `nonregular` classifications. These are
+literal provider metadata, not inferred from the absence of eligible quotes.
+The other 64 nonempty pre-2022 windows are 62 ambiguous and two locked windows.
+The observations establish the pattern on seven sampled dates, not the date or
+cause of a provider-wide metadata change. No authenticated mapping establishing
+that `?` means regular is retained. Alpaca documents a
+[tape-specific condition-code mapping](https://docs.alpaca.markets/us/reference/stockmetaconditions-1);
+the tape is `B` for SPY/IWM/GLD and `C` for QQQ/TLT in this sample. Missing code
+semantics are not repaired by treating `?` as `R`.
+
+| Latest-timestamp disagreement | Windows | Interpretation |
+| --- | ---: | --- |
+| Size conflict | 67 | Identical prices; displayed quantities differ |
+| Price conflict | 3 | At least one bid or ask price differs |
+| Metadata only | 6 | Identical prices and quantities; only `ax` or `bx` differs |
+
+All 76 windows remain ambiguous. Only one of the six metadata-only cases carries
+`["R"]`; the other five carry `["?"]`. A price-only statistic could use different
+tie rules, but the registered joint price/size/exchange reference cannot identify
+a unique latest record from these timestamps. Removing only the condition test
+would increase the passing count from 232 to 752, leaving the 76 ambiguous,
+80 empty and two locked windows excluded. This is a diagnostic counterfactual,
+not an adopted eligibility change or evidence that all 752 quotes were executable.
+
+| Cached diagnostic review identity | SHA-256 |
+| --- | --- |
+| Diagnostic summary | `1820012968c459df0f1aad9ac29fcf9ccffda82d691127d927341b25961b7ada` |
+| Diagnostic report | `4df5eb524eab3e6d3d582b5e3a657cd7502431488886862e7e5a398a3093887f` |
+| Diagnostic review ZIP | `5052ad4756b9a188c8b270d0a54cbab0406eae67e78b324995fd9f3bb3a5a107` |
+
+This completes the registered quote-input diagnosis. Eligible descriptive spread
+evidence remains limited to 2022-2023. The fixed bar-reference cost/delay grid and
+synthetic execution matrix do not require quote eligibility in earlier years;
+their evaluation can proceed with this limitation visible. No further quote
+acquisition or change to the primary strategy results follows from this diagnosis.
 
 The [runbook](running.md#cost-and-execution-inputs-m6) gives the Windows commands.
 The provider sampler uses only the existing historical-data credential route.

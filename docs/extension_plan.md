@@ -801,6 +801,13 @@ completed on 28 October 2026: 1,322 retained HTTP responses, 232 eligible window
 all in 2022-2023. The [acceptance and coverage record](cost_execution.md#windows-quote-acceptance-and-coverage)
 retains the original artifact identities and the limits of compact review.
 
+The [cached diagnosis](cost_execution.md#cached-condition-and-timestamp-diagnosis)
+also passed on Windows with zero requests and an identical primary replay.
+Every nonempty sampled 2017-2021 window carries `["?"]`; the 2022-2023 windows
+carry `["R"]`. The 76 timestamp conflicts comprise 67 size, three price and
+six exchange-only disagreements. This completes quote-input diagnosis without
+changing eligibility; earlier-year eligible spread evidence remains unavailable.
+
 Historical cost/delay outcomes, quote-reference comparisons, continuous daily-risk
 accounts and the 680 synthetic execution evaluations remain to be implemented.
 The three unavailable 2019 closes cannot be repaired by resetting capital:
