@@ -1,8 +1,8 @@
 # Algorithmic Trading Runtime
 
-C++20 software for causal SPY strategy research, exact order accounting,
+C++20 software for causal strategy research, exact order accounting,
 synthetic broker-message processing and durable restart recovery.
-Historical research uses inspected **2022-2023 development data**; broker
+The published v1 research uses inspected **2022-2023 SPY development data**; broker
 events and execution workloads are constructed offline scenarios.
 
 The project contains **three intraday strategy families**, a separate daily-risk
@@ -17,7 +17,7 @@ and open it locally. The [v1.0.0 release](https://github.com/KVInator/algorithmi
 contains the report downloads and original Windows benchmark evidence.
 
 The [multi-instrument extension](docs/extension_plan.md) has completed
-**M0-M2: 3 of 11 milestones**. A Windows Release run registered the 2016-2025
+**M0-M3: 4 of 11 milestones**. A Windows Release run registered the 2016-2025
 panel for **SPY, QQQ, IWM, TLT and GLD**, covering 2,514 exchange dates and
 12,570 symbol-days. The original SPY vintage bridge matched all 202,103 retained
 bars across 752 development and calibration windows, with no changed or missing
@@ -30,11 +30,12 @@ still qualifies only four and remains recorded as failed. The three unavailable
 secondary split cross-checks are bound to the new study manifest. These are input
 registration findings, not expanded strategy results.
 
-**M3 implementation is ready for local verification:** the [causal panel runner](docs/panel_replay.md)
-extends the existing engines across five instruments, enforces prior-only
-histories and checks the original SPY reference path before expanded replay.
-The Windows console reports completed native replay and original-reference
-parity; independent verification of that archive run remains pending.
+**M3 is complete:** the [causal panel runner](docs/panel_replay.md) replayed
+2,012 dates through 2023 across all five instruments, producing 10,060 records.
+Windows native checks and original-SPY reference parity passed. Independent
+verification checked source observations, prior-only histories, fits, targets
+and arithmetic. The common operational development mask contains 1,682 dates
+per instrument. Shared-capital and broader economic comparisons remain later work.
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
 until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)
 retains the artifact identities and review limits. The results below describe

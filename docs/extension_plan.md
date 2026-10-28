@@ -1,10 +1,11 @@
 # Multi-instrument research and execution extension
 
-Status recorded 28 October 2026: **M0-M2 complete; M3 Windows native replay reported complete, independent archive verification pending; M4-M10 not started.**
+Status recorded 28 October 2026: **M0-M3 complete; M4-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
-No expanded historical result has been independently verified yet.
+Primary development replay through 2023 has been independently verified;
+shared-capital and broader economic assessments remain open.
 
 ## Baseline identity and preservation
 
@@ -146,7 +147,7 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 | D3 | Historical access and source-action reconciliation are registered; completeness uses the declared cross-provider assumptions, and full execution quote windows remain unevaluated | M2 registration below; M6 evaluates complete declared quote windows |
 | D4 | Parent complete-grid coverage remains failed; registered amendments retain three unavailable daily marks and establish canonical action sources | M2 complete: the Windows study manifest binds recovery receipts, actions, masks and the original-SPY vintage bridge; M3 must enforce causal missing-input behavior |
 | D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
-| D6 | Legacy defaults retain SPY contracts; explicit panel mode supports pre-2024 five-instrument primary replay | M3 implementation and independent oracle are in place; original-SPY parity must pass before the full Windows panel run |
+| D6 | Legacy defaults retain SPY contracts; explicit panel mode supports pre-2024 five-instrument primary replay | M3 complete: original-SPY parity and all primary pre-2024 panel records verified |
 | D7 | One-symbol cash, pending-fill limits, internal ownership transfers and journal growth need a shared-account contract | M4: one global ledger, deterministic netting/allocation and bounded durable handover |
 | D8 | Process framing, durable broker history, lifecycle/fee/cash policies and schema migration remain unspecified | M5: explicit bounded contracts and twelve-family fault acceptance |
 | D9 | Historical executable-price references, size assumptions and source/receipt delays require separate evidence | M6: bounded quote sample and fixed synthetic stress matrix, with unestimated quantities explicit |
@@ -163,7 +164,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M0 | Baseline and research inventory | Release identities, implementation map, exposure log, scope and decision register | Complete |
 | M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
 | M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Complete: Windows Release inputs registered; source actions, amendments, masks and original-SPY vintage bridge bound to the study manifest |
-| M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Windows native replay and 187 constructed checks reported successful; independent archive verification pending |
+| M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Not started |
@@ -622,8 +623,8 @@ The source inventory is a build identity, not an independently established Git
 commit. M2 is complete. M3 implements prior-only five-instrument replay,
 original-reference parity and the registered missing-input controls. Shared
 capital, the expanded synthetic broker, cost/execution research, stability,
-reserved-period evaluation and publication remain M4-M10 work. Completing three
-of eleven milestones is a work-package count, not an estimate of effort spent.
+reserved-period evaluation and publication remain M4-M10 work. Milestone counts
+describe accepted work packages, not the fraction of engineering effort spent.
 
 
 ## M3 implementation and local acceptance
@@ -646,9 +647,8 @@ source-reader registration smoke coverage, future-data perturbations, missing
 prefix liquidation, unavailable execution, zero-volume features, missing
 reversion slots, daily-history resets and original-default parity. An independent
 Python oracle rebuilds the features, fit, targets and arithmetic from raw source
-pages or the declared analytic fixture. Independent verification of the Windows
-provider-data run remains pending; no accepted expanded historical result is
-reported here.
+pages or the declared analytic fixture. The Windows provider-data run passed
+independent verification, with its acceptance evidence recorded below.
 
 Local GNU 13.3.0 Release verification on 28 October 2026 produced:
 
@@ -671,8 +671,8 @@ causality and account assertions were retained. LeakSanitizer cannot run under
 this environment's process tracing and was disabled for the instrumented run.
 All five target-chart selector branches were executed and their generated SVGs
 rendered and inspected. A full browser layout check was unavailable locally.
-These are constructed engineering checks, not the Windows provider-data run
-needed to accept M3.
+These constructed engineering checks accompany the Windows provider-data
+acceptance below.
 
 M3 covers primary settings and causal records. Shared-capital ownership/netting
 remains M4; the separate synthetic peer remains M5. Broader cost/delay and
@@ -680,14 +680,55 @@ execution research, risk-account ledger extension, registered stability
 variants, risk-matched comparisons and uncertainty analysis remain M6-M7.
 Validation in 2024 and final evaluation in 2025 remain gated to M8 and M9.
 
-The supplied Windows console record subsequently reports all 187 native panel
-checks passing, original-SPY reference parity passing and
-`causal_panel_replay_completed` with reserved strategy inputs unopened.
-Independent verification stopped at an equilibrium comparison. The verifier's
-fixed tolerance on that ill-conditioned ratio was corrected to validate the
-derived identity after checking the independent OLS coefficients. Constructed
-checks reproduce the previous disagreement and reject corrupted coefficients;
-the [methods note](panel_replay.md) specifies the numerical checks. The native
-research implementation, registered rules, inputs and saved outcomes are
-unchanged. Full Windows independent verification and review of its resulting
-bundle are still required before accepting M3.
+## M3 Windows acceptance completed
+
+The Windows Release run used MSVC 19.51.36260 and passed all 187 native panel
+checks. Original-SPY parity passed on 496 momentum dates, 476 continuation
+dates, 476 reversion dates and 733 daily-risk estimator windows, using identical
+original inputs and histories. The original numerical comparison tolerance was
+`1e-12`.
+
+The independent verifier at revision `670070a` passed its 31 constructed
+numerical checks and the full 2,012-date, five-instrument provider replay.
+It checked source observations, histories, fits, targets, arithmetic and saved
+display records. Ten equilibrium differences required the condition-aware
+identity check described in the [methods note](panel_replay.md). Primitive OLS
+tolerances, exact fit-status comparisons and exact target comparisons remained
+in force. The native implementation, registered rules and saved outcomes were
+unchanged by that verifier correction.
+
+| Instrument | Calendar records, 2016-2023 | Development dates, 2017-2023 | Common operational development dates | Prior-only daily-risk forecasts |
+| --- | --- | --- | --- | --- |
+| SPY | 2,012 | 1,760 | 1,682 | 1,506 |
+| QQQ | 2,012 | 1,760 | 1,682 | 1,759 |
+| IWM | 2,012 | 1,760 | 1,682 | 1,506 |
+| TLT | 2,012 | 1,760 | 1,682 | 1,759 |
+| GLD | 2,012 | 1,760 | 1,682 | 1,506 |
+
+The 10,060 instrument-date records occupy five JSONL streams totaling
+117,376,080 bytes. The lower forecast counts for SPY, IWM and GLD follow the
+registered consecutive-history resets after their unavailable 2019 closing
+mark. Model activity and economic benefit are separate from these coverage and
+forecast-availability counts.
+
+| Accepted record | SHA-256 |
+| --- | --- |
+| Review ZIP | `fcf75a798ee6c2098b589e4f834f4e2fa9bf27e9bcd0ff6360c9348581262d2c` |
+| Replay summary | `09b716d3c94a01ea21b961698c1adbd1b6e2f3556d81e8431871a48ba486eda7` |
+| HTML report | `dfe73e2588bdca29553bb9d4039d4fca30ce6a6c7931ff9cf942575b524e1a0f` |
+| Reported native build-source inventory | `3312eca5d12a846d7006b34fbfbbe668f6476bf03ff52035d7aa248a2f9a4f95` |
+
+The native source inventory identifies producer-file bytes; it is not an
+independently established Git commit. The review ZIP contains the summary and
+HTML, including five saved development-date target traces. Its report hash,
+embedded metadata, input identities and all selector branches were checked; the
+separate HTML upload matched the ZIP exactly. Full raw inputs and JSONL streams
+remain local and were checked by the independent verifier on Windows.
+
+The accepted study identity remains
+`edeee4275c9a01df3859f6c5090073c2b496df31e625e3bf6eed79bee7a8715c`.
+Network requests and broker events were zero. Strategy inputs for 2024 and
+2025 remain unopened. Shared capital, extended daily-risk account ledgers and
+simultaneous inference were not executed by this milestone. M3 is complete;
+M4 next establishes ownership, target netting, aggregate limits and recovery
+under one shared-capital ledger.
