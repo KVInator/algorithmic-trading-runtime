@@ -203,7 +203,18 @@ RiskInputInventory RiskInputDataset::inspect(bool acquire, const SessionBatch::C
         if (!acquire) { throw std::runtime_error("risk acquisition inventory is not published"); }
         write_new_text_file(marker, manifest.dump(2) + '\n');
     }
-    if (parse_json_document(read_text_file(marker)) != manifest) { throw std::invalid_argument("risk acquisition inventory changed"); }
+    const auto published = parse_json_document(read_text_file(marker));
+    if (published != manifest) {
+        // Report field locations without exposing retained financial responses.
+        std::string detail{"risk acquisition inventory changed at"};
+        const auto differences = Json::diff(published, manifest);
+        const auto count = std::min<std::size_t>(differences.size(), 5);
+        for (std::size_t i = 0; i < count; ++i) { detail += " " + differences.at(i).at("path").get<std::string>(); }
+        if (published.contains("issuer_reference_sha256") && published.at("issuer_reference_sha256") != result.issuer_reference_sha256) {
+            detail += "; issuer reference bytes differ from the inventory (build.py restores only registered LF/CRLF checkout conversions)";
+        }
+        throw std::invalid_argument(detail);
+    }
     result.evidence_hashes.emplace_back("acquisition_manifest.json", sha256_file(marker));
     return result;
 }

@@ -56,6 +56,7 @@ class ProjectSources:
     """Own the source inventory and exact registered protocol identities."""
 
     frozen = {
+        "spy_distribution_reference.json": "d753b529129a27a9db03dff41f36b52557ce558e90f5dc5f8ca0f1ccd25da66a",
         "extension_source_resolution.json": "9237188b4ac24282a4296e2622948666e8d8da0a78c8be103453658093d9d734",
         "extension_input_policy.json": "af45ca4552ef58d5de5d9305b140c57eecd42ffc02453867b127d2f6886ad99e",
         "extension_protocol.json": "269d6e677a3e62a21ede6e88659edb2f7a998bfe0137e62b13458e411f0c55ee",
@@ -84,7 +85,7 @@ class ProjectSources:
                 continue
             canonical = raw.replace(b"\r\n", b"\n")
             if self.digest(canonical) != expected:
-                raise BuildError(f"Registered protocol content differs: {name}")
+                raise BuildError(f"Registered input content differs: {name}")
             path.write_bytes(canonical)
 
     def inventory(self) -> tuple[str, str]:

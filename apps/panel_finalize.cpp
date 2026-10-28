@@ -4,6 +4,7 @@
 #include "panel_input_finalizer.hpp"
 #include "historical_panel_report.hpp"
 #include "risk_input_dataset.hpp"
+#include "daily_risk_rules.hpp"
 #include "session_storage.hpp"
 #include "content_digest.hpp"
 #include "artifact_io.hpp"
@@ -20,6 +21,20 @@ int main() {
         const auto issuer_file = dataset_root / "issuer/reference_resolved.json";
         const trading::ConsoleProgress progress;
         progress("Historical panel | issuer reconciliation, vintage bridge and study registration");
+        progress("Authenticating original SPY risk and development inputs before the full panel scan");
+        const auto risk_root = root / "scratch/datasets/SPY_RISK_01_inputs";
+        const auto risk_identity = trading::sha256_file(risk_root / "acquisition_manifest.json");
+        if (risk_identity != trading::risk_rules::acquisition_digest) {
+            throw std::invalid_argument("original SPY risk acquisition identity differs from the registered snapshot; existing evidence was retained");
+        }
+        const auto risk = trading::RiskInputDataset{risk_root, root / "research/spy_distribution_reference.json"}.load();
+        if (risk.issuer_reference_sha256 != trading::risk_rules::issuer_digest ||
+            !risk.required_evidence_complete || !risk.cash_distributions_reconciled) {
+            throw std::invalid_argument("original SPY risk inputs or issuer reference do not match the registered snapshot");
+        }
+        const auto legacy = trading::DevelopmentStudyDataset{root}.load(progress);
+        std::vector<trading::SessionDownload> calibration;
+        for (const auto& input : risk.prices) { calibration.push_back(trading::load_session_download(input.directory, input.input.request)); }
         const trading::HistoricalPanelDataset dataset{dataset_root, contract, trading::PanelOrigin::provider};
         const auto audit = dataset.audit(progress);
         const auto actions = trading::PanelActionReference{}.reconcile(dataset_root, issuer_file, contract, trading::PanelOrigin::provider, &resolution);
@@ -44,14 +59,9 @@ int main() {
             return 2;
         }
         std::cout << "Unavailable daily marks retained as NA; affected daily history resets. No further recovery requests.\n";
-        progress("Authenticating the original SPY snapshot for the vintage bridge");
-        const auto legacy = trading::DevelopmentStudyDataset{root}.load(progress);
-        const auto risk_root = root / "scratch/datasets/SPY_RISK_01_inputs";
-        const auto risk = trading::RiskInputDataset{risk_root, root / "research/spy_distribution_reference.json"}.load();
-        std::vector<trading::SessionDownload> calibration;
-        for (const auto& input : risk.prices) { calibration.push_back(trading::load_session_download(input.directory, input.input.request)); }
+        progress("Comparing authenticated original and extended SPY snapshots");
         const auto result = finalizer.finalize(
-            audit, actions, legacy, calibration, trading::sha256_file(risk_root / "acquisition_manifest.json"), &input_policy, &resolution);
+            audit, actions, legacy, calibration, risk_identity, &input_policy, &resolution);
         readiness["registration"] = {{"study_manifest_sha256", trading::sha256_file(dataset_root / "study_manifest.json")},
             {"vintage_bridge_sha256", result.at("vintage_bridge_sha256")}, {"research_inputs_ready", true},
             {"strategy_scored", false}, {"reserved_strategy_inputs_opened", false}};

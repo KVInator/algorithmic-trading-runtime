@@ -304,6 +304,14 @@ NA and the consecutive 253-close history resets; there is no interpolation,
 forward-fill, price substitution or return across a gap. The original parent
 assessment and all missing flags are retained.
 
+The original `spy_distribution_reference.json` is also build-pinned. A Windows
+checkout may convert its LF newlines to CRLF without changing its JSON values;
+that still changes the SHA-256 stored by the original risk acquisition. The
+build restores only a newline conversion whose result matches the exact original
+digest. A changed financial field is rejected. No acquisition manifest or cached
+response is rewritten. The finalizer authenticates these legacy inputs before
+the full panel scan, and inventory failures identify the differing field paths.
+
 After pulling and rebuilding, run the preparation command above, then
 `panel_finalize.exe`, then verify its printed readiness directory with
 `--readiness`. Expected success is `Status: registered_inputs_ready`.
