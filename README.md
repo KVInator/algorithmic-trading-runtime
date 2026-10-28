@@ -57,7 +57,11 @@ carry `["?"]`, while 2022-2023 quotes carry `["R"]`. Of 76 timestamp conflicts,
 67 change size, three change price and six change exchange metadata only.
 The [diagnosis](docs/cost_execution.md#cached-condition-and-timestamp-diagnosis)
 retains the eligibility rule and limits eligible spread evidence to 2022-2023.
-Cost/account comparisons and synthetic execution evaluation remain open.
+The historical cost/delay evaluator now replays the same eight primary policies
+across all ten registered cost/delay cases: 400 instrument/policy series and
+240 paired contrasts, with static cost curves and an independent Decimal oracle.
+Windows historical acceptance is pending. Quote-reference comparisons,
+continuous daily-risk accounts and synthetic execution evaluation remain open.
 Registered synthetic cases are not executed results.
 
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened

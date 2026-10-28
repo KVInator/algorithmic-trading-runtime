@@ -72,11 +72,16 @@ PanelReplayDataset::PanelReplayDataset(std::filesystem::path directory, Extensio
 const nlohmann::json& PanelReplayDataset::provenance() const noexcept { return provenance_; }
 void PanelReplayDataset::replay(const Consumer& consume, const HistoricalPanelDataset::Progress& progress) const {
     if (!consume) { throw std::invalid_argument("panel replay requires a record consumer"); }
+    replay_with_sessions([&](auto day, auto) { consume(std::move(day)); }, progress);
+}
+void PanelReplayDataset::replay_with_sessions(const MarketConsumer& consume, const HistoricalPanelDataset::Progress& progress) const {
+    if (!consume) { throw std::invalid_argument("panel replay requires a market-record consumer"); }
     const HistoricalPanelDataset panel{directory_, contract_, origin_, ranges_};
     std::map<std::string, PanelReplayState> states;
     const auto symbols = contract_.symbols();
     for (const auto& symbol : symbols) { states.emplace(symbol, PanelReplayState{symbol, policy_}); }
     std::vector<PanelReplayDay> day;
+    std::vector<SessionDownload> sessions;
     std::size_t dates = 0;
     std::string previous;
     for (const auto& mask : masks_.at("rows")) {
@@ -85,7 +90,7 @@ void PanelReplayDataset::replay(const Consumer& consume, const HistoricalPanelDa
         contract_.require_development_access(date);
         if (date != previous && !day.empty()) { throw std::invalid_argument("registered panel masks do not group complete five-symbol dates"); }
         if (std::find(symbols.begin(), symbols.end(), symbol) == symbols.end()) { throw std::invalid_argument("unexpected registered mask symbol"); }
-        const auto session = panel.load_development_session(symbol, date, manifest_.at("acquisition_manifest_sha256").get<std::string>());
+        auto session = panel.load_development_session(symbol, date, manifest_.at("acquisition_manifest_sha256").get<std::string>());
         const auto key = symbol + '/' + date;
         const auto recovered = recovered_.find(key);
         auto row = states.at(symbol).advance(session.request, session.bars, dividends_.contains(key) ? dividends_.at(key) : 0,
@@ -97,13 +102,14 @@ void PanelReplayDataset::replay(const Consumer& consume, const HistoricalPanelDa
             throw std::invalid_argument("replayed availability differs from registered masks");
         }
         day.push_back(std::move(row)); previous = date;
+        sessions.push_back(std::move(session));
         if (day.size() == symbols.size()) {
             std::set<std::string> seen;
             for (const auto& item : day) { seen.insert(item.symbol); }
             if (seen.size() != symbols.size()) { throw std::invalid_argument("a symbol was duplicated in a registered panel date"); }
             const bool common = std::all_of(day.begin(), day.end(), [](const auto& item) { return item.availability.operational; });
             for (auto& item : day) { item.common_operational = common; }
-            consume(std::move(day)); day.clear(); ++dates;
+            consume(std::move(day), std::move(sessions)); day.clear(); sessions.clear(); ++dates;
             if (progress && dates % 25 == 0) { progress("Prior-only panel replay | " + std::to_string(dates) + " dates through " + date); }
         }
     }

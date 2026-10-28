@@ -16,6 +16,11 @@ public:
     [[nodiscard]] const nlohmann::json& provenance() const noexcept;
     using Consumer = std::function<void(std::vector<PanelReplayDay>)>;
     void replay(const Consumer& consume, const HistoricalPanelDataset::Progress& progress = {}) const;
+    using MarketConsumer = std::function<void(std::vector<PanelReplayDay>, std::vector<SessionDownload>)>;
+    // Supply the same authenticated observations to execution research after
+    // each causal decision record is complete, without loading prices twice.
+    void replay_with_sessions(const MarketConsumer& consume,
+        const HistoricalPanelDataset::Progress& progress = {}) const;
 private:
     std::filesystem::path directory_;
     ExtensionStudyContract contract_;

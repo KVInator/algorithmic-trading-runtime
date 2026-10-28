@@ -80,9 +80,16 @@ representations without accessing or authenticating the raw response archive.
 For cached condition diagnostics, the full verifier reconstructs latest-record
 condition/tape frequencies and price/size/metadata conflicts from those same
 raw receipts; the primary classifications must remain unchanged.
-The [M6 implementation note](../docs/cost_execution.md) distinguishes the
-completed acquisition checkpoint from the account and execution comparisons
-that remain to be implemented. No M6 economic result is available yet.
+`verify_cost_delay.py` reuses the independent M3 source/feature/history checks,
+then reconstructs both execution delays and the five charges with 50-digit
+Decimal cash/share arithmetic. It verifies all 400 instrument/policy cases,
+240 paired comparisons and static report curves/tables. Its `--self-check`
+rejects semantic corruption independently of hashes. The native evaluator
+changes execution references and accounting without refitting signals.
+The [M6 implementation note](../docs/cost_execution.md) distinguishes accepted
+quote inputs, the implemented cost/delay evaluator awaiting Windows historical
+acceptance, and the account/execution comparisons that remain open. No accepted
+M6 historical economic result is available yet.
 
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate

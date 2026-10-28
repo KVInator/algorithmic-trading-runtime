@@ -93,6 +93,7 @@ these checks are explicit local commands.
 | `panel_replay` | M3: original-SPY parity, prior-only five-instrument decisions and primary reference outcomes through 2023; requires the registered M2 archive |
 | `cost_execution_check` | M6 constructed quote pagination, invalid-input and resumable-archive checks; no credentials |
 | `cost_quote_acquire` | M6 fixed 2017-2023 SIP quote sample; Windows historical-data credentials and accepted M2 masks |
+| `cost_delay_development` | M6 frozen-decision cost/delay evaluation; `--check` uses constructed observations, default uses the accepted pre-2024 panel |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
 | `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
 | `reversion_validation` | Thirteen seeded finite-sample/noise controls; full interval experiment |
@@ -535,3 +536,48 @@ that compact ZIP and the console result; quote prices and raw bodies remain
 local. The existing `--render` mode is for presentation; `--inspect` additionally
 reads the retained raw pages. Neither mode acquires new data or changes the
 registered eligibility rule.
+
+## Historical cost and delay evaluation (M6)
+
+Build **Release | x64** in the existing solution, or build only this application:
+
+```powershell
+py -3 -B build.py --configuration Release --target cost_delay_development
+```
+
+Run the constructed numerical/missing-input checks first:
+
+```powershell
+& .\scratch\native\Release\cost_delay_development.exe --check
+py -3 -B research/verify_cost_delay.py scratch/runs/cost_delay_check_0 --self-check
+```
+
+Then evaluate the accepted historical panel. No new acquisition or credentials
+are used; the original panel and issuer/action evidence must remain in place.
+The reader authenticates the M2 registration and opens strategy prices only
+through 2023. The existing M3 replay need not be rerun separately.
+
+```powershell
+& .\scratch\native\Release\cost_delay_development.exe
+py -3 -B research/verify_cost_delay.py scratch/runs/cost_delay_0 --self-check
+```
+
+Use the actual directories printed by each run. Expect 400 instrument/policy
+series, 240 paired comparisons, primary-reference parity and zero requests.
+The historical independent verification authenticates source observations,
+reconstructs causal histories/decisions, verifies every charged reference path,
+then checks all summary denominators and static curves/tables. It is a deliberate
+checkpoint workload rather than an ordinary build check. Share each run's
+`review.zip` and its console result. Provider bundles contain summary/HTML only;
+raw provider pages and the five local path files stay local. The constructed
+bundle also includes its generated path files.
+
+For the existing retained-console Visual Studio setup, the application arguments
+are `/d /s /k ""$(OutDir)cost_delay_development.exe" --check"` for constructed
+checks and `/d /s /k ""$(OutDir)cost_delay_development.exe""` for historical
+evaluation. Keep the existing Command and Working Directory settings.
+
+`--report-only` on the Python verifier checks a compact saved report without
+claiming source or aggregate-path authentication. No cost or delay is selected
+as a replacement primary strategy. Synthetic matching, continuous daily-risk
+accounts and shared-capital economic evaluation remain separate work.

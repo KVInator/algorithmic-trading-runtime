@@ -1,5 +1,6 @@
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
+#include "cost_delay_study.hpp"
 #include "extension_contract.hpp"
 #include "historical_panel.hpp"
 #include "historical_panel_report.hpp"
@@ -460,7 +461,26 @@ public:
             static_cast<void>(trading::PanelReplayDataset{directory_ / "closing_empty", contract, input_policy, resolution,
                 trading::PanelOrigin::synthetic, std::string(64, '0')});
         });
-        replay_inputs.replay([&](auto day) { check("registered reader emits all five instruments", day.size() == 5); replay_smoke.append(std::move(day)); });
+        std::map<std::string, Json> primary_records;
+        replay_inputs.replay([&](auto day) {
+            check("registered reader emits all five instruments", day.size() == 5);
+            for (const auto& row : day) { primary_records.emplace(row.symbol, trading::panel_replay_record(row)); }
+            replay_smoke.append(std::move(day));
+        });
+        bool identical_market_replay = true;
+        std::size_t priced_paths = 0;
+        replay_inputs.replay_with_sessions([&](auto days, auto sessions) {
+            identical_market_replay = identical_market_replay && days.size() == 5 && sessions.size() == 5;
+            for (const auto& row : days) {
+                identical_market_replay = identical_market_replay && primary_records.at(row.symbol) == trading::panel_replay_record(row);
+                const auto found = std::find_if(sessions.begin(), sessions.end(), [&](const auto& session) { return session.request.symbol() == row.symbol; });
+                if (found == sessions.end()) { throw std::logic_error("market-aware replay omitted a source session"); }
+                priced_paths += trading::CostDelayStudy{contract}.evaluate(row, *found).size();
+            }
+        });
+        check("market-aware reader preserves all original primary records", identical_market_replay);
+        check("authenticated source sessions price all five-symbol cost paths", priced_paths == 80);
+        reject("market-aware reader rejects an empty consumer", [&] { replay_inputs.replay_with_sessions({}); });
         const auto replay_smoke_report = replay_smoke.finish();
         const auto replay_report = trading::PanelReplayChecks{}.run(directory_ / "reports", input_policy,
             [&](const auto& label, bool value) { check(label, value); }, [&](const auto& label, auto action) { reject(label, action); });

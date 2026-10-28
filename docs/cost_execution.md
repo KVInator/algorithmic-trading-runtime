@@ -1,9 +1,9 @@
 # Cost and execution research
 
-M6 is in progress. Its first implemented checkpoint registers the comparisons
-and acquires a bounded historical quote sample. Historical account and execution
-results are not available at this checkpoint. The v1 findings and M2-M5 evidence
-retain their identities.
+M6 is in progress. Historical quote acquisition and cached diagnosis are accepted.
+The cost/delay evaluator is implemented; Windows historical evaluation is pending.
+Continuous-account and synthetic execution results remain separate work. The v1
+findings and M2-M5 evidence retain their identities.
 
 ## Registered comparisons
 
@@ -12,7 +12,7 @@ separate evidence layers:
 
 | Layer | Registered design | Implementation status |
 | --- | --- | --- |
-| Bar references | 0, 0.5, 1, 2 and 5 bp per side, crossed with one-/two-minute delay; primary signals and entry hurdles fixed | Extended comparisons remain open |
+| Bar references | 0, 0.5, 1, 2 and 5 bp per side, crossed with one-/two-minute delay; primary signals and entry hurdles fixed | Evaluator and independent oracle implemented; Windows historical acceptance pending |
 | Historical SIP quotes | Seven input-selected dates, five instruments, thirteen decision clocks and two delays: 910 one-second windows | Windows acquisition complete; 232 eligible windows, all in 2022-2023 |
 | Synthetic execution | 170 matched one-factor workloads crossed with four limit/deadline policies: 680 cases | Workload plan registered and checked; execution evaluation remains open |
 
@@ -22,6 +22,79 @@ estimator and dividend-aware fractional account. If a required actual price is
 unavailable, the continuous account stops; subsequent outcomes remain unavailable.
 The three registered missing 2019 closes cannot be filled, bridged or repaired
 with a capital reset. Recovery of a forecast history is a different operation.
+
+## Frozen-decision cost and delay evaluation
+
+`cost_delay_development` reads the accepted M2 panel through the existing
+authenticated pre-2024 reader. `PanelReplayState` produces each day's primary
+features, fits and decisions once. The same loaded observations then supply
+execution opens for both delays; no second strategy or history implementation
+is introduced. Costs never alter the reversion entry hurdle or continuation
+targets. At one minute and one basis point, every primary trade and daily return
+must match the existing M3 reference path within its numerical tolerance.
+
+Eight policies comprise momentum/always-long, continuation price/volume, and
+reversion candidate/sign-only/drift/always-long. Five instruments, eight policies,
+five charges and two delays produce 400 series. Four candidate-minus-control
+contrasts are retained for each instrument and for an equal-weight average of
+the five paired daily differences: 240 comparisons. No case is chosen as a new
+primary policy after scoring. Shared-capital portfolio performance is not
+inferred by adding these separately normalized series.
+
+For entry/exit raw opens $B_j,S_j$ and the same per-side charge $c$ on all trades,
+
+$$
+1+r_{gross}=\prod_j\frac{S_j}{B_j},\qquad
+1+r_{net}=\prod_j\frac{S_j(1-c)}{B_j(1+c)},\qquad
+c=10^{-4}\,\mathrm{cost}_{bp}.
+$$
+
+The existing fractional `LongCashAccount`, initialized with one unit of cash per
+daily reference, independently checks the return kernel through actual buy/sell
+rebalances. Turnover is the sum of purchased and sold notional divided by that
+initial equity; paid cost is $c$ times turnover. Holding time uses executed
+reference clocks. Cash days have observed zero return and zero turnover, while
+unavailable dates have NA outcomes. The common operational mask covers both
+delays and all five instruments and is applied after decisions. It does not
+authorize trading or change an earlier signal. Initialization and shortened
+sessions remain on the original calendar with no scored intraday return.
+
+The report's means, active dates, turnover and cost totals use the same eligible
+dates for every case. Return products and drawdowns are explicitly conditional
+on those dates; they do not represent a continuous funded account across excluded
+dates. Continuous daily-risk accounts retain the separate missing-mark stop rule.
+The equal-weight paired curve averages five same-date return differences; it is
+a research contrast, not an execution or shared-cash ledger.
+
+`verify_cost_delay.py` reuses the independent M3 feature/history oracle, then
+reconstructs delayed opens and fractional cash/share arithmetic with 50-digit
+Decimal calculations. It checks every recorded path, the 400-series and
+240-comparison matrices, calendar denominators, static chart points/lines and
+all displayed table values. Its semantic corruption checks bypass hashes to
+exercise financial verification. A provider `review.zip` contains the summary
+and HTML; full local verification additionally requires the five path files and
+original panel. Synthetic review bundles include their small generated paths.
+
+The HTML embeds all 44 plots and 400 case rows. JavaScript only selects among
+the forty instrument/policy panels; all plots remain available without scripts.
+No acquisition, credentials, quote-code changes or later-period prices are
+needed. The [runbook](running.md#historical-cost-and-delay-evaluation-m6) gives
+the constructed and historical commands. Windows acceptance remains pending.
+
+Local verification used GNU 13.3.0, C++20 Release and warnings as errors. The
+constructed evaluator passed 32 numerical/failure checks and 300 five-instrument
+calendar dates. Its 47 common development dates per instrument produced 18,800
+eligible daily cost-case outcomes; initialization and the excluded date remained
+explicit. The independent oracle verified all causal primary records, priced
+paths, summary matrices and report marks, and rejected six semantic corruptions
+without relying on hashes. The panel suite passed 190 checks, including the
+market-aware reader and its unchanged original record interface; its source and
+300-date replay oracles also passed. AddressSanitizer/UndefinedBehaviorSanitizer
+passed the changed cost, report, dataset-reader and fractional-account units
+with the constructed run. Other archive units were not instrumented and
+LeakSanitizer was disabled in the traced verification environment. All forty
+report-selector branches executed; static overview and detail layouts were
+rendered and inspected. These are constructed checks, not historical findings.
 
 ## Historical quote sample
 

@@ -29,8 +29,7 @@ public:
         }
         return out;
     }
-    template<class Check, class Reject>
-    std::filesystem::path run(const std::filesystem::path& root, const PanelInputPolicy& policy, Check check, Reject reject) const {
+    static std::vector<CalendarSession> calendar_sessions() {
         std::vector<CalendarSession> calendar;
         for (int year = 2016; year <= 2017; ++year) {
             for (unsigned month = 1; month <= 12; ++month) {
@@ -40,6 +39,11 @@ public:
                 calendar.insert(calendar.end(), days.begin(), days.end());
             }
         }
+        return calendar;
+    }
+    template<class Check, class Reject>
+    std::filesystem::path run(const std::filesystem::path& root, const PanelInputPolicy& policy, Check check, Reject reject) const {
+        const auto calendar = PanelReplayChecks::calendar_sessions();
         std::map<std::string, PanelReplayState> states;
         for (const auto* symbol : {"SPY", "QQQ", "IWM", "TLT", "GLD"}) { states.emplace(symbol, PanelReplayState{symbol, policy}); }
         nlohmann::json provenance{{"evidence_origin", "synthetic"}, {"fixture", "analytic_panel_300"}, {"protocol_sha256", TRADING_EXTENSION_PROTOCOL_SHA256}};

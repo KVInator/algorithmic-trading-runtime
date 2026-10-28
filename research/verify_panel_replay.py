@@ -309,7 +309,7 @@ class ReplayVerifier:
         same(actual["gross"], math.prod(1 + t[4] for t in trades) - 1 if valid else None, "Gross path differs")
         same(actual["net"], math.prod(1 + t[5] for t in trades) - 1 if valid else None, "Net path differs")
 
-    def instrument(self, symbol, path):
+    def instrument(self, symbol, path, record_member=None, observer=None):
         continuation, reversion, risk = deque(maxlen=20), deque(maxlen=20), deque(maxlen=252)
         previous = None
         cutoff = ""
@@ -318,7 +318,8 @@ class ReplayVerifier:
         with path.open(encoding="utf-8") as stream:
             for index, line in enumerate(stream):
                 require(len(line) <= 256 * 1024, "Replay record exceeds its bound")
-                row = json.loads(line)
+                envelope = json.loads(line)
+                row = envelope[record_member] if record_member else envelope
                 day, opening, minutes, bars, dividend = self.source.load(symbol, index)
                 d = day["date"]
                 require(d < "2024" and row["date"] == d and row["symbol"] == symbol and row["session_open_utc"] == clock(opening), "Replay identity/access boundary differs")
@@ -438,6 +439,8 @@ class ReplayVerifier:
                 counts["development_records"] += scored
                 counts["common_operational_records"] += scored and row["common_operational"]
                 counts["risk_forecasts"] += scored and estimate is not None
+                if observer is not None:
+                    observer(envelope, bars, opening)
         require(counts["calendar_records"] == len(self.source.days), "Replay date sequence was truncated")
         return counts
 

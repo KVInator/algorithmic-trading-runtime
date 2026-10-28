@@ -167,7 +167,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
-| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: Windows quote input checkpoint accepted with 232/910 eligible windows; cost/account/execution comparisons remain open |
+| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: quote inputs accepted; 400-series cost/delay evaluator implemented, awaiting Windows historical acceptance; account/execution comparisons remain open |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
@@ -808,8 +808,13 @@ carry `["R"]`. The 76 timestamp conflicts comprise 67 size, three price and
 six exchange-only disagreements. This completes quote-input diagnosis without
 changing eligibility; earlier-year eligible spread evidence remains unavailable.
 
-Historical cost/delay outcomes, quote-reference comparisons, continuous daily-risk
-accounts and the 680 synthetic execution evaluations remain to be implemented.
+The historical cost/delay evaluator and independent oracle are implemented:
+400 instrument/policy/cost/delay series and 240 paired contrasts, preserving
+primary decisions and the common mask. The existing fractional account checks
+charged notionals; this does not establish shared-capital performance.
+Windows historical acceptance remains pending. Quote-reference comparisons,
+continuous daily-risk accounts and the 680 synthetic execution evaluations
+remain to be implemented.
 The three unavailable 2019 closes cannot be repaired by resetting capital:
 an affected continuous account stops at its first required missing endpoint.
 Recovering forecast history does not restore that account. Coverage and
