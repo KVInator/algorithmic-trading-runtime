@@ -4,7 +4,7 @@ M5 extends the existing FIFO matcher into an independent, durable C++ peer.
 The [registered policy](../research/synthetic_broker_protocol.md) defines the
 account, lifecycle, fee, cash-availability and bounded-history assumptions.
 The process and in-process routes use the same service and matching core.
-Windows acceptance remains pending.
+Windows Release acceptance is complete, with its evidence recorded below.
 
 ## Ownership and publication
 
@@ -137,7 +137,7 @@ order side, lifecycle, schema and owner attribution without relying on hashes.
 It creates `review.zip` with the summary, report, logical calls and small
 synthetic journals. No private archive, credential or network request is needed.
 
-Local verification does not establish Windows acceptance. The existing v1
+The Windows review below complements the local verification. The existing v1
 research and publication remain unchanged, and 2024-2025 strategy inputs stay
 reserved. Operational completion does not imply a historical return or real
 broker validation.
@@ -163,4 +163,37 @@ with their independent references and publication hash/link checks.
 
 The original eleven frozen input/protocol identities remain unchanged. The
 separate broker policy adds a twelfth registered identity. Windows Release
-execution and review remain required before M5 is marked complete.
+acceptance is recorded below.
+
+## Windows acceptance
+
+The Windows Release diagnostic used MSVC 19.51.36260 and passed all 313 native
+checks in twelve scenario families across twenty-one child processes on
+28 October 2026. Independent review rebuilt 139 broker commits, 98 client
+inputs and 294 logical peer calls from the uploaded evidence. All ten semantic
+corruption checks passed. The review covered FIFO/liquidity, fees, DAY/IOC/GTC,
+managed replacement, response ambiguity, both restart directions and durable
+write/tail failures, including simultaneous five-instrument ownership.
+
+All 313 check labels and all twelve final scenario-state records matched the
+verified GNU run exactly. All 28 accepted broker/client journals were also
+byte-identical to the GNU reference. The separately uploaded summary, HTML and calls file
+matched the ZIP byte for byte. All 28 ledger selectors, 237 saved event views,
+four header-only views and navigation boundaries executed successfully. This
+checks controller behavior and saved data; it is not a full browser layout review.
+
+| Accepted record | SHA-256 |
+| --- | --- |
+| Uploaded review ZIP | `4bc84a1a916aa13ff534b34face6f04a2595e59f79fbc680a53b0042ddf90c61` |
+| Summary | `1b14dabee58b7073e59ce47b95d57ce41d61a3c25ed29f3044a9d85073730915` |
+| HTML report | `4d0a914c9c7bdc953ab433b72986fbdbc0c9023d86968b4ca3a6ca211fc81a26` |
+| Logical peer calls | `95bc9c625e51e049fa303c407dc65a452ce68ee9dcaa3d43bff92843701dc137` |
+| Reported native build-source inventory | `73ffad9b29f11bb92ee2b596ab3fe8bd4939a28faded175f58f96a742d6b7179` |
+
+The source inventory identifies reported producer-file bytes; it is not an
+independently established Git commit. The ZIP contains the summary and all 32
+manifested synthetic artifacts, including retained rejected files. The review
+therefore requires no private market archive. Network requests and external
+broker observations were zero; no historical strategy was scored and no
+reserved 2024-2025 strategy input was opened. M5 is complete. M6 next extends
+the cost/execution research and daily-risk accounts under the registered design.

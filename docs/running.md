@@ -442,8 +442,8 @@ py -3 -B research/verify_process_broker.py scratch/runs/process_broker_0 --self-
 
 Use the actual printed suffix. The verifier writes a compact synthetic
 `review.zip`. The [process contract](process_broker.md) describes the twelve
-scenario families, fee/cash conventions and bounded recovery. Windows acceptance
-remains pending.
+scenario families, fee/cash conventions, bounded recovery and completed Windows
+acceptance.
 Expected evidence is 313 native checks, twelve scenario families and twenty-one
 child processes. The independent verifier checks 139 broker commits, 98 client
 inputs and 294 logical calls. The saved report has 28 broker/client ledger views.
