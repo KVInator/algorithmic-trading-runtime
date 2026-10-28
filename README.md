@@ -17,7 +17,7 @@ and open it locally. The [v1.0.0 release](https://github.com/KVInator/algorithmi
 contains the report downloads and original Windows benchmark evidence.
 
 The [multi-instrument extension](docs/extension_plan.md) has completed
-**M0-M3: 4 of 11 milestones**. A Windows Release run registered the 2016-2025
+**M0-M4: 5 of 11 milestones**. A Windows Release run registered the 2016-2025
 panel for **SPY, QQQ, IWM, TLT and GLD**, covering 2,514 exchange dates and
 12,570 symbol-days. The original SPY vintage bridge matched all 202,103 retained
 bars across 752 development and calibration windows, with no changed or missing
@@ -37,8 +37,9 @@ verification checked source observations, prior-only histories, fits, targets
 and arithmetic. The common operational development mask contains 1,682 dates
 per instrument. The [M4 shared-capital diagnostic](docs/shared_capital.md) now
 exercises one cash balance, fifteen strategy owners, netting, aggregate admission
-limits and durable recovery. Its evidence is synthetic; Windows acceptance is
-pending. Broader historical economic comparisons remain later work.
+limits and durable recovery. Windows Release acceptance passed 182 native checks
+in 15 synthetic cases, with 163 durable transitions independently verified.
+Broader historical economic comparisons remain later work.
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
 until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)
 retains the artifact identities and review limits. The results below describe

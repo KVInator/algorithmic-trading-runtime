@@ -421,4 +421,4 @@ py -3 -B research/verify_shared_capital.py scratch/runs/shared_capital_0 --self-
 Expected local evidence is 182 native checks, 15 cases and 163 audited durable
 transitions. The verifier creates a small synthetic `review.zip`. The
 [shared-capital contract](shared_capital.md) describes its ownership, budget,
-expiry and recovery conventions. Windows acceptance remains pending.
+expiry and recovery conventions and records the completed Windows acceptance.

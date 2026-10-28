@@ -126,7 +126,7 @@ instrumented. LeakSanitizer was disabled because process tracing prevents its
 execution in the verification environment. All 15 report selector branches and
 163 event views executed; representative generated ownership charts were
 rendered and inspected. A full browser layout check was unavailable locally.
-Windows acceptance remains pending. These counts describe deterministic
+Windows acceptance is recorded below. These counts describe deterministic
 engineering cases, not a statistical estimate of reliability.
 
 All quotes, reports, receipts and write faults here are constructed. A declared
@@ -136,3 +136,34 @@ final dip/recovery session exercises all three families against actual owned
 inventory. No historical shared-account P&L is reported and no 2024-2025
 strategy input is opened. M5 supplies the separate local synthetic broker;
 M6-M7 provide broader cost, execution and stability assessments.
+
+## Windows acceptance
+
+The Windows Release diagnostic used MSVC 19.51.36260 and passed all 182 native
+checks in 15 cases on 28 October 2026. Independent review replayed all 163
+durable transitions from the uploaded synthetic journals, including exact
+cash, owner attribution, proportional quantities/fees, admission limits,
+cancellation races, active-order recovery and linked flat handover. The
+verifier also checked the constructed primary features, actual-inventory
+adapter decisions, report data and seven semantic corruption rejections.
+
+All 182 check labels, case configurations and 15 final account states matched
+the independently verified GNU run exactly. The separate summary and HTML
+uploads matched the review ZIP byte for byte. All 15 report selector branches,
+163 event views and navigation boundaries executed successfully. This verifies
+the saved-event controller and data; it is not a full browser layout check.
+
+| Accepted record | SHA-256 |
+| --- | --- |
+| Uploaded review ZIP | `c6c5e3b0a436b36f1a722ebe11598311043d5c3fd94136bfffd0a840519e76c2` |
+| Summary | `7ea72809504ac69d53ec7eae8d55d7f701ad58cd350e72c3a047f5649524e54b` |
+| HTML report | `703348e6d15bc577d818905ed3f6869daea96056326e11988fc3b3f8efd5171f` |
+| Reported native build-source inventory | `2e099d8a44cb8ecfe94b609847256268ac1f6afde059ea76d483ce25d96dd074` |
+
+The reported source inventory identifies producer-file bytes; it is not an
+independently established Git commit. The ZIP contains all 21 manifested
+artifacts, including retained rejected files, so the account and journal review
+does not depend on a private raw archive. Network requests and external broker
+observations were zero. Historical shared-capital performance was not scored,
+and reserved 2024-2025 strategy inputs remained unopened. M4 is complete;
+the separate synthetic broker and its lifecycle policies remain M5 work.

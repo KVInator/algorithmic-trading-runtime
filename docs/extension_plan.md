@@ -1,7 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 28 October 2026: **M0-M3 complete; M4 implemented with Windows
-acceptance pending; M5-M10 not started.**
+Status recorded 28 October 2026: **M0-M4 complete; M5-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -149,7 +148,7 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 | D4 | Parent complete-grid coverage remains failed; registered amendments retain three unavailable daily marks and establish canonical action sources | M2 complete: the Windows study manifest binds recovery receipts, actions, masks and the original-SPY vintage bridge; M3 must enforce causal missing-input behavior |
 | D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
 | D6 | Legacy defaults retain SPY contracts; explicit panel mode supports pre-2024 five-instrument primary replay | M3 complete: original-SPY parity and all primary pre-2024 panel records verified |
-| D7 | Shared cash, pending-fill claims, internal ownership transfers and bounded flat handover are implemented | M4: native and independent local checks pass; Windows acceptance pending |
+| D7 | Shared cash, pending-fill claims, internal ownership transfers and bounded flat handover are implemented | M4 complete: Windows native and independent checks pass; all final account states match the GNU reference |
 | D8 | Process framing, durable broker history, lifecycle/fee/cash policies and schema migration remain unspecified | M5: explicit bounded contracts and twelve-family fault acceptance |
 | D9 | Historical executable-price references, size assumptions and source/receipt delays require separate evidence | M6: bounded quote sample and fixed synthetic stress matrix, with unestimated quantities explicit |
 | D10 | Final period has known GLD research exposure and unverified exposure elsewhere | M2: carry the M0 qualifications into registration; M8/M9: preserve the project-specific lock and report labels |
@@ -166,7 +165,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
 | M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Complete: Windows Release inputs registered; source actions, amendments, masks and original-SPY vintage bridge bound to the study manifest |
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
-| M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Implemented: 182 native checks and 163 independently audited transitions; Windows acceptance pending |
+| M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Not started |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
@@ -174,11 +173,11 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
 
-The initial effort range is 228-368 focused hours plus unattended work, to be
-re-estimated after M1, M4 and M5. Two of eleven accepted milestones is a count,
-not a claim that two elevenths of the engineering effort have been spent. M1
-required no paid access; full-panel volume, gap masks and action reconciliation
-must be measured at M2 before revising the remaining effort range.
+The initial planning range was 228-368 focused hours plus unattended work;
+it is not a measured completion-time forecast. Five of eleven accepted
+milestones describes completed work packages, not a fraction of engineering
+effort. M1 required no paid access; M2 registered the full-panel coverage,
+gap masks and action reconciliation. The remaining scope is M5-M10.
 
 ## Build and verification record
 
@@ -751,8 +750,10 @@ The independent Python verifier checks every durable checkpoint, exact
 allocation, admission limit, recovery link and saved report event.
 
 Local Release verification and acceptance commands are recorded in the linked
-contract. Windows Release execution and its independent review remain required
-before M4 is marked complete. The separate synthetic broker process remains M5;
+contract. Windows Release execution and its independent review completed on
+28 October 2026. The [acceptance record](shared_capital.md#windows-acceptance)
+binds the reviewed ZIP, manifest and report. M4 is complete. The separate
+synthetic broker process remains M5;
 historical cost/execution and daily-risk accounts remain M6, stability and
 uncertainty M7, reserved-year evaluations M8-M9 and publication M10. No frozen
 input identity, original research result or reserved-year access rule changes.
