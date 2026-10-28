@@ -91,6 +91,8 @@ these checks are explicit local commands.
 | `panel_acquire` | Resumable 2016-2025 five-instrument archive; Windows historical-data credentials; long-running |
 | `panel_finalize` | Local issuer reconciliation and original-snapshot bridge; publishes the new study manifest only after prerequisites pass |
 | `panel_replay` | M3: original-SPY parity, prior-only five-instrument decisions and primary reference outcomes through 2023; requires the registered M2 archive |
+| `cost_execution_check` | M6 constructed quote pagination, invalid-input and resumable-archive checks; no credentials |
+| `cost_quote_acquire` | M6 fixed 2017-2023 SIP quote sample; Windows historical-data credentials and accepted M2 masks |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
 | `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
 | `reversion_validation` | Thirteen seeded finite-sample/noise controls; full interval experiment |
@@ -447,3 +449,54 @@ acceptance.
 Expected evidence is 313 native checks, twelve scenario families and twenty-one
 child processes. The independent verifier checks 139 broker commits, 98 client
 inputs and 294 logical calls. The saved report has 28 broker/client ledger views.
+
+## Cost and execution inputs (M6)
+
+Pull `main` and build **Release | x64**. From an existing PowerShell window at
+the repository root, run the constructed check and its independent verifier:
+
+```powershell
+& .\scratch\native\Release\cost_execution_check.exe
+py -3 -B research/verify_cost_quotes.py scratch/runs/cost_execution_check_0
+```
+
+Use the printed suffix. Expected evidence is twelve constructed acquisition
+cases and 1,560 verified windows, with zero network requests. The native total
+is 330 checks when the accepted M2 masks are present, or 329 without them.
+The 680 synthetic execution cases are registered, not executed by this check.
+
+Then run the historical sampler using the existing Windows historical-data
+credentials and registered M2 archive:
+
+```powershell
+& .\scratch\native\Release\cost_quote_acquire.exe
+py -3 -B research/verify_cost_quotes.py scratch/runs/cost_quotes_0
+```
+
+The sampler prints its archive and report directories before requesting data.
+Use its actual report suffix for the verifier. It runs through **2023 only**,
+over exactly 910 fixed windows; it does not score a strategy or open reserved
+2024-2025 strategy inputs. Pagination means 910 windows can require more than
+910 requests. Progress is printed every 25 windows, with new HTTP requests paced
+at 750 ms plus HTTP and bounded retry time. It is not the full panel acquisition.
+
+Rerun the same executable after an interrupted transport to resume committed
+pages. Keep the default `scratch/datasets/cost_quote_sample_2017_2023` archive
+intact. A denied route is retained as unestimated coverage and is not repeatedly
+requested. Exit 0 means the audit completed, including an explicit denied,
+empty or incomplete disposition; inspect the status counts. Exit 1 means an
+invalid input or interrupted run, with completed response envelopes retained.
+Do not delete old evidence to force a new result.
+
+The independent verifier creates `review.zip` in each report directory. Share
+the constructed check's bundle, the provider sample's bundle and the verifier's
+console result. Raw quote envelopes, credentials and the full dataset stay local.
+The [M6 note](cost_execution.md) describes the remaining comparisons and the
+limits of the compact review bundle.
+
+For the existing Visual Studio retained-console setup, keep Command as
+`$(SystemRoot)\System32\cmd.exe` and Working Directory as `$(ProjectDir)`.
+Set Command Arguments first to
+`/d /s /k ""$(OutDir)cost_execution_check.exe""`, then to
+`/d /s /k ""$(OutDir)cost_quote_acquire.exe""` for the provider acquisition.
+Neither command requires changing the solution or restoring CMake/CTest.

@@ -69,6 +69,15 @@ reports. Its semantic checks deliberately alter fees, liquidity, lifecycle,
 schema and owner attribution without relying on checksums. Process methods and
 acceptance commands are in [independent broker process](../docs/process_broker.md).
 
+`cost_execution_protocol.md` registers the M6 cost/delay grid, bounded old SIP
+quote sample, synthetic execution matrix and continuous-account missing-price
+rule. `verify_cost_quotes.py` authenticates every retained response and page
+continuation, reconstructs the fixed sample from the accepted input masks,
+and independently checks latest-quote eligibility, units, age and spreads.
+The [M6 implementation note](../docs/cost_execution.md) distinguishes the
+completed acquisition checkpoint from the account and execution comparisons
+that remain to be implemented. No M6 economic result is available yet.
+
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate
 performance remain unopened. Failed gates authorize neither a new search nor

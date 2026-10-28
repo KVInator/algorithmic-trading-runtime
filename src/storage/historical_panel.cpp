@@ -1,4 +1,5 @@
 #include "historical_panel.hpp"
+#include "market_page_archive.hpp"
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
 #include "historical_capability.hpp"
@@ -17,9 +18,6 @@ namespace trading {
 namespace {
 using Json = nlohmann::json;
 
-std::string now() {
-    return format_utc_seconds(std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now()));
-}
 void retain(const std::filesystem::path& file, const Json& record, bool acquire) {
     if (!std::filesystem::exists(file)) {
         if (!acquire) { throw std::runtime_error("panel evidence is incomplete: " + file.generic_string()); }
@@ -34,72 +32,6 @@ Json reference(const std::filesystem::path& root, const std::string& file) {
 }
 std::string prefix(std::string_view date) { return date >= "2024" ? "sealed/" : "responses/"; }
 
-class PanelPageArchive {
-public:
-    PanelPageArchive(std::filesystem::path root, bool acquire, ApiRequestPolicy::Wait wait)
-        : root_{std::move(root)}, acquire_{acquire}, policy_{std::move(wait), true} {}
-
-    MarketDataResponse get(const std::string& key, const std::string& host, const std::string& path,
-                          const std::function<MarketDataResponse()>& fetch) {
-        std::size_t attempts = 0;
-        std::optional<MarketDataResponse> latest;
-        Json receipts = Json::array();
-        while (std::filesystem::exists(contained_path(root_, filename(key, attempts)))) {
-            if (attempts == 9) { throw std::invalid_argument("request contains more than nine archived attempts"); }
-            if (latest && !retryable(latest->status)) { throw std::invalid_argument("request contains attempts after a terminal response"); }
-            const auto file = filename(key, attempts++);
-            const auto doc = parse_json_document(read_text_file(contained_path(root_, file), 192U * 1024U));
-            const auto body = decode_response_bytes(doc.at("body_hex").get<std::string>());
-            static_cast<void>(parse_utc_seconds(doc.at("retrieved_utc").get<std::string>()));
-            if (doc.at("schema_version") != 1 || doc.at("host") != host || doc.at("request_path") != path ||
-                body.size() > maximum_market_data_page_bytes || doc.at("body_sha256") != sha256(body)) {
-                throw std::invalid_argument("panel response provenance/hash mismatch");
-            }
-            latest = MarketDataResponse{doc.at("http_status").get<std::uint32_t>(), body,
-                doc.at("retry_after").is_null() ? std::optional<std::string>{} : doc.at("retry_after").get<std::string>()};
-            last_ = reference(root_, file);
-            receipts.push_back(last_);
-            last_["attempts"] = receipts;
-        }
-        for (auto index = attempts + 1; index <= 9; ++index) {
-            if (std::filesystem::exists(contained_path(root_, filename(key, index)))) {
-                throw std::invalid_argument("panel request has a noncontiguous attempt history");
-            }
-        }
-        if (latest && (latest->status == 200 || !retryable(latest->status) || attempts == 9)) { return *latest; }
-        if (!acquire_ || !fetch) { throw std::runtime_error("panel request is not complete: " + key); }
-        auto result = policy_.get([&] {
-            if (attempts >= 9) { throw std::runtime_error("panel request exhausted its retained nine-attempt budget"); }
-            ++network_requests_;
-            return fetch();
-        }, [&](const MarketDataResponse& response) {
-            if (response.body.size() > maximum_market_data_page_bytes) {
-                throw std::invalid_argument("panel response exceeds its 64-KiB bound");
-            }
-            const auto file = filename(key, attempts++);
-            const Json doc{{"schema_version", 1}, {"host", host}, {"request_path", path},
-                {"http_status", response.status}, {"retry_after", response.retry_after ? Json(*response.retry_after) : Json(nullptr)},
-                {"retrieved_utc", now()}, {"body_sha256", sha256(response.body)}, {"body_hex", encode_response_bytes(response.body)}};
-            write_new_text_file(contained_path(root_, file), doc.dump(2) + '\n');
-            last_ = reference(root_, file);
-            receipts.push_back(last_);
-            last_["attempts"] = receipts;
-        });
-        return result;
-    }
-    [[nodiscard]] const Json& last() const noexcept { return last_; }
-    [[nodiscard]] std::size_t network_requests() const noexcept { return network_requests_; }
-private:
-    static bool retryable(unsigned status) { return status == 429 || status == 500 || status == 502 || status == 503 || status == 504; }
-    static std::string filename(const std::string& key, std::size_t index) {
-        return key + "/attempt_" + std::to_string(index) + ".json";
-    }
-    std::filesystem::path root_;
-    bool acquire_;
-    ApiRequestPolicy policy_;
-    Json last_;
-    std::size_t network_requests_{};
-};
 
 void require_http(const MarketDataResponse& response) {
     if (response.status != 200) {
@@ -119,7 +51,7 @@ std::vector<CalendarRange> full_ranges() {
     return ranges;
 }
 std::vector<CalendarSession> calendar(const CalendarRange& range,
-    PanelPageArchive& archive, const PanelFetchers& fetchers, Json& receipt) {
+    MarketPageArchive& archive, const PanelFetchers& fetchers, Json& receipt) {
     const auto response = archive.get(prefix(range.first()) + "calendar/" + range.first().substr(0, 7),
         "paper-api.alpaca.markets", range.path(), [&] { return fetchers.calendar(range); });
     require_http(response);
@@ -136,7 +68,7 @@ std::vector<CalendarSession> calendar(const CalendarRange& range,
     return sessions;
 }
 std::pair<SessionDownload, Json> session(const CalendarSession& day, const std::string& symbol,
-    PanelPageArchive& archive, const PanelFetchers& fetchers) {
+    MarketPageArchive& archive, const PanelFetchers& fetchers) {
     Json pages = Json::array();
     const auto request = day.bar_request(symbol);
     auto download = SessionDownloader{request}.download([&](const auto& req, const auto& token) {
@@ -168,7 +100,7 @@ Json session_record(const CalendarSession& day, const SessionDownload& download,
 std::string checkpoint(std::string_view symbol, std::string_view date) {
     return "checkpoints/" + std::string{date.substr(0, 7)} + '/' + std::string{symbol} + '/' + std::string{date} + ".json";
 }
-Json action_interval(const CorporateActionRequest& request, PanelPageArchive& archive, const PanelFetchers& fetchers) {
+Json action_interval(const CorporateActionRequest& request, MarketPageArchive& archive, const PanelFetchers& fetchers) {
     Json pages = Json::array();
     Json result{{"symbol", request.symbol()}, {"first_process_date", request.first()}, {"last_process_date", request.last()},
         {"records", 0}, {"cash_dividends", 0}, {"complete_payment_fields", 0}, {"splits", 0}, {"complete_split_fields", 0}};
@@ -244,7 +176,7 @@ PanelClosingRecovery HistoricalPanelDataset::recover_closing_marks(const PanelIn
         const auto lock = directory_ / "acquisition.lock";
         owner = std::filesystem::exists(lock) ? execution::open_journal_file(lock) : execution::create_journal_file(lock);
     }
-    PanelPageArchive archive{recovery_root, acquire, std::move(wait)};
+    MarketPageArchive archive{recovery_root, acquire, std::move(wait)};
     Json records = Json::array();
     std::vector<MinuteBar> recovered;
     for (const auto& item : policy.closing_recovery_plan()) {
@@ -387,7 +319,7 @@ nlohmann::json HistoricalPanelDataset::inspect(bool acquire, const PanelFetchers
     const Json identity{{"schema_version", 1}, {"kind", "historical_panel_contract"}, {"protocol_sha256", contract_.identity()},
         {"evidence_origin", origin_ == PanelOrigin::provider ? "provider" : "synthetic"}, {"symbols", contract_.symbols()}, {"ranges", plan}};
     retain(contained_path(directory_, "dataset_contract.json"), identity, acquire);
-    PanelPageArchive archive{directory_, acquire, std::move(wait)};
+    MarketPageArchive archive{directory_, acquire, std::move(wait)};
     Json months = Json::array(), actions = Json::array(), action_coverage = Json::array(), coverage = Json::array();
     std::set<int> years;
     for (const auto& range : ranges_) {

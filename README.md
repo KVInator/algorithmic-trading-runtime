@@ -45,6 +45,14 @@ independent durable activities, DAY/IOC/GTC limits, explicit fees and recovery
 through missed responses or client/broker restarts. Windows Release passed
 313 checks in twelve scenario families across twenty-one child processes.
 Independent review verified the broker history, client attribution and peer calls.
+
+**M6 is in progress:** the [cost and execution contract](docs/cost_execution.md)
+registers the cost/delay comparisons and 680 synthetic execution cases. Its
+first checkpoint provides a resumable, fully paginated sample of 910 pre-2024
+SIP quote windows selected from input masks. Constructed acquisition checks
+pass; provider acquisition, execution evaluation and continuous daily-risk
+accounts remain open. Registered synthetic cases are not executed results.
+
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
 until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)
 retains the artifact identities and review limits. The results below describe

@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 28 October 2026: **M0-M5 complete; M6-M10 not started.**
+Status recorded 28 October 2026: **M0-M5 complete; M6 in progress; M7-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -167,7 +167,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
-| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Not started |
+| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: contract and quote-acquisition checkpoint implemented; historical acquisition and cost/account/execution comparisons remain open |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
@@ -782,3 +782,26 @@ M6 next extends cost/execution and daily-risk
 accounts, M7 stability/risk matching/uncertainty, M8-M9 the registered reserved
 periods, and M10 publication. Existing research outcomes, acquisition inputs
 and reserved-year boundaries remain unchanged.
+
+## M6 cost and execution input checkpoint
+
+The [registered contract](../research/cost_execution_protocol.md), SHA-256
+`827dee82278dbabf0f5d8fd6d0980afe07cd01c876847507df38080a587dc2ca`,
+precedes the new acquisition and account comparisons. It fixes the bar-reference
+cost/delay grid, the bounded pre-2024 historical quote sample and the 170-workload,
+680-account synthetic matrix. No strategy or policy is selected from that matrix.
+
+The [sampler and independent verifier](cost_execution.md) implement 910 one-second
+quote windows, complete pagination or explicit page-cap failure, authenticated
+resume and latest-record eligibility. The existing panel raw-response archive
+is reused without changing its artifact format. Constructed cases exercise
+pagination, denial, retries, interruptions, invalid geometry, nanosecond clocks,
+conflicting duplicates and tampered evidence. Windows/provider acceptance is
+pending; synthetic fixtures do not establish historical access or spreads.
+
+Historical cost/delay outcomes, quote-reference comparisons, continuous daily-risk
+accounts and the 680 synthetic execution evaluations remain to be implemented.
+The three unavailable 2019 closes cannot be repaired by resetting capital:
+an affected continuous account stops at its first required missing endpoint.
+Recovering forecast history does not restore that account. Coverage and
+unavailable comparisons will be retained. M6 remains open; M7-M10 follow it.
