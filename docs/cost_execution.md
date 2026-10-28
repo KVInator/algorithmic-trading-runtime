@@ -140,6 +140,45 @@ the embedded records, coverage cells, status widths, scatter coordinates and
 table labels without claiming to authenticate raw HTTP. The default verifier
 still performs its full local raw-archive audit and also checks these views.
 
+## Cached condition and timestamp diagnosis
+
+`cost_quote_acquire --inspect <saved-summary>` replays the retained response
+archive without a fetch callback. It authenticates the saved plan and every
+response, then requires the original window classifications, measurements,
+page receipts and retained-attempt count to match exactly. The original summary
+and response files are not rewritten. Provider inspection also authenticates
+the accepted M2 masks; no historical strategy prices are loaded.
+
+The diagnostic counts condition-array/tape patterns at each window's latest
+source timestamp. Empty arrays, blank strings, nulls and absent fields remain
+distinct. A pattern contributes at most once to a window count, while exact
+duplicates remain visible in record counts. Different patterns can occur within
+one window, so those window counts must not be summed as disjoint coverage.
+Partial or capped windows do not enter the complete-window frequency table.
+Metadata values over 512 serialized bytes are represented by type and digest;
+this export bound does not change quote eligibility.
+
+The original ambiguous windows are separated into price conflicts, size
+conflicts at identical prices, metadata-only differences at identical prices
+and sizes, and unsupported fields. The registered classifier supplies the same
+exact price/share projections used by acquisition. Metadata-only disagreement
+does not establish message order, regular conditions or an executable quote.
+No ambiguous window is automatically admitted. Removing only the condition
+test is reported as a hypothetical count, not a revised policy.
+
+The independent verifier reauthenticates the original raw archive, reconstructs
+all latest records and checks every diagnostic observation, frequency count,
+static chart and table. Its compact `review.zip` contains diagnostic counts,
+metadata and HTML, without quote prices or response bodies. `--report-only`
+checks compact representation without claiming raw authentication.
+
+Local constructed verification covers seventeen sample cases and 2,210 windows,
+including price/size/metadata conflicts, missing fields, blank/empty/mixed
+condition arrays, duplicate records, incomplete pages and oversized metadata.
+The native total is 355 checks with accepted-M2 metadata, or 354 without it.
+Actual provider condition patterns remain pending the Windows cached inspection;
+no diagnosis of the pre-2022 exclusions or policy change is claimed yet.
+
 The [runbook](running.md#cost-and-execution-inputs-m6) gives the Windows commands.
 The provider sampler uses only the existing historical-data credential route.
 The M6 input checkpoint is accepted with the recorded coverage limitation.

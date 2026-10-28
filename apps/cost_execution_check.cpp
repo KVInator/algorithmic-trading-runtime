@@ -1,11 +1,14 @@
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
+#include "cost_quote_diagnostic_report.hpp"
+#include "cost_quote_diagnostics.hpp"
 #include "cost_quote_report.hpp"
 #include "cost_quote_sample.hpp"
 #include "json_input.hpp"
 #include "utc_timestamp.hpp"
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <set>
 
 namespace {
@@ -165,6 +168,70 @@ class Checks {
                     registered.windows().size() == 910);
             provider = registered.document();
         }
+        for (const auto *mode : {"metadata", "size", "conditions", "unsupported", "oversized"}) {
+            static_cast<void>(sample(mode, mode, plan));
+        }
+        Json diagnostic_cases = Json::array();
+        std::map<std::string, Json> diagnoses;
+        const auto inventory = [](const std::filesystem::path &root) {
+            Json files = Json::object();
+            for (const auto &entry : std::filesystem::recursive_directory_iterator(root)) {
+                if (entry.is_regular_file()) {
+                    files[std::filesystem::relative(entry.path(), root).generic_string()] =
+                        trading::sha256_file(entry.path());
+                }
+            }
+            return files;
+        };
+        const auto before = inventory(directory_ / "basic/archive");
+        for (const auto &case_file : cases_) {
+            const auto case_path = std::filesystem::path{case_file.get<std::string>()};
+            const auto saved = directory_ / case_path;
+            const auto digest = trading::sha256_file(saved);
+            auto diagnosis = trading::CostQuoteDiagnostics{panel}.inspect(saved);
+            require("read-only diagnosis retains primary decisions and never adopts alternative eligibility",
+                    diagnosis.at("primary_replay_identical").get<bool>() &&
+                        !diagnosis.at("revised_eligibility_adopted").get<bool>() &&
+                        diagnosis.at("network_requests").get<int>() == 0 &&
+                        trading::sha256_file(saved) == digest);
+            const auto output = directory_ / case_path.parent_path() / "diagnostics";
+            trading::CostQuoteDiagnosticReport{}.write(output, diagnosis);
+            diagnostic_cases.push_back(
+                (case_path.parent_path() / "diagnostics/summary.json").generic_string());
+            diagnoses[case_path.parent_path().generic_string()] = std::move(diagnosis);
+        }
+        require("inspection changes no cached filenames or bytes",
+                before == inventory(directory_ / "basic/archive"));
+        require("price conflicts are distinct from metadata conflicts",
+                diagnoses.at("ambiguous").at("ambiguous_latest_relations").at("price_conflict").get<int>() ==
+                    130);
+        require("size conflicts are distinct from price conflicts",
+                diagnoses.at("size").at("ambiguous_latest_relations").at("size_conflict").get<int>() == 130);
+        require("exchange-only differences remain primary ambiguous without reclassification",
+                diagnoses.at("metadata").at("ambiguous_latest_relations").at("metadata_only").get<int>() ==
+                        130 &&
+                    diagnoses.at("metadata").at("condition_test_removal_only_count").get<int>() == 0);
+        require("unsupported ambiguous fields remain explicit", diagnoses.at("unsupported")
+                                                                        .at("ambiguous_latest_relations")
+                                                                        .at("unsupported_fields")
+                                                                        .get<int>() == 130);
+        require("condition-only relaxation is counted separately from primary eligibility",
+                diagnoses.at("conditions").at("primary_status_counts").at("eligible").get<int>() == 26 &&
+                    diagnoses.at("conditions").at("condition_test_removal_only_count").get<int>() == 130);
+        require("oversized condition metadata is identified by digest without exporting its bytes",
+                diagnoses.at("oversized")
+                            .at("metadata_frequencies")
+                            .at(0)
+                            .at("conditions")
+                            .at("representation")
+                            .get<std::string>() == "sha256_only_over_512_bytes" &&
+                    diagnoses.at("oversized").dump().find(std::string(600, 'A')) == std::string::npos);
+        const auto false_source = directory_ / "false_source.json";
+        auto altered = basic;
+        altered["windows"][0]["status"] = "empty";
+        trading::write_new_text_file(false_source, altered.dump(2) + '\n');
+        rejects("inspection rejects a summary that differs from its authenticated cache",
+                [&] { static_cast<void>(trading::CostQuoteDiagnostics{panel}.inspect(false_source)); });
         return {{"kind", "cost_execution_check"},
                 {"evidence_origin", "synthetic"},
                 {"network_requests", 0},
@@ -173,6 +240,7 @@ class Checks {
                 {"policy_sha256", TRADING_COST_EXECUTION_PROTOCOL_SHA256},
                 {"checks", checks_},
                 {"cases", cases_},
+                {"diagnostic_cases", diagnostic_cases},
                 {"rejected_datasets", rejected_},
                 {"provider_plan", provider},
                 {"synthetic_workloads_registered", matrix.size()},
@@ -209,6 +277,26 @@ class Checks {
         if (mode == "nonregular" && token) {
             q["c"] = Json::array({"N"});
         }
+        if (mode == "oversized" && token) {
+            q["c"] = Json::array({std::string(600, 'A')});
+        }
+        if (mode == "conditions" && token) {
+            if (request.symbol() == "SPY") {
+                q["c"] = Json::array({""});
+            }
+            if (request.symbol() == "QQQ") {
+                q["c"] = Json::array();
+            }
+            if (request.symbol() == "IWM") {
+                q["c"] = Json::array({"R", "R"});
+            }
+            if (request.symbol() == "TLT") {
+                q["c"] = Json::array({"R", "N"});
+            }
+            if (request.symbol() == "GLD") {
+                q["c"] = nullptr;
+            }
+        }
         if (mode == "geometry" && token) {
             if (request.symbol() == "SPY") {
                 q["ap"] = q.at("bp");
@@ -236,6 +324,18 @@ class Checks {
         }
         if (mode == "ambiguous" && token) {
             q["bp"] = 100.02;
+            rows.push_back(q);
+        }
+        if (token && (mode == "metadata" || mode == "size" || mode == "unsupported")) {
+            if (mode == "metadata") {
+                q["ax"] = "Q";
+            }
+            if (mode == "size") {
+                q["as"] = 4;
+            }
+            if (mode == "unsupported") {
+                q.erase("c");
+            }
             rows.push_back(q);
         }
         if (mode == "duplicate" && token) {

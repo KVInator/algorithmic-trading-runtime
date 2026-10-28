@@ -1,5 +1,7 @@
 #include "artifact_io.hpp"
 #include "console_progress.hpp"
+#include "cost_quote_diagnostic_report.hpp"
+#include "cost_quote_diagnostics.hpp"
 #include "cost_quote_report.hpp"
 #include "cost_quote_sample.hpp"
 #include <iostream>
@@ -10,6 +12,23 @@
 int main(int argc, char **argv) {
     try {
         const std::filesystem::path root{TRADING_PROJECT_ROOT};
+        if (argc == 3 && std::string{argv[1]} == "--inspect") {
+            const auto output =
+                trading::create_unique_directory(root / "scratch/runs", "cost_quote_diagnostics");
+            std::cout << "M6 | cached quote conditions and timestamp diagnosis; no acquisition\n"
+                      << "Evidence directory: " << output.string() << std::endl;
+            const auto summary =
+                trading::CostQuoteDiagnostics{root / "scratch/datasets/extension_panel_2016_2025"}.inspect(
+                    std::filesystem::path{argv[2]}, trading::ConsoleProgress{});
+            trading::CostQuoteDiagnosticReport{}.write(output, summary);
+            std::cout << "Primary replay: identical\nNetwork requests sent: 0\nLatest timestamp conflicts: "
+                      << summary.at("ambiguous_latest_relations").dump()
+                      << "\nCondition-test-removal count (not adopted): "
+                      << summary.at("condition_test_removal_only_count")
+                      << "\nVisual report: " << (output / "report.html").string()
+                      << "\nManifest: " << (output / "summary.json").string() << '\n';
+            return 0;
+        }
         if (argc == 3 && std::string{argv[1]} == "--render") {
             const auto output = trading::create_unique_directory(root / "scratch/runs", "cost_quotes_view");
             trading::CostQuoteReport{}.render_existing(output, std::filesystem::path{argv[2]});
@@ -19,9 +38,10 @@ int main(int argc, char **argv) {
                       << "\nManifest: " << (output / "summary.json").string() << '\n';
             return 0;
         }
-        if (argc > 2 || (argc == 2 && std::string{argv[1]} == "--render")) {
-            throw std::invalid_argument(
-                "usage: cost_quote_acquire [quote-directory] | --render summary.json");
+        if (argc > 2 ||
+            (argc == 2 && (std::string{argv[1]} == "--render" || std::string{argv[1]} == "--inspect"))) {
+            throw std::invalid_argument("usage: cost_quote_acquire [quote-directory] | --render summary.json "
+                                        "| --inspect summary.json");
         }
         const trading::ConsoleProgress progress;
         progress("M6 | fixed pre-2024 SIP quote windows; no strategy scoring");

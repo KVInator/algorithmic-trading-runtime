@@ -52,6 +52,8 @@ first checkpoint provides a resumable, fully paginated sample of 910 pre-2024
 SIP quote windows selected from input masks. Windows acquisition retained 1,322
 responses; 232 windows pass the fixed eligibility rule, all in 2022-2023.
 The report shows static coverage/spread plots and explicit unavailable groups.
+An offline cached inspector audits condition codes and timestamp conflicts
+while preserving the original classifications.
 Cost/account comparisons and synthetic execution evaluation remain open.
 Registered synthetic cases are not executed results.
 

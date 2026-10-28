@@ -77,6 +77,9 @@ and independently checks latest-quote eligibility, units, age and spreads.
 It also verifies the static report's coverage cells, status bars, scatter
 coordinates and complete window tables. `--report-only` checks those saved
 representations without accessing or authenticating the raw response archive.
+For cached condition diagnostics, the full verifier reconstructs latest-record
+condition/tape frequencies and price/size/metadata conflicts from those same
+raw receipts; the primary classifications must remain unchanged.
 The [M6 implementation note](../docs/cost_execution.md) distinguishes the
 completed acquisition checkpoint from the account and execution comparisons
 that remain to be implemented. No M6 economic result is available yet.

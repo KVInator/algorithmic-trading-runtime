@@ -35,7 +35,8 @@ std::int64_t units(const Json &value, unsigned decimals) {
     }
     return result;
 }
-Json classify(const Json &quote, std::chrono::sys_seconds end) {
+} // namespace
+Json classify_cost_quote(const Json &quote, std::chrono::sys_seconds end) {
     const auto bid = units(quote.at("bp"), 9), ask = units(quote.at("ap"), 9), bs = units(quote.at("bs"), 0),
                as = units(quote.at("as"), 0);
     if (bs > std::numeric_limits<std::int64_t>::max() / 100 ||
@@ -80,6 +81,7 @@ Json classify(const Json &quote, std::chrono::sys_seconds end) {
     }
     return result;
 }
+namespace {
 void retain_plan(const std::filesystem::path &path, const Json &plan, bool acquire) {
     if (!std::filesystem::exists(path)) {
         if (!acquire) {
@@ -95,7 +97,8 @@ void retain_plan(const std::filesystem::path &path, const Json &plan, bool acqui
 CostQuoteSample::CostQuoteSample(std::filesystem::path directory, CostQuotePlan plan)
     : directory_(std::move(directory)), plan_(std::move(plan)) {}
 Json CostQuoteSample::run(bool acquire, const Fetch &fetch, ApiRequestPolicy::Wait wait,
-                          const std::function<void(const std::string &)> &progress) const {
+                          const std::function<void(const std::string &)> &progress,
+                          const WindowObserver &observer) const {
     if (acquire) {
         std::filesystem::create_directories(directory_);
     }
@@ -124,6 +127,7 @@ Json CostQuoteSample::run(bool acquire, const Fetch &fetch, ApiRequestPolicy::Wa
         std::optional<std::string> token;
         std::set<std::string> tokens;
         std::optional<Json> latest;
+        std::vector<Json> latest_records;
         std::optional<std::chrono::sys_time<std::chrono::nanoseconds>> previous;
         bool ambiguous = false;
         std::size_t records = 0;
@@ -175,6 +179,12 @@ Json CostQuoteSample::run(bool acquire, const Fetch &fetch, ApiRequestPolicy::Wa
                         } else if (latest && quote != *latest) {
                             ambiguous = true;
                         }
+                        if (observer) {
+                            if (!previous || at > *previous) {
+                                latest_records.clear();
+                            }
+                            latest_records.push_back(quote);
+                        }
                         previous = at;
                     }
                 }
@@ -184,7 +194,7 @@ Json CostQuoteSample::run(bool acquire, const Fetch &fetch, ApiRequestPolicy::Wa
                         if (ambiguous) {
                             status = "ambiguous_latest";
                         } else {
-                            auto result = classify(*latest, window.request.end());
+                            auto result = classify_cost_quote(*latest, window.request.end());
                             status = result.at("status").get<std::string>();
                             row["measurement"] = std::move(result);
                         }
@@ -201,6 +211,9 @@ Json CostQuoteSample::run(bool acquire, const Fetch &fetch, ApiRequestPolicy::Wa
         }
         row["status"] = status;
         row["records"] = records;
+        if (observer) {
+            observer(window, row, latest_records);
+        }
         ++counts[status];
         windows.push_back(std::move(row));
         if (progress && (windows.size() % 25 == 0 || windows.size() == plan_.windows().size())) {

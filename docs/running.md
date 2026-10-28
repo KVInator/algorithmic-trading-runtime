@@ -460,9 +460,9 @@ the repository root, run the constructed check and its independent verifier:
 py -3 -B research/verify_cost_quotes.py scratch/runs/cost_execution_check_0
 ```
 
-Use the printed suffix. Expected evidence is twelve constructed acquisition
-cases and 1,560 verified windows, with zero network requests. The native total
-is 330 checks when the accepted M2 masks are present, or 329 without them.
+Use the printed suffix. Expected evidence is seventeen constructed acquisition
+cases and 2,210 verified windows, with zero network requests. The native total
+is 355 checks when the accepted M2 masks are present, or 354 without them.
 The 680 synthetic execution cases are registered, not executed by this check.
 
 Then run the historical sampler using the existing Windows historical-data
@@ -517,3 +517,21 @@ spread detail remain visible when scripts are disabled. Enabled scripts allow
 switching between the pre-rendered instrument/year views; empty groups show
 an explicit unavailable message. `--report-only` verifies saved arithmetic and
 displayed marks; omit that flag for the full local raw-response verification.
+
+To inspect the retained source of condition failures and latest-timestamp
+conflicts, run the cached diagnostic and its full independent verifier:
+
+```powershell
+& .\scratch\native\Release\cost_quote_acquire.exe --inspect scratch/runs/cost_quotes_0/summary.json
+py -3 -B research/verify_cost_quotes.py scratch/runs/cost_quote_diagnostics_0
+```
+
+Use the actual printed suffix. This mode opens the existing quote archive and
+M2 selection masks, performs zero requests, loads no credentials and preserves
+the original sample. It creates `cost_quote_diagnostics_<suffix>` with a static
+HTML report and diagnostic manifest. The verifier writes `review.zip` after
+checking the original raw responses and every diagnostic observation. Share
+that compact ZIP and the console result; quote prices and raw bodies remain
+local. The existing `--render` mode is for presentation; `--inspect` additionally
+reads the retained raw pages. Neither mode acquires new data or changes the
+registered eligibility rule.

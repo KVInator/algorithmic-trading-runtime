@@ -268,12 +268,13 @@ class ReportVerifier:
 
 
 class QuoteVerifier:
-    def __init__(self, run):
+    def __init__(self, run, summary_file=None):
         self.run = Path(run).resolve()
-        self.summary = json.loads((self.run / "summary.json").read_text(encoding="utf-8"))
+        source = Path(summary_file) if summary_file is not None else self.run / "summary.json"
+        self.summary = json.loads(source.read_text(encoding="utf-8"))
         self.dataset = Path(self.summary["dataset"]).resolve()
 
-    def verify(self, bundle=True):
+    def verify(self, bundle=True, window_observer=None, verify_report=True):
         s = self.summary
         require(s["kind"] == "cost_quote_sample" and s["policy_sha256"] == POLICY, "Quote contract differs")
         require(
@@ -374,6 +375,8 @@ class QuoteVerifier:
                     and row["status"] == "not_attempted_after_denial",
                     "Denied route was repeatedly requested",
                 )
+                if window_observer:
+                    window_observer(row, [])
                 counts[row["status"]] += 1
                 continue
             token, seen_tokens, previous, latest, ambiguous, n, status, measurement = (
@@ -386,6 +389,7 @@ class QuoteVerifier:
                 "empty",
                 None,
             )
+            latest_records = []
             require(0 < len(row["pages"]) <= 16, "Unbounded or absent quote pages")
             for index, page in enumerate(row["pages"]):
                 require(
@@ -462,6 +466,10 @@ class QuoteVerifier:
                         latest, ambiguous = q, False
                     elif q != latest:
                         ambiguous = True
+                    if window_observer:
+                        if previous is None or at > previous:
+                            latest_records.clear()
+                        latest_records.append(q)
                     previous = at
                     n += 1
                 token = raw["next_page_token"]
@@ -499,6 +507,8 @@ class QuoteVerifier:
                         ),
                         "Quote measurement differs: " + k,
                     )
+            if window_observer:
+                window_observer(row, latest_records)
             counts[status] += 1
         require(
             dict(counts) == s["status_counts"] and len(files) == s["retained_http_attempts"],
@@ -513,7 +523,8 @@ class QuoteVerifier:
             ),
             "Sample status differs",
         )
-        ReportVerifier(self.run).verify()
+        if verify_report:
+            ReportVerifier(self.run).verify()
         if bundle:
             with zipfile.ZipFile(self.run / "review.zip", "w", zipfile.ZIP_DEFLATED) as z:
                 for name in ["summary.json", "report.html"]:
@@ -521,9 +532,345 @@ class QuoteVerifier:
         return len(expected), len(files), counts
 
 
+def metadata_field(quote, name):
+    if name not in quote:
+        return {"present": False}
+
+    def normal(value):
+        if isinstance(value, Decimal):
+            return float(value)
+        if isinstance(value, list):
+            return [normal(v) for v in value]
+        if isinstance(value, dict):
+            return {k: normal(v) for k, v in value.items()}
+        return value
+
+    value = normal(quote[name])
+    encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    if len(encoded.encode()) > 512:
+        kind = (
+            "null"
+            if value is None
+            else (
+                "boolean"
+                if isinstance(value, bool)
+                else (
+                    "string"
+                    if isinstance(value, str)
+                    else (
+                        "array"
+                        if isinstance(value, list)
+                        else "object" if isinstance(value, dict) else "number"
+                    )
+                )
+            )
+        )
+        return dict(
+            present=True,
+            representation="sha256_only_over_512_bytes",
+            json_type=kind,
+            value_sha256=hashlib.sha256(encoded.encode()).hexdigest(),
+        )
+    return dict(present=True, value=value)
+
+
+def diagnostic_window(row, records):
+    status = row["status"]
+    complete = not status.startswith("http_") and status not in {
+        "incomplete_page_limit",
+        "not_attempted_after_denial",
+    }
+    variants, changed = {}, set()
+    identical, price_same, size_same, supported = True, True, True, True
+    first_prices, first_sizes = None, None
+    for q in records:
+        metadata = dict(conditions=metadata_field(q, "c"), tape=metadata_field(q, "z"))
+        key = json.dumps(metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        variants.setdefault(key, {**metadata, "records": 0})["records"] += 1
+        identical = identical and q == records[0]
+        for name in set(q) | set(records[0]):
+            if (name in q) != (name in records[0]) or (name in q and q[name] != records[0][name]):
+                changed.add(name)
+        try:
+            result = classify(q, timestamp_ns(row["end"]))
+            prices = [result["bid_units"], result["ask_units"]]
+            sizes = [result["bid_shares"], result["ask_shares"]]
+            if first_prices is None:
+                first_prices, first_sizes = prices, sizes
+            else:
+                price_same = price_same and prices == first_prices
+                size_same = size_same and sizes == first_sizes
+        except (ValueError, KeyError, TypeError):
+            supported = False
+    relation = (
+        "incomplete"
+        if not complete
+        else (
+            "no_quote"
+            if not records
+            else (
+                ("single_quote" if len(records) == 1 else "identical_duplicates")
+                if identical
+                else (
+                    "unsupported_fields"
+                    if not supported
+                    else (
+                        "price_conflict"
+                        if not price_same
+                        else "size_conflict" if not size_same else "metadata_only"
+                    )
+                )
+            )
+        )
+    )
+    return dict(
+        id=row["id"],
+        symbol=row["symbol"],
+        date=row["date"],
+        primary_status=status,
+        complete=complete,
+        latest_records=len(records),
+        latest_relation=relation,
+        price_consistent=price_same if complete and records and supported else None,
+        size_consistent=size_same if complete and records and supported else None,
+        changed_fields=sorted(changed),
+        metadata_variants=[variants[k] for k in sorted(variants)],
+        passes_if_only_condition_test_removed=status in {"eligible", "nonregular"},
+    )
+
+
+class DiagnosticMarkup(HTMLParser):
+    def __init__(self, html):
+        super().__init__()
+        self.years = {}
+        self.relations = {}
+        self.table = {}
+        self.row = None
+        self.cell = None
+        self.feed(html)
+
+    def handle_starttag(self, tag, pairs):
+        a = dict(pairs)
+        if tag == "rect" and "data-year" in a:
+            key = (a["data-year"], a["data-status"])
+            require(key not in self.years, "Duplicate diagnostic year bar")
+            self.years[key] = (int(a["data-count"]), float(a["width"]))
+        if tag == "rect" and "data-relation" in a:
+            require(a["data-relation"] not in self.relations, "Duplicate diagnostic conflict bar")
+            self.relations[a["data-relation"]] = (int(a["data-count"]), float(a["width"]))
+        if tag == "tr" and "data-frequency-index" in a:
+            self.row = int(a["data-frequency-index"])
+            require(self.row not in self.table, "Duplicate metadata frequency row")
+            self.table[self.row] = []
+        if tag == "td" and self.row is not None:
+            self.cell = []
+
+    def handle_data(self, value):
+        if self.cell is not None:
+            self.cell.append(value)
+
+    def handle_endtag(self, tag):
+        if tag == "td" and self.cell is not None:
+            self.table[self.row].append("".join(self.cell))
+            self.cell = None
+        if tag == "tr":
+            self.row = None
+
+
+class DiagnosticVerifier:
+    def __init__(self, run):
+        self.run = Path(run)
+        self.summary = json.loads((self.run / "summary.json").read_text(encoding="utf-8"))
+
+    def verify(self, report_only=False, bundle=True):
+        d = self.summary
+        require(
+            d["kind"] == "cost_quote_diagnostics"
+            and d["evidence_origin"] in {"provider", "synthetic"}
+            and d["diagnostic_rules_version"] == 1
+            and d["policy_sha256"] == POLICY,
+            "Diagnostic contract differs",
+        )
+        require(
+            d["network_requests"] == 0
+            and d["primary_replay_identical"]
+            and not d["revised_eligibility_adopted"]
+            and not d["historical_strategy_scored"]
+            and not d["reserved_strategy_inputs_opened"],
+            "Diagnostic scope differs",
+        )
+        if not report_only:
+            source = Path(d["source_summary"])
+            require(digest(source) == d["source_summary_sha256"], "Original quote summary identity differs")
+            original = json.loads(source.read_text(encoding="utf-8"))
+            observations = []
+            oracle = QuoteVerifier(source.parent, summary_file=source)
+            oracle.verify(
+                bundle=False,
+                window_observer=lambda row, quotes: observations.append(diagnostic_window(row, quotes)),
+                verify_report=False,
+            )
+
+            # Compare semantic metadata inventories without relying on a language's
+            # object-key order or Decimal/float textual serialization.
+            def ordered(row):
+                value = dict(row)
+                value["metadata_variants"] = sorted(
+                    value["metadata_variants"],
+                    key=lambda v: json.dumps(v, sort_keys=True, ensure_ascii=False),
+                )
+                return value
+
+            require(
+                [ordered(r) for r in observations] == [ordered(r) for r in d["windows"]],
+                "Latest condition/conflict observations differ from raw responses",
+            )
+            require(
+                d["producer_source_sha256"] == original["source_sha256"]
+                and d["evidence_origin"] == original["evidence_origin"]
+                and d["plan_sha256"] == original["plan_sha256"]
+                and d["primary_status_counts"] == original["status_counts"]
+                and d["retained_http_attempts"] == original["retained_http_attempts"],
+                "Original diagnostic provenance differs",
+            )
+        rows = d["windows"]
+        require(rows and len({r["id"] for r in rows}) == len(rows), "Missing/duplicate diagnostic windows")
+        primary = Counter(r["primary_status"] for r in rows)
+        conflicts = Counter()
+        frequencies = {}
+        without = 0
+        years = {}
+        for row in rows:
+            status = row["primary_status"]
+            relation = row["latest_relation"]
+            require(
+                row["passes_if_only_condition_test_removed"] == (status in {"eligible", "nonregular"}),
+                "Hypothetical count silently changed eligibility",
+            )
+            without += row["passes_if_only_condition_test_removed"]
+            years.setdefault(row["date"][:4], Counter())[status] += 1
+            require(
+                sum(v["records"] for v in row["metadata_variants"]) == row["latest_records"],
+                "Latest-record metadata inventory differs",
+            )
+            if status == "ambiguous_latest":
+                require(
+                    row["latest_records"] >= 2
+                    and relation
+                    in {"price_conflict", "size_conflict", "metadata_only", "unsupported_fields"},
+                    "Ambiguous primary result silently resolved",
+                )
+                conflicts[relation] += 1
+            if relation == "metadata_only":
+                require(
+                    row["price_consistent"] is True and row["size_consistent"] is True,
+                    "Metadata-only conflict changes prices/sizes",
+                )
+            if relation == "size_conflict":
+                require(
+                    row["price_consistent"] is True and row["size_consistent"] is False,
+                    "Size conflict changes prices",
+                )
+            if relation == "price_conflict":
+                require(row["price_consistent"] is False, "Price conflict has consistent prices")
+            if not row["complete"]:
+                continue
+            seen = set()
+            for variant in row["metadata_variants"]:
+                descriptor = dict(
+                    year=row["date"][:4],
+                    symbol=row["symbol"],
+                    conditions=variant["conditions"],
+                    tape=variant["tape"],
+                )
+                key = json.dumps(descriptor, sort_keys=True, ensure_ascii=False)
+                require(key not in seen, "Duplicate per-window metadata variant")
+                seen.add(key)
+                target = frequencies.setdefault(key, {**descriptor, "windows": 0, "records": 0})
+                target["windows"] += 1
+                target["records"] += variant["records"]
+        require(
+            dict(primary) == d["primary_status_counts"]
+            and dict(conflicts) == d["ambiguous_latest_relations"]
+            and without == d["condition_test_removal_only_count"],
+            "Diagnostic aggregate counts differ",
+        )
+        canon = lambda v: json.dumps(v, sort_keys=True, ensure_ascii=False)
+        require(
+            sorted(map(canon, frequencies.values())) == sorted(map(canon, d["metadata_frequencies"])),
+            "Condition/tape frequency aggregation differs",
+        )
+        html = (self.run / "report.html").read_text(encoding="utf-8")
+        require(digest(self.run / "report.html") == d["report_sha256"], "Diagnostic report hash differs")
+        require(
+            "Evidence origin: " + d["evidence_origin"] in html, "Diagnostic evidence origin is not displayed"
+        )
+        markup = DiagnosticMarkup(html)
+        expected_bars = {}
+        for year, counts in years.items():
+            total = sum(counts.values())
+            other = total - sum(counts[k] for k in ["eligible", "nonregular", "ambiguous_latest"])
+            for status, n in [
+                ("eligible", counts["eligible"]),
+                ("nonregular", counts["nonregular"]),
+                ("ambiguous_latest", counts["ambiguous_latest"]),
+                ("other", other),
+            ]:
+                expected_bars[(year, status)] = (n, 830 * n / total)
+        require(set(markup.years) == set(expected_bars), "Diagnostic year bars lost categories")
+        for key, (n, width) in markup.years.items():
+            require(
+                n == expected_bars[key][0] and abs(width - expected_bars[key][1]) <= 0.001,
+                "Diagnostic year bar width/count differs",
+            )
+        labels = {"price_conflict", "size_conflict", "metadata_only", "unsupported_fields"}
+        require(set(markup.relations) == labels, "Diagnostic conflict bars differ")
+        maximum = max([1, *conflicts.values()])
+        for label, (n, width) in markup.relations.items():
+            require(
+                n == conflicts[label] and abs(width - 650 * n / maximum) <= 0.001,
+                "Diagnostic conflict width/count differs",
+            )
+        require(len(markup.table) == len(d["metadata_frequencies"]), "Diagnostic frequency table lost rows")
+
+        def field_label(value):
+            if not value["present"]:
+                return "missing field"
+            return (
+                json.dumps(value["value"], ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+                if "value" in value
+                else "oversized metadata; SHA-256 " + value["value_sha256"]
+            )
+
+        for i, row in enumerate(d["metadata_frequencies"]):
+            require(
+                markup.table[i]
+                == [
+                    row["year"],
+                    row["symbol"],
+                    field_label(row["tape"]),
+                    field_label(row["conditions"]),
+                    str(row["windows"]),
+                    str(row["records"]),
+                ],
+                "Diagnostic metadata table labels differ",
+            )
+        if bundle:
+            with zipfile.ZipFile(self.run / "review.zip", "w", zipfile.ZIP_DEFLATED) as archive:
+                for name in ["summary.json", "report.html"]:
+                    archive.write(self.run / name, name)
+        return len(rows), conflicts
+
+
 def verify(path):
     s = json.loads((path / "summary.json").read_text())
-    if s["kind"] == "cost_execution_check":
+    if s["kind"] == "cost_quote_diagnostics":
+        n, conflicts = DiagnosticVerifier(path).verify()
+        print(
+            f"Verified cached quote diagnosis: {n} windows; raw responses and primary replay authenticated; conflicts: {dict(conflicts)}"
+        )
+        print(f"Review bundle: {path.resolve() / 'review.zip'}")
+    elif s["kind"] == "cost_execution_check":
         require(
             s["network_requests"] == 0
             and s["evidence_origin"] == "synthetic"
@@ -536,6 +883,8 @@ def verify(path):
         for c in s["cases"]:
             n, attempts, counts = QuoteVerifier(path / Path(c).parent).verify()
             total += n
+        for case in s.get("diagnostic_cases", []):
+            DiagnosticVerifier(path / Path(case).parent).verify()
         for c in s["rejected_datasets"]:
             raw = list((path / c).rglob("attempt_0.json"))
             require(raw, "Missing rejected evidence")
@@ -559,7 +908,7 @@ def verify(path):
         )
         with zipfile.ZipFile(path / "review.zip", "w", zipfile.ZIP_DEFLATED) as archive:
             archive.write(path / "summary.json", "summary.json")
-            for case in s["cases"]:
+            for case in [*s["cases"], *s.get("diagnostic_cases", [])]:
                 parent = Path(case).parent
                 for name in ["summary.json", "report.html"]:
                     archive.write(path / parent / name, str(parent / name))
@@ -582,7 +931,14 @@ def main():
     )
     args = p.parse_args()
     try:
-        if args.report_only:
+        if (
+            args.report_only
+            and json.loads((args.directory / "summary.json").read_text())["kind"] == "cost_quote_diagnostics"
+        ):
+            n, conflicts = DiagnosticVerifier(args.directory).verify(report_only=True)
+            print(f"Verified diagnostic representation only: {n} windows; conflicts: {dict(conflicts)}")
+            print("Raw HTTP archives were not reauthenticated by this report-only check.")
+        elif args.report_only:
             n, eligible, static = ReportVerifier(args.directory).verify()
             print(
                 f"Verified saved-report representation: {n} windows, {eligible} eligible; static plots: {static}."
