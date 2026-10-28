@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 28 October 2026: **M0-M1 complete; M2 input-limited; M3-M10 not started.**
+Status recorded 28 October 2026: **M0-M2 complete; M3-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -143,8 +143,8 @@ Detailed baseline contracts remain in [broker](paper_broker.md),
 | --- | --- | --- |
 | D1 | At v1, calendar conversion starts at 2020-12-31; reference calendars cover 2021 calibration and 2022-2023 development | M1 extends conversion to 2016-2025; all 20 provider calendar samples passed; old reference calendars retain their bounds |
 | D2 | At v1, calendar bar requests, session batches and corporate-action requests encode SPY | M1 adds explicit-symbol requests and a separate capability runner; legacy defaults/loaders remain; panel acquisition follows at M2 |
-| D3 | Free historical access is demonstrated, with four sampled missing minutes and 90 dividend records lacking payment/record dates; complete action history and quote windows remain unverified | M1 assessment below; M2 authenticates the full panel and action sources; M6 evaluates complete declared quote windows |
-| D4 | Parent complete-grid coverage is input-limited; a registered operational/feature amendment and exact-time recovery are implemented; actual recovery and action evidence remain open | M2: authenticate recovery responses and issuer evidence before freezing masks and vintage identities alongside the original inputs |
+| D3 | Historical access and source-action reconciliation are registered; completeness uses the declared cross-provider assumptions, and full execution quote windows remain unevaluated | M2 registration below; M6 evaluates complete declared quote windows |
+| D4 | Parent complete-grid coverage remains failed; registered amendments retain three unavailable daily marks and establish canonical action sources | M2 complete: the Windows study manifest binds recovery receipts, actions, masks and the original-SPY vintage bridge; M3 must enforce causal missing-input behavior |
 | D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
 | D6 | Engines and aggregate runners enforce SPY, fixed histories and 2022-2023 gates | M3: parameterize authoritative engines and add the panel driver; keep the v1 reference path |
 | D7 | One-symbol cash, pending-fill limits, internal ownership transfers and journal growth need a shared-account contract | M4: one global ledger, deterministic netting/allocation and bounded durable handover |
@@ -162,7 +162,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | --- | --- | --- | --- |
 | M0 | Baseline and research inventory | Release identities, implementation map, exposure log, scope and decision register | Complete |
 | M1 | Free data feasibility | Five-symbol capability/coverage matrix and feasible common history | Complete as a sampled access assessment; coverage/action limitations recorded below |
-| M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Full panel reviewed; input amendment and exact-time recovery implemented; actual recovery receipts, issuer reconciliation and final registration pending |
+| M2 | Dataset and study contract | Authenticated panel, registered comparisons and evaluation controls | Complete: Windows Release inputs registered; source actions, amendments, masks and original-SPY vintage bridge bound to the study manifest |
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Not started |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Not started |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Not started |
@@ -336,12 +336,12 @@ The initial controlled precision design checks nine Gaussian AR(1) cases with
 [table](evidence/m2_precision.csv) is a planning calculation, not an estimate
 from market outcomes. It does not establish final max-T coverage or market power.
 
-Free source extraction is implemented for SPY, QQQ, IWM and TLT distributions.
-The reviewed source snapshots supplied 40, 41, 40 and 120 cash records,
-respectively, in the ex-date horizon. Those counts are not a substitute for
+At the initial implementation checkpoint, free source extraction covered SPY,
+QQQ, IWM and TLT distributions. The reviewed source snapshots supplied 40, 41,
+40 and 120 cash records, respectively, in the ex-date horizon. Those counts are not a substitute for
 reconciling the complete provider archive. GLD and independent split-history
-coverage remain unresolved; the source preparer records them as incomplete
-and cannot publish ready research inputs.
+coverage were unresolved at that checkpoint; later source resolution and final
+registration are recorded below.
 
 A pre-2024-only comparison with M1 evidence also found QQQ amount disagreements
 on 2018-06-18 and 2018-12-24, plus distinct provider records with the same
@@ -356,7 +356,7 @@ The v1 results and seven original frozen identities remain unchanged.
 No expanded strategy has been fitted or scored. Run/sharing instructions are in
 [panel acquisition](running.md#extension-panel-acquisition-and-registration).
 
-The final local checkpoint used GNU 13.3.0 on Linux:
+That implementation checkpoint used GNU 13.3.0 on Linux:
 
 | Verification | Observed result |
 | --- | --- |
@@ -416,8 +416,8 @@ the intersection of five complete-session grids, so high aggregate minute
 coverage does not imply sufficient common dates. These are input dates, not
 active dates or performance observations. There are also three unavailable
 required closing minutes, all on 2019-08-12, for SPY, IWM and GLD. All opens
-are available. The current finalizer therefore cannot register the intended
-continuous daily accounts or pass the development-year gate.
+were available. Under the parent rule, these findings blocked the intended
+continuous daily accounts and the development-year gate.
 
 All 55 action process-date intervals are represented, including the five
 January-March 2026 tails. The provider summary reports 243 cash-dividend rows,
@@ -426,12 +426,14 @@ January-March 2026 tails. The provider summary reports 243 cash-dividend rows,
 do not establish that no actions occurred. Aggregate counts cannot resolve the
 previously identified QQQ amount and same-ex-date discrepancies.
 
-The acquisition is complete according to the independent export, but M2 remains
-input-limited. Further work must resolve source evidence for gaps and actions;
-any change to eligibility must be an explicit protocol amendment before replay,
+At this coverage-review checkpoint, the acquisition was complete according to
+the independent export, but M2 remained input-limited. Source evidence for gaps
+and actions still required resolution. Any change to eligibility required an
+explicit protocol amendment before replay,
 with the original contract and its failed input assessment retained. The
 coverage review authorizes neither a silent threshold change nor historical
-strategy evaluation. The original-SPY vintage bridge is still pending.
+strategy evaluation. The original-SPY vintage bridge was still pending at that
+checkpoint; its completed comparison is recorded below.
 Reserved-year review used coverage metadata only; no prices, fitted models,
 returns or spread estimates were inspected.
 
@@ -513,9 +515,10 @@ inventory is `533f57c37a21cb8c335b4c69c342de6e23f626df09e04a9ef807385eabad0ad6`.
 | Supplied detailed readiness summary | `5a2b674c446eb7624a66b71893bc2b4c3c18d0d1fdb2fe3100053d8a72cf6b98` |
 | Derived operational comparison table | `1ae006196b7074a1737c172fcf06850a4f292bee6bd433d936e96781ab3798b0` |
 
-M2 remains open. Actual closing evidence, QQQ cash/date resolutions, independent
-GLD/split coverage and the final vintage bridge are still required. No issuer
-coverage flag, amount tolerance or action-disagreement gate was relaxed by this
+At the input-amendment checkpoint, M2 remained open: actual closing evidence,
+QQQ cash/date resolutions, GLD/split coverage and the final vintage bridge were
+still required. No issuer coverage flag, amount tolerance or action-disagreement
+gate was relaxed by this
 input amendment. The original v1 results and acquisition snapshots are preserved.
 
 
@@ -549,9 +552,10 @@ infallible. Nonempty or conflicting split evidence remains blocking.
 
 The preparation command writes a separate resolved reference and retains every
 old file. The finalizer binds both amendments, canonical actions, missing masks
-and the original SPY vintage comparison. M2 remains pending the Windows run of
-this final registration; expanded strategy scoring has not started. No v1 result
-or reserved-price observation is changed by the source resolution.
+and the original SPY vintage comparison. The initial source-resolution
+checkpoint still awaited the Windows registration recorded below; expanded
+strategy scoring has not started. No v1 result or reserved-price observation
+is changed by the source resolution.
 
 
 Source-resolution verification used GNU 13.3.0 Release with warnings as errors.
@@ -564,10 +568,59 @@ The actual free issuer/secondary source bundle reconciled 241 canonical cash
 events against the supplied pre-2024 provider discrepancies while retaining five
 conflict records. A cached preparation rerun completed with network access
 disabled and preserved the original reference. Existing offline-demo and
-publication checks passed. Windows/MSVC and the full private-archive vintage
-bridge remain local verification requirements.
+publication checks passed. At that checkpoint, Windows/MSVC and the full
+private-archive vintage bridge remained local verification requirements.
 
 | Source-resolution record | SHA-256 |
 | --- | --- |
 | Source resolution | `9237188b4ac24282a4296e2622948666e8d8da0a78c8be103453658093d9d734` |
 | Supplied post-recovery readiness summary | `15424df8eca18e4defc394a4f3038f700a0a31bfd4d02f03f1a56e14804bf346` |
+
+
+## M2 Windows registration completed
+
+The Windows Release finalizer completed with `Status: registered_inputs_ready`
+on 28 October 2026. Its study manifest has `research_inputs_ready=true`,
+`strategy_scored=false` and `reserved_strategy_inputs_opened=false`. The native
+run authenticated the private acquisition and original SPY inputs before
+publishing the registration. The pre-registration readiness fields remain a
+diagnostic snapshot; its nested `registration` record and the separate study
+manifest identify the completed registration.
+
+| Registration evidence | Observed result |
+| --- | --- |
+| Historical panel | Five instruments, 2016-2025; 2,514 exchange dates and 12,570 symbol-days |
+| Operational development coverage | Seven qualified years, 2017-2023, under the registered input amendment |
+| Parent complete-grid assessment | Four qualified years; the original failed assessment is retained |
+| Canonical corporate actions | 241 issuer cash events; six provider conflict records retained; no action blockers |
+| Split coverage | Zero returned split events under the declared secondary-feed cross-check assumption |
+| Original SPY comparison | 496 development windows plus 256 calibration/supplement windows; all 202,103 original bars present and unchanged |
+| Eligibility masks | 12,570 rows; exact original missing flags retained; three unavailable closes remain NA with daily history resets |
+| Native build | MSVC 19.51.36260, Release |
+| Expanded research | No fitted model, strategy outcome or reserved-price evaluation |
+
+The review matched the uploaded study manifest to the readiness record, both
+uploaded artifact hashes, all three protocol/amendment identities, action
+provenance, recovery identity and the report's embedded JSON. Independent
+metadata checks reproduced the history/readiness rules across all 12,570 masks,
+including the three close-gap resets. The raw private archive was authenticated
+by the native Windows run; it was not supplied for a new independent raw-price
+replay during this registration review. The earlier independent acquisition
+review remains tied to the same unchanged acquisition-manifest identity.
+
+| Registered artifact | SHA-256 |
+| --- | --- |
+| Study manifest | `edeee4275c9a01df3859f6c5090073c2b496df31e625e3bf6eed79bee7a8715c` |
+| Readiness summary | `bd224533f1d84023c7e35a2b556577bf23735f4b3cddba7cfc89abe210f9f81b` |
+| Vintage bridge | `58c63e9e7a96235bf92c02e41da7890b9758b68beec9ff6f00dd362da9563b2b` |
+| Eligibility masks | `29413ab872c317cbef3724e7bdf25e5000a3c12ee536163ddc6592168129c173` |
+| Canonical accounting actions | `f61d80f8908f0c5436002ee75de9ee464ec3bf48b08cba6dc7e1ff6c96de1558` |
+| Issuer/source reference | `56a3c07e114239e029b521d7997492c329d0c9c7ce86c776af135b21bb848867` |
+| Windows build-source inventory | `d5f8e21919f6456275f4c70b7a286add91d63a6fa8a165be5543813f47a043cc` |
+
+The source inventory is a build identity, not an independently established Git
+commit. M2 is complete. M3 next implements prior-only five-instrument replay,
+original-reference parity and the registered missing-input controls. Shared
+capital, the expanded synthetic broker, cost/execution research, stability,
+reserved-period evaluation and publication remain M4-M10 work. Completing three
+of eleven milestones is a work-package count, not an estimate of effort spent.

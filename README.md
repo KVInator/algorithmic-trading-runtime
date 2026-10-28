@@ -16,27 +16,25 @@ results and assumptions. For the interactive saved-event replay,
 and open it locally. The [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 contains the report downloads and original Windows benchmark evidence.
 
-The [multi-instrument extension](docs/extension_plan.md) is now in development.
-Its baseline inventory and sampled free-data assessment are complete
-(**M0-M1; 2 of 11 milestones**). A Windows provider run demonstrated historical
-SIP bar, quote and trade access for all five instruments over 2016-2025;
-sampled minute gaps and incomplete early dividend fields are recorded in the
-[capability assessment](docs/extension_plan.md#m1-provider-evidence-and-disposition).
-The full-panel independent review reports 50,350 retained HTTP attempts and
-12,570 symbol-days. **M2 remains in progress:** the parent complete-grid definition
-qualifies four development years against a requirement of five. A separately
-registered [input amendment](research/extension_input_policy.md) distinguishes
-execution observability from feature availability and supports exact-time closing
-recovery in a separate vintage. The provider returned no bars for the three
-missing closing minutes. A pinned source-resolution policy keeps those marks
-unavailable, resets daily history across gaps and uses issuer-authoritative cash
-records with free secondary split cross-checks. The updated finalizer can register
-the usable panel after local source preparation and the original-snapshot bridge.
-The Windows registration result remains to be confirmed. The
-[coverage assessment](docs/extension_plan.md#full-panel-acquisition-review) retains
-the original evidence under the unchanged parent
-[dataset/study contract](research/extension_protocol.md). Expanded historical
-evaluation has not started. The results below describe the completed v1 study.
+The [multi-instrument extension](docs/extension_plan.md) has completed
+**M0-M2: 3 of 11 milestones**. A Windows Release run registered the 2016-2025
+panel for **SPY, QQQ, IWM, TLT and GLD**, covering 2,514 exchange dates and
+12,570 symbol-days. The original SPY vintage bridge matched all 202,103 retained
+bars across 752 development and calibration windows, with no changed or missing
+original bars.
+
+The registered [input and source amendments](research/extension_input_policy.md)
+qualify seven operational development years; the parent complete-grid criterion
+still qualifies only four and remains recorded as failed. The three unavailable
+2019 closing marks remain NA and reset daily history. Issuer cash authority and
+secondary split cross-checks are bound to the new study manifest. These are input
+registration findings, not expanded strategy results.
+
+**Next: M3, multi-instrument causal replay and original-reference parity.**
+The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
+until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)
+retains the artifact identities and review limits. The results below describe
+the completed v1 study.
 
 ## Research findings
 

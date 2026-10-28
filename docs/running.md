@@ -208,9 +208,11 @@ account's entitlement.
 ## Extension panel acquisition and registration
 
 The governing [study contract](../research/extension_protocol.md) and its pinned
-JSON precede acquisition/scoring. M2 remains in progress until the full local
-archive, actions and original-SPY bridge pass. No later-period model or return
-is needed for these checks.
+JSON precede acquisition/scoring. The completed Windows M2 registration and
+its artifact identities are recorded in the
+[roadmap](extension_plan.md#m2-windows-registration-completed). The commands
+below reproduce input preparation and registration; they do not score a
+later-period model or strategy.
 
 1. Build **Release | x64** in `Runtime.sln` with **Build Solution**.
 2. Set **Runtime > Properties > Debugging > Command** to
