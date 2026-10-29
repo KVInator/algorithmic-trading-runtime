@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 import importlib.util
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -35,7 +36,7 @@ class NativeBuildVerifier:
             finder = directory / "Microsoft Visual Studio/Installer/vswhere.exe"
             finder.parent.mkdir(parents=True)
             finder.touch()
-            install = directory / "Visual Studio/18/Community"
+            install = directory / "Visual Studio (native)/18/Community"
             setup = install / "VC/Auxiliary/Build/vcvars64.bat"
             setup.parent.mkdir(parents=True)
             setup.touch()
@@ -116,8 +117,22 @@ class NativeBuildVerifier:
                     "Non-x64 or unconfigured discovery did not select x64",
                 )
                 args, options = invoked.call_args
+                command = args[0]
                 self.check(
-                    str(setup) in args[0][-1]
+                    isinstance(command, str),
+                    "MSVC setup command would be escaped by C-runtime argv conversion",
+                )
+                prefix = f'"{base["COMSPEC"]}" /d /s /c '
+                payload = command.removeprefix(prefix)
+                self.check(
+                    command.startswith(prefix)
+                    and payload[0] == payload[-1] == '"'
+                    and payload[1:-1] == f'call "{setup}" >nul && set'
+                    and '\\"' not in command,
+                    "cmd.exe would receive an incorrectly quoted setup path",
+                )
+                self.check(
+                    str(setup) in command
                     and options["env"]["SYSTEMROOT"] == base["SYSTEMROOT"],
                     "Discovery did not initialize the installed x64 environment",
                 )
@@ -134,6 +149,26 @@ class NativeBuildVerifier:
                         & options["env"].keys()
                     ),
                     "Inherited x86/compiler state reached the initialization child",
+                )
+            broken = subprocess.list2cmdline(
+                [base["COMSPEC"], "/d", "/s", "/c", f'call "{setup}" >nul && set']
+            )
+            self.check(
+                '\\"' in broken,
+                "Quoting fixture did not reproduce the reported Windows failure",
+            )
+            if os.name == "nt":
+                setup.write_text(
+                    '@echo off\nset "TRADING_SETUP_QUOTING=passed"\nexit /b 0\n',
+                    encoding="ascii",
+                )
+                actual = subprocess.run(
+                    command, env=options["env"], capture_output=True, text=True
+                )
+                self.check(
+                    actual.returncode == 0
+                    and "TRADING_SETUP_QUOTING=passed" in actual.stdout,
+                    "Real cmd.exe failed the setup path containing spaces and parentheses",
                 )
             for output, returned, code in (
                 (configured, x86, 0),
@@ -157,8 +192,10 @@ class NativeBuildVerifier:
                 "The M6 account application is absent from Windows target discovery",
             )
         print(f"Native build discovery checks passed: {self.checks}")
+        print("MSVC discovery responses were simulated; no compiler was executed.")
         print(
-            "Windows environments and process responses were simulated; MSVC was not executed."
+            "Real cmd.exe quoting check: "
+            + ("passed" if os.name == "nt" else "requires Windows")
         )
 
 

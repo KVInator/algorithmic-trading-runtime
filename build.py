@@ -287,8 +287,11 @@ class NativeCompiler:
             )
         )
         shell = bootstrap.get("COMSPEC", str(system / "System32/cmd.exe"))
+        # cmd.exe parses its own command language, not C-runtime argv quoting.
+        # A list would turn the batch path's quotes into literal backslash-quotes.
+        command = f'"{shell}" /d /s /c "call "{setup}" >nul && set"'
         result = subprocess.run(
-            [shell, "/d", "/s", "/c", f'call "{setup}" >nul && set'],
+            command,
             env=bootstrap,
             capture_output=True,
             text=True,
