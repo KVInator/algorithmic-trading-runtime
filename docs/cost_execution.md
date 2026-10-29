@@ -1,7 +1,7 @@
 # Cost and execution research
 
 M6 is in progress. Historical quote acquisition and cached diagnosis are accepted.
-The cost/delay evaluator is implemented; Windows historical evaluation is pending.
+Windows historical cost/delay evaluation is accepted as a development comparison.
 Continuous-account and synthetic execution results remain separate work. The v1
 findings and M2-M5 evidence retain their identities.
 
@@ -12,7 +12,7 @@ separate evidence layers:
 
 | Layer | Registered design | Implementation status |
 | --- | --- | --- |
-| Bar references | 0, 0.5, 1, 2 and 5 bp per side, crossed with one-/two-minute delay; primary signals and entry hurdles fixed | Evaluator and independent oracle implemented; Windows historical acceptance pending |
+| Bar references | 0, 0.5, 1, 2 and 5 bp per side, crossed with one-/two-minute delay; primary signals and entry hurdles fixed | Windows development comparison and independent local verification accepted: 400 series, 240 paired contrasts |
 | Historical SIP quotes | Seven input-selected dates, five instruments, thirteen decision clocks and two delays: 910 one-second windows | Windows acquisition complete; 232 eligible windows, all in 2022-2023 |
 | Synthetic execution | 170 matched one-factor workloads crossed with four limit/deadline policies: 680 cases | Workload plan registered and checked; execution evaluation remains open |
 
@@ -89,7 +89,7 @@ The HTML embeds all 44 plots and 400 case rows. JavaScript only selects among
 the forty instrument/policy panels; all plots remain available without scripts.
 No acquisition, credentials, quote-code changes or later-period prices are
 needed. The [runbook](running.md#historical-cost-and-delay-evaluation-m6) gives
-the constructed and historical commands. Windows acceptance remains pending.
+the constructed and historical commands. Windows acceptance is recorded below.
 
 Local verification used GNU 13.3.0, C++20 Release and warnings as errors. The
 constructed evaluator passed 32 numerical/failure checks and 300 five-instrument
@@ -105,6 +105,75 @@ with the constructed run. Other archive units were not instrumented and
 LeakSanitizer was disabled in the traced verification environment. All forty
 report-selector branches executed; static overview and detail layouts were
 rendered and inspected. These are constructed checks, not historical findings.
+
+## Windows cost/delay acceptance
+
+Windows Release evaluation completed on 29 October 2026 with MSVC 19.51.36260.
+The reader retained 2,012 calendar records per instrument, including 252
+initialization dates in 2016 and 1,760 development dates in 2017-2023. All cases
+use the same 1,682 common operational development dates per instrument, or 95.57%
+of the development exchange calendar. The 400 series contain 672,800 eligible
+daily cost-case outcomes; the other dates remain unavailable rather than zero.
+Primary-reference parity passed and reserved strategy inputs remained unopened.
+Network requests and observed broker events were zero.
+
+The producing machine's full independent verifier authenticated the source
+observations, causal histories/decisions, delayed references and Decimal cash
+arithmetic. It passed six semantic corruption rejections and fifteen SVG
+serialization checks. Compact review independently checked both summary matrices,
+paid-cost/notional identities, invariant activation across all cases, decreasing
+returns with increasing charges, each paired/equal-weight mean, and all static
+curves and table values. Raw observations and the five large daily path files
+remain local and were not reauthenticated during compact review.
+
+At the registered primary one-minute delay and one basis point per side, the
+equal-weight arithmetic averages of instrument-level daily means are:
+
+| Candidate / control | Candidate net bp/day | Control net bp/day | Paired increment bp/day |
+| --- | ---: | ---: | ---: |
+| Momentum / same-window always-long | -1.0621 | -2.4308 | +1.3687 |
+| Volume continuation / price-only continuation | +0.2770 | +0.0358 | +0.2412 |
+| Reversion candidate / sign-only | -0.3864 | -1.0028 | +0.6165 |
+| Reversion candidate / drift | -0.3864 | -0.3894 | +0.0031 |
+
+All means include eligible cash days. Positive paired differences do not imply
+positive candidate returns: momentum and reversion remain negative after the
+primary charge. Volume continuation has a positive pooled net mean, but its
+increment over price-only changes from -0.2589 bp/day at zero charge to +0.2412
+bp/day at the primary charge. Lower turnover therefore matters to the relative
+result; this does not establish improved gross signal quality. The primary
+continuation increment is positive for SPY, IWM, TLT and GLD and negative for QQQ
+(-0.9501 bp/day). At five basis points per side and the one-minute delay, both
+continuation means are negative. The near-zero reversion/drift contrast also
+changes sign across the declared cost/delay grid.
+
+These are retrospective development point estimates, without completed stability,
+risk matching or simultaneous uncertainty analysis. They authorize no replacement
+primary parameters, claim of statistical superiority or later-period advancement.
+The pooled contrast is not a shared-capital account. Eligible-date products and
+drawdowns retain their conditional interpretation above.
+
+The curated [400-series table](evidence/m6_cost_delay_series.csv) and
+[240 paired contrasts](evidence/m6_cost_delay_paired.csv) are direct projections
+of the accepted summary. Return, cost and drawdown fields use fractions, not
+percentages or basis points; `cost_bps` alone is the per-side input charge in
+basis points. `equal_weight` in the paired table denotes the arithmetic mean of
+five instrument-level contrasts on identical dates. No raw quote or daily path
+prices are included.
+
+| Accepted cost/delay record | SHA-256 |
+| --- | --- |
+| Historical summary | `2ddfe103241f261ffde9f8329f6ef912b4129434b0154a11a8cfa3b795ce411c` |
+| Historical HTML report | `02d3f96a3146eba9710aa3880b2a7b45dc09f7b6206b07dc7efddfe16e6ea1b0` |
+| Historical review ZIP | `3d91d73db2d33f3e3fc5fe0e2162fd15861d99a86e4eb6c61d767a80727dde76` |
+| Reported native source inventory | `6c91270bfd5cf11ce5f73fb11eff23c910aa6f5751fa9e49d6e3cd346cd9de6b` |
+
+The source inventory identifies producer-file bytes, not an independently
+established Git commit. Original artifacts were preserved through the SVG
+verifier correction. The Windows constructed run separately passed 32 native
+checks. Its uploaded bundle passed independent verification of all 300
+five-instrument dates, 400 series, 240 contrasts, six financial corruption
+rejections and fifteen SVG serialization checks.
 
 ## Historical quote sample
 
@@ -315,6 +384,7 @@ acquisition or change to the primary strategy results follows from this diagnosi
 The [runbook](running.md#cost-and-execution-inputs-m6) gives the Windows commands.
 The provider sampler uses only the existing historical-data credential route.
 The M6 input checkpoint is accepted with the recorded coverage limitation.
-M6 still requires the cost, synthetic execution and daily-risk evaluations. M7 adds stability,
+M6 still requires quote-reference comparisons, synthetic execution, continuous
+daily-risk accounts and shared-account economic integration. M7 adds stability,
 concentration, risk matching and uncertainty; M8-M9 evaluate the reserved periods;
 M10 consolidates publication and release.

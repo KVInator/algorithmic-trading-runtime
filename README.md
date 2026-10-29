@@ -60,8 +60,16 @@ retains the eligibility rule and limits eligible spread evidence to 2022-2023.
 The historical cost/delay evaluator now replays the same eight primary policies
 across all ten registered cost/delay cases: 400 instrument/policy series and
 240 paired contrasts, with static cost curves and an independent Decimal oracle.
-Windows historical acceptance is pending. Quote-reference comparisons,
-continuous daily-risk accounts and synthetic execution evaluation remain open.
+Windows development acceptance passed on 29 October 2026: all cases use 1,682
+common dates per instrument in 2017-2023. At the primary cost/delay, equal-weight
+net increments are +1.3687 bp/day for momentum versus always-long, +0.2412 for
+volume versus price-only continuation, and +0.6165/+0.0031 for reversion versus
+sign-only/drift. Momentum and reversion candidate net means remain negative;
+these are development point estimates pending stability and uncertainty checks.
+The [accepted cost/delay results](docs/cost_execution.md#windows-costdelay-acceptance)
+retain the complete tables and review limits. Quote-reference comparisons,
+continuous daily-risk accounts, shared-account economic integration and
+synthetic execution evaluation remain open.
 Registered synthetic cases are not executed results.
 
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened

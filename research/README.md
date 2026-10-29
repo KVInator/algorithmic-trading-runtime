@@ -86,10 +86,13 @@ Decimal cash/share arithmetic. It verifies all 400 instrument/policy cases,
 240 paired comparisons and static report curves/tables. Its `--self-check`
 rejects semantic corruption independently of hashes. The native evaluator
 changes execution references and accounting without refitting signals.
-The [M6 implementation note](../docs/cost_execution.md) distinguishes accepted
-quote inputs, the implemented cost/delay evaluator awaiting Windows historical
-acceptance, and the account/execution comparisons that remain open. No accepted
-M6 historical economic result is available yet.
+The [M6 implementation note](../docs/cost_execution.md#windows-costdelay-acceptance)
+records accepted Windows development results: all 400 series and 240 contrasts
+use 1,682 common dates per instrument, with full source/Decimal verification on
+the producing machine and separate compact review. Positive paired point
+estimates remain distinct from candidate profitability and statistical
+superiority. Quote-reference, account/execution and stability comparisons remain
+open; the v1 results retain their original sample and identities.
 
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate
