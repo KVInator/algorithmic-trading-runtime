@@ -97,21 +97,6 @@ No acquisition, credentials, quote-code changes or later-period prices are
 needed. The [runbook](running.md#historical-cost-and-delay-evaluation-m6) gives
 the constructed and historical commands. Windows acceptance is recorded below.
 
-Local verification used GNU 13.3.0, C++20 Release and warnings as errors. The
-constructed evaluator passed 32 numerical/failure checks and 300 five-instrument
-calendar dates. Its 47 common development dates per instrument produced 18,800
-eligible daily cost-case outcomes; initialization and the excluded date remained
-explicit. The independent oracle verified all causal primary records, priced
-paths, summary matrices and report marks, and rejected six semantic corruptions
-without relying on hashes. The panel suite passed 190 checks, including the
-market-aware reader and its unchanged original record interface; its source and
-300-date replay oracles also passed. AddressSanitizer/UndefinedBehaviorSanitizer
-passed the changed cost, report, dataset-reader and fractional-account units
-with the constructed run. Other archive units were not instrumented and
-LeakSanitizer was disabled in the traced verification environment. All forty
-report-selector branches executed; static overview and detail layouts were
-rendered and inspected. These are constructed checks, not historical findings.
-
 ## Windows cost/delay acceptance
 
 Windows Release evaluation completed on 29 October 2026 with MSVC 19.51.36260.
@@ -263,18 +248,6 @@ The [runbook](running.md#synthetic-execution-study-m6) gives the commands.
 Windows Release acceptance is recorded below. The original historical reports
 retain their original executed-case counts and identities.
 
-Local GNU 13.3.0 Release verification passed all 680 terminal reconciliations,
-510 paired contrasts and 680 plotted cells. The independent oracle rejected six
-semantic corruptions, including altered fees, client cash and report clocks.
-The original 144-case execution study also passed its independent Decimal ledger
-and 108-comparison checks after the shared measurement-kernel change.
-AddressSanitizer/UndefinedBehaviorSanitizer passed the new study, report and entry
-point plus the changed measurement unit across the full matrix; the remaining
-archive units were not instrumented and LeakSanitizer was disabled in the traced
-environment. All ten report-selector branches executed, and static overview,
-detail and print layouts were rendered and inspected. These checks establish
-the constructed implementation's behavior, not empirical execution performance.
-
 ## Windows synthetic execution acceptance
 
 Windows Release execution completed on 29 October 2026 with MSVC 19.51.36260.
@@ -349,22 +322,11 @@ JSON whitespace outside strings before hashing. Re-encoding parsed values in
 Python can change decimal spellings for the same binary floating-point value.
 The retained provider sample reproduced that mismatch. Sixteen identity
 regression checks cover the observed decimal, exponents, large integers,
-escaped paths, Unicode and altered-content rejection. Raw-response authentication
-and financial tolerances are unchanged. Existing comparison folders require only
-the Python verifier to be rerun; acquisition and native reports remain unchanged.
+escaped paths, Unicode and altered-content rejection. Raw-response authentication and financial tolerances are unchanged.
 
-```powershell
-py -3 -B build.py --configuration Release --target quote_reference_development
-& .\scratch\native\Release\quote_reference_development.exe --check
-py -3 -B research/verify_quote_reference.py scratch/runs/quote_reference_0 --self-check
-& .\scratch\native\Release\quote_reference_development.exe scratch/runs/cost_quotes_0/summary.json
-py -3 -B research/verify_quote_reference.py scratch/runs/quote_reference_1 --self-check
-```
-
-Use the actual printed suffixes. The provider command uses existing retained
-quotes and sends no requests. Share each generated `review.zip`; provider raw
-quotes remain local. Continuous risk and shared-capital economic verification
-remain in progress.
+Commands and the raw-archive prerequisite are in the
+[runbook](running.md#cached-quote-reference-comparison-m6). This cached comparison
+sends no network requests. Continuous-account acceptance is recorded below.
 
 ### Windows quote-reference acceptance
 
@@ -634,7 +596,7 @@ M10 consolidates publication and release.
 
 ## Continuous risk and shared-capital accounts
 
-`panel_account_development` completes the remaining M6 implementation using one
+`panel_account_development` evaluates the funded economic accounts using one
 causal replay of the accepted M2 panel. `PanelReplayDataset` exposes its already
 authenticated cash actions and recovered closing marks; it adds no acquisition,
 price substitution or later-year access. `PanelAccountStudy` consumes the existing
@@ -794,16 +756,6 @@ The v1 findings and accepted M2-M6 input/results identities remain unchanged.
 Windows historical verification and compact review are recorded below.
 Stability, concentration, predefined risk matching and uncertainty
 remain M7; validation, final evaluation and publication remain M8-M10.
-
-Local regression review also passed 190 shared-capital checks in sixteen cases
-and independently reconstructed 171 durable transitions. The focused
-budget-limited acknowledgment test fails under the earlier cancellation rule.
-AddressSanitizer and UndefinedBehaviorSanitizer passed the complete constructed
-account calendar with the study, report, application, shared-capital core and
-fractional-account units instrumented. Other library units were not instrumented;
-LeakSanitizer was disabled because tracing prevents it in this environment.
-The static HTML was rendered and inspected, including equity axes and complete
-account tables. The retained v1 publication hashes, figures and local links pass.
 
 ### Windows account acceptance
 

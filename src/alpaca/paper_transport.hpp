@@ -2,8 +2,8 @@
 #include "alpaca_paper_contract.hpp"
 #include "paper_execution.hpp"
 #include <chrono>
-#include <functional>
 #include <filesystem>
+#include <functional>
 #include <memory>
 
 namespace trading {
@@ -34,17 +34,6 @@ class PaperWire {
 
 // Canonical protocol validation, independent of request factories.
 [[nodiscard]] std::string validate_paper_request(const PaperRequest &request);
-
-class PaperMessageAssembler {
-  public:
-    [[nodiscard]] std::optional<std::string> push(std::string_view bytes, bool binary, bool final);
-    void reset() noexcept;
-
-  private:
-    std::string pending_;
-    std::optional<bool> binary_;
-    std::size_t fragments_{0};
-};
 
 // New segment only. Each body is synchronized before its hashed index entry.
 class PaperCapture {
@@ -92,7 +81,8 @@ class PaperSession {
                                            const std::function<void()> &eligible = {});
     [[nodiscard]] PaperHttpResponse cancel(std::string client_id, std::string cancel_id);
     [[nodiscard]] PaperHttpResponse lookup(std::string client_id);
-    [[nodiscard]] std::size_t drain(std::chrono::milliseconds quiet_budget = std::chrono::milliseconds{10});
+    [[nodiscard]] std::size_t drain(std::chrono::milliseconds quiet_budget = std::chrono::milliseconds{
+                                        10});
     void disconnect();
 
   private:

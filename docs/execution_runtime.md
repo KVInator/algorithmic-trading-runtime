@@ -69,6 +69,8 @@ Undelivered commands, externally canceled orders and missing terminal events
 retain reservations until explicit evidence is delivered. Late new fills after
 an accepted terminal cancellation require investigation and are quarantined.
 
+<a id="native-verification"></a>
+
 ## Verification and scope
 
 The final `project_demo` exposes causal strategy and broker-state replays,

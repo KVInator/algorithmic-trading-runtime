@@ -165,8 +165,11 @@ independently established Git commit. The ZIP contains all 21 manifested
 artifacts, including retained rejected files, so the account and journal review
 does not depend on a private raw archive. Network requests and external broker
 observations were zero. Historical shared-capital performance was not scored,
-and reserved 2024-2025 strategy inputs remained unopened. M4 is complete;
-the separate synthetic broker and its lifecycle policies remain M5 work.
+and reserved 2024-2025 strategy inputs remained unopened. M4 is complete.
+The subsequent [M5 acceptance](process_broker.md#windows-acceptance) records the
+separate synthetic broker and its lifecycle/recovery policies; M6's
+[economic accounts](cost_execution.md#windows-account-acceptance) retain their
+own observed-prefix coverage limits.
 
 ## Budget-limited order regression
 

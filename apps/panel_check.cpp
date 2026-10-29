@@ -6,7 +6,7 @@
 #include "historical_panel_report.hpp"
 #include "panel_input_finalizer.hpp"
 #include "panel_replay_dataset.hpp"
-#include "panel_replay_checks.hpp"
+#include "panel_replay_diagnostic.hpp"
 #include "response_bytes.hpp"
 #include "journal_storage.hpp"
 #include "utc_timestamp.hpp"
@@ -482,7 +482,7 @@ public:
         check("authenticated source sessions price all five-symbol cost paths", priced_paths == 80);
         reject("market-aware reader rejects an empty consumer", [&] { replay_inputs.replay_with_sessions({}); });
         const auto replay_smoke_report = replay_smoke.finish();
-        const auto replay_report = trading::PanelReplayChecks{}.run(directory_ / "reports", input_policy,
+        const auto replay_report = trading::PanelReplayDiagnostic{}.run(directory_ / "reports", input_policy,
             [&](const auto& label, bool value) { check(label, value); }, [&](const auto& label, auto action) { reject(label, action); });
 
 

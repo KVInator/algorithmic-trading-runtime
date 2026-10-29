@@ -1,100 +1,56 @@
 # Algorithmic Trading Runtime
 
-C++20 software for causal strategy research, exact order accounting,
-synthetic broker-message processing and durable restart recovery.
-The published v1 research uses inspected **2022-2023 SPY development data**; broker
-events and execution workloads are constructed offline scenarios.
+C++20 software for prior-only strategy research, funded portfolio accounting,
+synthetic broker execution and durable restart recovery. Three intraday strategy
+families and a separate daily-risk experiment share authoritative numerical
+engines. The extension covers **SPY, QQQ, IWM, TLT and GLD**: 2016 initializes
+history, and 2017-2023 supplies development observations.
 
-The project contains **three intraday strategy families**, a separate daily-risk
-study, **144 matched synthetic execution cases** and **120 Release benchmark
-trials per host**. Python provides independent numerical verification and
-publication rendering.
+The [offline demo](#build-and-reproduce) runs without credentials or private data.
+Detailed methods and executable commands are in the [runbook](docs/running.md).
 
-Read the [technical report (PDF)](docs/report.pdf) for the mathematics,
-results and assumptions. For the interactive saved-event replay,
-[download the standalone HTML report](https://github.com/KVInator/algorithmic-trading-runtime/releases/download/v1.0.0/report.html)
-and open it locally. The [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
-contains the report downloads and original Windows benchmark evidence.
+**M0-M6 are complete: 7 of 11 milestones.** M7 is next: stability, concentration,
+predefined risk matching and uncertainty. Validation in 2024, final retrospective
+evaluation in 2025 and consolidated publication remain M8-M10. Those later
+strategy inputs remain unopened. Prior research exposure is recorded in the
+[roadmap](docs/extension_plan.md#research-exposure-and-evaluation-roles);
+the reserved panel is not claimed to be globally unseen.
 
-The [multi-instrument extension](docs/extension_plan.md) has completed
-**M0-M6: 7 of 11 milestones**. A Windows Release run registered the 2016-2025
-panel for **SPY, QQQ, IWM, TLT and GLD**, covering 2,514 exchange dates and
-12,570 symbol-days. The original SPY vintage bridge matched all 202,103 retained
-bars across 752 development and calibration windows, with no changed or missing
-original bars.
+## Current extension results
 
-The registered [input and source amendments](research/extension_input_policy.md)
-qualify seven operational development years; the parent complete-grid criterion
-still qualifies only four and remains recorded as failed. The three unavailable
-2019 closing marks remain NA and reset daily history. Issuer cash authority and
-secondary split cross-checks are bound to the new study manifest. These are input
-registration findings, not expanded strategy results.
+| Evidence | Completed result | Interpretation |
+| --- | --- | --- |
+| [Registered panel](docs/extension_plan.md#m2-windows-registration-completed) | Five instruments, 2016-2025; 2,514 exchange dates and 12,570 symbol-days | Seven operational development years qualify under explicit amendments; the original complete-grid rule still fails |
+| [Causal replay](docs/panel_replay.md) | 10,060 pre-2024 instrument-date records; original-SPY parity and independent source/history/target verification | Missing features and execution references remain explicit; availability does not establish an edge |
+| [Shared-capital runtime](docs/shared_capital.md) | One USD balance, five inventories and fifteen owners; netting, admission limits and exact recovery | Constructed engineering evidence, separate from historical portfolio performance |
+| [Independent broker](docs/process_broker.md) | Separate durable C++ peer; Windows acceptance passed 313 checks in twelve scenario families | Synthetic fills, fees, cancellation races, activity recovery and client/broker restarts; no external broker observations |
+| [Historical cost/delay comparison](docs/cost_execution.md#windows-costdelay-acceptance) | 400 series and 240 paired contrasts on 1,682 common dates per instrument | Primary momentum and reversion net means are negative; positive relative differences remain development point estimates |
+| [Quote references](docs/cost_execution.md#windows-quote-reference-acceptance) | 910 fixed windows; 232 eligible, all in 2022-2023 | Earlier sampled spread evidence remains unestimated; quotes do not calibrate all-in execution costs |
+| [Synthetic execution](docs/cost_execution.md#windows-synthetic-execution-acceptance) | 680 cases, 510 matched contrasts and exact terminal reconciliation | Model-based execution sensitivity, not empirical fill probabilities or latency |
+| [Continuous accounts](docs/cost_execution.md#windows-account-acceptance) | 200 risk and 50 shared accounts; 190 contrasts, with stops retained | 162,040 of 352,000 risk records and 2,750 of 88,000 shared days have observed returns |
 
-**M3 is complete:** the [causal panel runner](docs/panel_replay.md) replayed
-2,012 dates through 2023 across all five instruments, producing 10,060 records.
-Windows native checks and original-SPY reference parity passed. Independent
-verification checked source observations, prior-only histories, fits, targets
-and arithmetic. The common operational development mask contains 1,682 dates
-per instrument. The [M4 shared-capital diagnostic](docs/shared_capital.md) now
-exercises one cash balance, fifteen strategy owners, netting, aggregate admission
-limits and durable recovery. Windows Release acceptance passed 182 native checks
-in 15 synthetic cases, with 163 durable transitions independently verified.
-The M6 account evaluator extends this ledger to historical economic comparisons.
-The [M5 broker extension](docs/process_broker.md) adds a separate native process,
-independent durable activities, DAY/IOC/GTC limits, explicit fees and recovery
-through missed responses or client/broker restarts. Windows Release passed
-313 checks in twelve scenario families across twenty-one child processes.
-Independent review verified the broker history, client attribution and peer calls.
+The continuous-account limitation is material. Shared paths stop after **65
+sessions at one-minute delay** or **45 at two minutes** when a required raw
+execution reference is missing. Active risk paths also stop; only QQQ and TLT
+passive accounts reach December 2023. No earlier liquidation, interpolation,
+capital reset or restart repairs these paths. The eligible-date comparison and
+recovered forecast histories do not establish full-horizon funded performance.
+All case summaries, denominators and primary results are retained in the linked
+acceptance records and curated CSV tables.
 
-**M6 is complete:** the [cost and execution contract](docs/cost_execution.md)
-registers the cost/delay comparisons and 680 synthetic execution cases. Its
-first checkpoint provides a resumable, fully paginated sample of 910 pre-2024
-SIP quote windows selected from input masks. Windows acquisition retained 1,322
-responses; 232 windows pass the fixed eligibility rule, all in 2022-2023.
-The report shows static coverage/spread plots and explicit unavailable groups.
-Cached inspection reproduced every classification: sampled 2017-2021 quotes
-carry `["?"]`, while 2022-2023 quotes carry `["R"]`. Of 76 timestamp conflicts,
-67 change size, three change price and six change exchange metadata only.
-The [diagnosis](docs/cost_execution.md#cached-condition-and-timestamp-diagnosis)
-retains the eligibility rule and limits eligible spread evidence to 2022-2023.
-The historical cost/delay evaluator now replays the same eight primary policies
-across all ten registered cost/delay cases: 400 instrument/policy series and
-240 paired contrasts, with static cost curves and an independent Decimal oracle.
-Windows development acceptance passed on 29 October 2026: all cases use 1,682
-common dates per instrument in 2017-2023. At the primary cost/delay, equal-weight
-net increments are +1.3687 bp/day for momentum versus always-long, +0.2412 for
-volume versus price-only continuation, and +0.6165/+0.0031 for reversion versus
-sign-only/drift. Momentum and reversion candidate net means remain negative;
-these are development point estimates pending stability and uncertainty checks.
-The [accepted cost/delay results](docs/cost_execution.md#windows-costdelay-acceptance)
-retain the complete tables and review limits. The
-[quote-reference comparison](docs/cost_execution.md#windows-quote-reference-acceptance)
-also passed Windows verification: 910 windows, 455 delay pairs and unchanged
-eligibility. The [continuous and shared-account evaluator](docs/cost_execution.md#continuous-risk-and-shared-capital-accounts)
-implements the final two M6 parts: 200 dividend-aware risk accounts and 50
-whole-share shared-capital accounts, with 190 matched contrasts. Windows Release
-and independent verification passed 352,000 risk records and 88,000 shared account
-days, including explicit unavailable outcomes. Only 162,040 risk records and 2,750
-shared account days have observed returns. Shared paths stop after 65 sessions at
-one-minute delay and 45 at two minutes; required missing prices also stop all
-active risk paths. QQQ and TLT passive accounts reach December 2023. The
-[account acceptance record](docs/cost_execution.md#windows-account-acceptance)
-retains this coverage limit, primary results and all 250 cases. Stopped accounts
-are never liquidated early, reset or restarted; recovered forecast histories
-do not restore their economic paths. M7 will assess stability, concentration,
-risk matching and uncertainty on the available evidence.
-The registered [synthetic execution study](docs/cost_execution.md#registered-synthetic-execution-study)
-now executes all 680 cases through the existing five-symbol broker model and a
-separate client ledger, with 510 matched contrasts, explicit fees and delivery
-clocks. [Windows acceptance](docs/cost_execution.md#windows-synthetic-execution-acceptance)
-passed on 29 October 2026; all 680 case traces match the GNU reference byte for byte.
-Its heatmaps retain unfilled/stale/zero-liquidity cases. Identical constructed
-symbol paths are engineering evidence, separate from historical market results.
+The runtime's accounting and recovery conclusions are separate from economic
+benefit. M7 will assess sensitivity, exposure, concentration and uncertainty on
+the evidence actually available; completed engineering checks do not advance a
+failed strategy screen.
 
-The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
-until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)
-retains the artifact identities and review limits. The results below describe
-the completed v1 study.
+## Published SPY study
+
+The [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
+is the completed **2022-2023 SPY** study. Its [technical report (PDF)](docs/report.pdf)
+contains the research, 144 synthetic execution cases and archived Release
+benchmarks. [Download its standalone HTML report](https://github.com/KVInator/algorithmic-trading-runtime/releases/download/v1.0.0/report.html)
+for saved-event replay. The figures and results below retain that v1 scope;
+they are not the extension's final publication.
 
 ## Research findings
 
@@ -157,8 +113,9 @@ undercoverage; historical parameter ranges remain descriptive.
 **Daily risk.** Prior-only daily-squared-return and RV5 estimates feed
 $w_d=\min(1,0.10/\sqrt{252h_d})$. Fractional accounts retain cash, shares,
 dividend receivables/payments and split identities. Forecast loss and allocation
-value are assessed separately using paired whole-calendar resampling. Intraday
-studies use five-/ten-session outcome blocks; risk uses twenty/forty. Fixed
+value are separate questions. The v1 inference uses paired whole-calendar
+resampling: five-/ten-session outcome blocks for intraday studies and
+twenty/forty for risk. Extension-wide inference remains M7. Fixed
 screens and prior research exposure remain explicit in the
 [registered protocols](research/README.md).
 
@@ -183,8 +140,9 @@ exact integer money once per stable execution identity. Pending cancellation
 retains resources. Contradictory evidence closes entry; broker snapshots must
 match cash, positions and complete open-order terms before routing reopens.
 
-The schema-3 bridge uses **USD 1e-9 units** and durable broker identities. A
-candidate input/checkpoint is appended and synchronized before state publication.
+Shared-client schema 4 and independent-broker schema 5 use **USD 1e-9 units**
+with explicit ownership and stable identities. The v1 schema-3 message bridge
+retains its original single-symbol contract. A candidate input/checkpoint is appended and synchronized before state publication.
 Recovery replays the same core and persists a new disconnect barrier. An
 incomplete tail can be recovered only into a separate verified-prefix file;
 complete corruption is rejected. Uncertain durable orders are not blindly resent.
@@ -220,7 +178,7 @@ Source and receipt clocks are distinct. Incomplete completion times stay null;
 cancellation is informative censoring. Synthetic prices do not estimate market
 impact, exchange queue priority or actual broker latency.
 
-## Measured implementation costs
+## Archived implementation measurements
 
 Matched Release workloads compare direct processing, additional candidate
 copying, volatile/synchronized schema-2 and schema-3 journals, and warm restart.
@@ -281,21 +239,11 @@ budgets, source/receipt timing, censoring and artifact identities. Full historic
 reproduction requires the retained private input evidence; the distributed
 [summary snapshot](docs/evidence/manifest.json) does not manufacture daily paths.
 
-The native build was accepted on Windows Release/Debug and Linux Release at
-commit [`2e566bb`](https://github.com/KVInator/algorithmic-trading-runtime/commit/2e566bb7dee677b57af7fce1fba3e2b31c6643a7).
-The [acceptance run](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40224499759)
-exercised the offline demo, independent execution and benchmark verification,
-and publication checks. The v1.0.0 application code and compiler driver match
-that accepted revision. Current extension changes have a separate verification
-record in the [extension plan](docs/extension_plan.md). Commit
-[`34c7ab7`](https://github.com/KVInator/algorithmic-trading-runtime/commit/34c7ab7fc8feff53a8210312cb4284c530cd3332)
-removed only the temporary workflow; subsequent release edits update documentation
-and ignore rules.
-
-The earlier [29-group regression run](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40218027491)
-applies to revision `ee0b72e`. The final repository retains explicit local
-verification commands and has no continuous CI workflow. PDF page layout was
-reviewed separately from automated publication verification.
+The archived [v1 acceptance run](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40224499759)
+records Windows Release/Debug and Linux Release verification at its stated
+revision. Current extension checks and accepted Windows outputs are recorded in
+the [roadmap](docs/extension_plan.md) and linked methodology notes. Independent
+verification runs through explicit local commands; there is no hosted workflow.
 
 ## Structure and limits
 
@@ -313,8 +261,9 @@ The [architecture](docs/architecture.md) explains ownership and units.
 Generated builds, private data and full run directories stay under ignored
 `scratch/`.
 
-The evidence is limited by one ETF, two inspected development years,
-finalized historical bars, assumed costs, long/cash scope, observation-model
-identification and uncalibrated synthetic liquidity. Local **2024-2025 strategy
-prices and performance remain unopened**. The project is a completed bounded
-research and execution study, with no demonstrated live-trading edge.
+The original research covers one ETF and two inspected development years.
+The extension adds five instruments and a broader development calendar, with
+correlated equity exposures and material missing-reference limits. Both retain
+long/cash scope, finalized historical bars, assumed all-in charges and
+uncalibrated synthetic liquidity. Later-period evaluation, statistical stability
+and exposure matching are unfinished. No live-trading edge is established.

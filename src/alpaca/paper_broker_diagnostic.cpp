@@ -9,7 +9,7 @@ using Json = nlohmann::json;
 using namespace execution;
 const PaperExecutionConfiguration config{"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2000", {20, 4}};
 const OrderRequest buy{"demo-buy", "SPY", Side::buy, 10, 10001, 0};
-void check(PaperTransportResult &result, std::string label, bool ok) {
+void check(PaperBrokerResult &result, std::string label, bool ok) {
     if (!ok)
         throw std::logic_error("simulated paper broker: " + label);
     result.checks.push_back(std::move(label));
@@ -81,7 +81,7 @@ Json ledger(Json state) {
     state.erase("journal_sha256");
     return state;
 }
-Json round_trip(const std::filesystem::path &root, bool restart, PaperTransportResult &result) {
+Json round_trip(const std::filesystem::path &root, bool restart, PaperBrokerResult &result) {
     Scenario f{root, restart ? "interrupted" : "uninterrupted"};
     f.wire().on_quote({1, 1, 9999, 10000, 10, 4});
     check(result, "buy accepted through request adapter", f.session().submit(buy).status == 200);
@@ -140,8 +140,8 @@ Json round_trip(const std::filesystem::path &root, bool restart, PaperTransportR
     return ledger(out.at("state"));
 }
 } // namespace
-PaperTransportResult PaperBrokerDiagnostic::run() const {
-    PaperTransportResult result;
+PaperBrokerResult PaperBrokerDiagnostic::run() const {
+    PaperBrokerResult result;
     result.detail = "Synthetic quotes and simulated broker messages; no network, credentials or market-data "
                     "subscription. No observed broker executions.";
     const auto baseline = round_trip(directory_, false, result);

@@ -1,9 +1,12 @@
 # Registered research and independent references
 
-The final [technical report](../docs/report.pdf) and
-[evidence snapshot](../docs/evidence/manifest.json) consolidate methods and findings.
+The published v1 [technical report](../docs/report.pdf) and
+[evidence snapshot](../docs/evidence/manifest.json) consolidate the original SPY
+study. Current five-instrument development results are recorded in the
+[cost/execution note](../docs/cost_execution.md) and
+[extension roadmap](../docs/extension_plan.md).
 Protocol files are immutable pre-scoring records; their original milestone/status
-wording is historical. The report describes the completed implementations and evidence.
+wording is historical. They are retained as governing research evidence.
 
 | Study | Governing records | Recorded finding |
 | --- | --- | --- |
@@ -51,6 +54,12 @@ returns and lagged risk estimates. Its historical route authenticates source
 pages through the existing panel oracle and rejects reserved-year access.
 The analytic fixture is explicitly synthetic. Replay methods and boundaries
 are described in [causal panel replay](../docs/panel_replay.md).
+`PanelReplayFixture` supplies one native analytic observation stream to the
+causal replay and M6 checks; the Python oracle reconstructs it independently.
+`CostDelayDevelopment` and `PanelAccountDevelopment` compose registered inputs,
+the existing numerical/accounting owners and result-bound reports. Their
+executables only select the constructed or authenticated-data route and print
+the resulting paths.
 
 `verify_shared_capital.py` reconstructs the schema-4 global cash ledger, owner
 attribution, exact fill/fee allocations, admission budgets and linked recovery

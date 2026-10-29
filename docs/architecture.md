@@ -1,22 +1,25 @@
 # Implementation and ownership
 
 C++20 is authoritative for signals, statistical comparisons, fractional accounts,
-order transitions and broker matching. Reports borrow completed results; entry
-points select inputs, invoke services and display status. Python is limited to
+order transitions and broker matching. Application services compose these owners
+with result-bound reports; executable entry points select inputs and display
+status. Python provides build orchestration, issuer-source preparation,
 independent references and publication rendering.
 
 | Layer | Representative owners | Contract |
 | --- | --- | --- |
-| Observations/evidence | `MinuteBar`, `CalendarSession`, `DevelopmentStudyDataset`, `DailyRiskDataset` | Validated values, exact session grid, immutable manifests and explicit missingness |
-| Research | `DevelopmentStudy`, `IntradayContinuationStrategy`, `ReversionHistory`, `ReversionStudy`, `DailyRiskStudy` | Completed information, prior-only estimation, frozen rules and complete dated comparisons |
+| Observations/evidence | `MinuteBar`, `CalendarSession`, `DevelopmentStudyDataset`, `DailyRiskDataset`, `PanelReplayDataset` | Validated values, exact session grid, immutable manifests and explicit missingness |
+| Research | `DevelopmentStudy`, `IntradayContinuationStrategy`, `ReversionHistory`, `ReversionStudy`, `DailyRiskStudy`, `PanelReplayState` | Completed information, prior-only estimation, frozen rules and complete dated comparisons |
 | Fractional accounting | `LongCashAccount` | Cash, shares, dividend receivables/payments, splits and chronological equity |
+| Economic evaluation | `CostDelayStudy`, `PanelAccountStudy` | Frozen primary decisions, distinct fractional/shared accounts, observed-prefix comparisons and explicit stops |
+| Application composition | `CostDelayDevelopment`, `PanelAccountDevelopment` | Choose constructed or authenticated inputs, invoke existing engines and write result-bound reports |
 | Order accounting | `OrderRuntime`, `JournaledRuntime` | Whole shares, integer units, reservations, stable IDs and routing gates |
 | Shared capital | `SharedCapitalBook`, `JournaledSharedCapital`, `SharedStrategyAdapter` | One global balance, five inventories, fifteen owners, netting and schema-4 recovery |
 | Independent peer | `BrokerState`, `BrokerService`, `ProcessBrokerPeer`, `SharedBrokerSession` | Independent portfolio ledger, schema-5 broker history, framed child process and activity-first recovery |
 | Exact message bridge | `BrokerDecimal`, `BrokerTimestamp`, `PaperExecutionState`, `JournaledPaperRuntime` | Validated external precision, durable identities and schema-3 nanodollars |
 | Scheduling/matching | Strategy adapters, `OfflinePipeline`, `SimulatedBroker`, `SimulatedPaperWire`, `PaperControl` | Shared target path, finite quote budgets, independent peer state and durable control |
 | Measurement | `ExecutionMeasurementStudy`, `ExecutionQuality`, `RuntimeBenchmark` | Matched declared schedules or timed calls; explicit denominators and bounds |
-| Presentation | `MomentumStudyReport`, result-bound report classes, `ProjectDemo`, `ReportText` | Export/compose existing results; shared HTML/CSV encoding; no alternate ledger |
+| Presentation | `MomentumStudyReport`, `PanelAccountReport`, `PaperBrokerReport`, `ProjectDemo`, `ReportText` | Export/compose existing results; shared HTML/CSV encoding; no alternate ledger |
 | Independent/publication | `verify_*.py`, `Evidence`, `Figures`, `Publication` | Independent numerical checks or declared display transforms on recorded evidence |
 
 ## Information and financial boundaries
@@ -29,9 +32,29 @@ costs, corporate actions and execution evidence. Explicitly aligned cases check
 parity; other cases retain rounding, idle cash, unfilled or rejected quantities.
 
 The core stores neutral integer monetary units. Legacy JSON cent fields retain
-their original meaning; schemas 3 and 4 declare USD 1e-9. No implicit unit conversion
+their original meaning; schemas 3, 4 and 5 declare USD 1e-9. No implicit unit conversion
 between journal versions is permitted. `JournalFrame` owns framing/checksums for
 all schemas. `ReportText` owns its input and performs text encoding only.
+
+`PanelAccountStudy` keeps fractional risk allocation separate from whole-share
+shared capital. Required missing prices stop an account at observation, retaining
+reached activity and later unavailable outcomes. Forecast-history recovery does
+not restart its economic ledger. M6 shared accounts allocate frozen M3 signals;
+M4's actual-inventory feedback diagnostic has a separate contract.
+
+## Verification ownership
+
+`PanelReplayFixture` owns one declared analytic calendar and observation stream
+for the replay, cost/delay and continuous-account checks. It delegates all model
+decisions to `PanelReplayState`; it is not a second strategy implementation.
+`PanelReplayDiagnostic` exercises causality and failure contracts against that
+source. Native diagnostic executables retain bounded fault fixtures; independent
+Python oracles reconstruct their observations, numerical results and ledgers.
+Pure formulas and serialization helpers remain small functions rather than
+stateless classes with no domain responsibility.
+The two M6 run services are defined in
+`src/reporting/panel_study_application.hpp/.cpp`; shared analytic fixtures and
+causality checks are in `src/research/panel_replay_diagnostic.hpp/.cpp`.
 
 ## State, persistence and resources
 

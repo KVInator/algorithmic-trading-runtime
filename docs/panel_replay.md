@@ -100,7 +100,8 @@ historical execution and creation of the small review ZIP. The full JSONL
 streams and raw inputs remain local. Original v1 results and the M2 registration
 are retained.
 
-Shared-capital ledgers and ownership are M4 work; the expanded synthetic broker
-is M5. Cost/delay extensions, daily-risk account ledger extension, declared
-stability variants, risk matching and uncertainty remain M6-M7. No simultaneous
-advancement assessment or reserved-period evaluation is completed by this run.
+The subsequent [M4 shared ledger](shared_capital.md), [M5 independent broker](process_broker.md)
+and [M6 cost/account comparisons](cost_execution.md) are accepted under their
+separate contracts and coverage limits. Stability variants, risk matching and
+uncertainty remain M7. This primary replay does not perform a simultaneous
+advancement assessment or reserved-period evaluation.

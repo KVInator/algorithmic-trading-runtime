@@ -2,7 +2,7 @@
 #include "artifact_io.hpp"
 #include "content_digest.hpp"
 #include "paper_broker_diagnostic.hpp"
-#include "paper_transport_report.hpp"
+#include "paper_broker_report.hpp"
 #include "strategy_execution_report.hpp"
 #include <algorithm>
 #include <vector>
@@ -17,7 +17,7 @@ ProjectDemoResult ProjectDemo::run(const std::filesystem::path &output_root) con
     const auto strategy_result = execution::StrategyExecutionDiagnostic{strategies}.run();
     execution::StrategyExecutionReport{strategy_result}.write(strategies);
     const auto broker_result = PaperBrokerDiagnostic{broker}.run();
-    PaperTransportReport{broker_result}.write(broker);
+    PaperBrokerReport{broker_result}.write(broker);
     write_new_text_file(directory / "report.html",
                         R"html(<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Strategy and execution replay</title>

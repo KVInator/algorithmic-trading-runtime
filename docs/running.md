@@ -100,8 +100,12 @@ these checks are explicit local commands.
 | `panel_acquire` | Resumable 2016-2025 five-instrument archive; Windows historical-data credentials; long-running |
 | `panel_finalize` | Local issuer reconciliation and original-snapshot bridge; publishes the new study manifest only after prerequisites pass |
 | `panel_replay` | M3: original-SPY parity, prior-only five-instrument decisions and primary reference outcomes through 2023; requires the registered M2 archive |
+| `shared_capital_diagnostic` | M4: constructed global cash, ownership, netting, admission limits and durable recovery |
+| `process_broker_diagnostic` | M5: separate native broker process, independent ledgers, lifecycle and restart scenarios |
+| `synthetic_broker_peer` | Worker launched by the process diagnostic through framed pipes; not a standalone study |
 | `cost_execution_check` | M6 constructed quote pagination, invalid-input and resumable-archive checks; no credentials |
 | `cost_quote_acquire` | M6 fixed 2017-2023 SIP quote sample; Windows historical-data credentials and accepted M2 masks |
+| `quote_reference_development` | M6 cached quote crossing-cost comparisons; `--check` uses synthetic quotes, otherwise requires a saved acquisition summary and its raw archive |
 | `cost_delay_development` | M6 frozen-decision cost/delay evaluation; `--check` uses constructed observations, default uses the accepted pre-2024 panel |
 | `cost_execution_study` | M6 registered 680-case synthetic broker/client execution study; no credentials or market dataset |
 | `panel_account_development` | M6 continuously funded risk and shared-capital accounts; `--check` is constructed, default requires the registered pre-2024 panel |
@@ -128,7 +132,8 @@ No broker account, real-time quote probe or paid subscription is required by the
 offline completion scope. The v1 entry points remain restricted to their
 registered inputs; no v1 2024-2025 strategy evaluation is authorized. The
 [extension plan](extension_plan.md) records a separate registration and access
-sequence for later periods. M0 opens no later-period strategy inputs or results.
+sequence for later periods. Current development runners stop at 2023; later
+strategy inputs remain reserved until M8 and M9.
 
 Historical exports have independent checks in `research/verify_*.py`; their
 methods and numerical conventions are recorded beside the governing protocols.
@@ -408,10 +413,8 @@ py -3 -B research/verify_panel_replay.py scratch/runs/panel_check_0
 Use the actual native `panel_check` suffix. Detailed methods and subsequent
 work are in [causal panel replay](panel_replay.md).
 
-For the reversion equilibrium comparison correction, existing replay records
-can be verified directly after pulling the updated Python script. Rebuilding
-the native applications or repeating the historical replay is unnecessary.
-Constructed numerical regression checks are available separately:
+The independent numerical checks include near-unit-root conditioning of the
+reversion equilibrium. They can run without repeating a historical replay:
 
 ```sh
 py -3 -B research/verify_panel_replay.py --self-check
@@ -503,15 +506,8 @@ Do not delete old evidence to force a new result.
 The independent verifier creates `review.zip` in each report directory. Share
 the constructed check's bundle, the provider sample's bundle and the verifier's
 console result. Raw quote envelopes, credentials and the full dataset stay local.
-The [M6 note](cost_execution.md) describes the remaining comparisons and the
+The [M6 note](cost_execution.md) describes the accepted comparisons and the
 limits of the compact review bundle.
-
-For the existing Visual Studio retained-console setup, keep Command as
-`$(SystemRoot)\System32\cmd.exe` and Working Directory as `$(ProjectDir)`.
-Set Command Arguments first to
-`/d /s /k ""$(OutDir)cost_execution_check.exe""`, then to
-`/d /s /k ""$(OutDir)cost_quote_acquire.exe""` for the provider acquisition.
-Neither command requires changing the solution or restoring CMake/CTest.
 
 To regenerate the plots from an existing acquisition summary, use the rendering
 mode after pulling and building the updated application:
@@ -547,6 +543,25 @@ that compact ZIP and the console result; quote prices and raw bodies remain
 local. The existing `--render` mode is for presentation; `--inspect` additionally
 reads the retained raw pages. Neither mode acquires new data or changes the
 registered eligibility rule.
+
+## Cached quote-reference comparison (M6)
+
+This step reauthenticates the retained historical quote sample without making
+network requests. Run the constructed fixture first, then the existing sample:
+
+```powershell
+py -3 -B build.py --configuration Release --target quote_reference_development
+& .\scratch\native\Release\quote_reference_development.exe --check
+py -3 -B research/verify_quote_reference.py scratch/runs/quote_reference_0 --self-check
+& .\scratch\native\Release\quote_reference_development.exe scratch/runs/cost_quotes_0/summary.json
+py -3 -B research/verify_quote_reference.py scratch/runs/quote_reference_1 --self-check
+```
+
+Use the actual printed suffixes and the original acquisition summary. The
+provider route requires its retained raw archive and accepted M2 selection masks.
+The verifier checks raw evidence, native sample identity, Decimal crossing costs,
+delay pairs and plot coordinates. Only the compact `review.zip` is shareable;
+raw quotes stay local. Eligibility and the primary cost grid are unchanged.
 
 ## Historical cost and delay evaluation (M6)
 

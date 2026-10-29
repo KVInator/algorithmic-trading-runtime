@@ -80,28 +80,6 @@ std::string validate_paper_request(const PaperRequest &r) {
     return path;
 }
 
-std::optional<std::string> PaperMessageAssembler::push(std::string_view bytes, bool binary, bool final) {
-    if ((binary_ && *binary_ != binary) || pending_.size() + bytes.size() > 1024U * 1024U ||
-        ++fragments_ > 4096) {
-        reset();
-        throw std::invalid_argument("invalid, mixed or oversized WebSocket message");
-    }
-    binary_ = binary;
-    pending_.append(bytes);
-    if (!final)
-        return std::nullopt;
-    auto result = std::move(pending_);
-    reset();
-    require(!result.empty(), "empty paper stream message");
-    return result;
-}
-
-void PaperMessageAssembler::reset() noexcept {
-    pending_.clear();
-    binary_.reset();
-    fragments_ = 0;
-}
-
 PaperCapture::PaperCapture(std::filesystem::path directory) : directory_{std::move(directory)} {
     std::filesystem::create_directories(directory_);
     index_ = execution::create_journal_file(directory_ / "capture.journal");

@@ -1,11 +1,12 @@
 # Multi-instrument research and execution extension
 
 Status recorded 29 October 2026: **M0-M6 complete; M7-M10 not started.**
-This is the implementation record for the extension. The published
+This is the accepted scope and evidence record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
-Primary development replay through 2023 has been independently verified;
-shared-capital and broader economic assessments remain open.
+Development replay, shared accounting and cost/execution comparisons are accepted
+with explicit coverage qualifications. Remaining inference and evaluation stages
+are listed below; detailed ownership is in the [architecture](architecture.md).
 
 ## Baseline identity and preservation
 
@@ -23,20 +24,18 @@ distinct from the Git commit, dataset identity and publication manifest.
 The two acquisition identities above were checked against their registered
 source records; the private raw acquisition trees were not reauthenticated at M0.
 
-The seven original frozen protocol/settings/data-policy files in `ProjectSources.frozen`
-match their registered SHA-256 values. Neither those records nor the original
-result files, curated evidence, report, journal schemas or release tag change
-at this milestone. Subsequent code must retain the original SPY reference path;
-new settings and data receive separate identities. A later result cannot
-retroactively pass a failed v1 advancement screen.
+The seven original frozen protocol/settings/data-policy files were authenticated
+at M0; the current build pins thirteen research records. Original v1 inputs,
+findings, publication and release tag retain their identities. Subsequent code
+retains the original SPY reference path; new settings and data have separate
+identities. No extension result can retroactively pass a failed v1 screen.
 
 ## Accepted scope
 
 - Fixed universe: **SPY, QQQ, IWM, TLT and GLD**. These are five USD-listed
   instruments, with correlated equity exposures, not five independent markets.
-- Target archive: complete years **2016-2025**, subject to the M1 free-access
-  and coverage assessment. Select a later common start from input availability
-  alone if necessary; retain all five instruments.
+- Registered archive: **2016-2025**. The accepted M2 coverage, source amendments
+  and first-history dates below govern access; all five instruments are retained.
 - Reuse the momentum, continuation and opening-anchor reversion engines and
   retain daily risk as a separate experiment. Daily risk is not a fourth
   directional owner in the shared intraday account.
@@ -56,8 +55,9 @@ retroactively pass a failed v1 advancement screen.
   the extension. A free empirical-access failure is recorded as unestimated
   evidence, not repaired with a subscription or fabricated observations.
 
-Numerical extension settings, budgets and inference procedures remain proposed
-until their governing specification is frozen. The v1 protocols remain fixed.
+The study, input amendments and M5/M6 execution policies are frozen. M7 analysis
+and M8 executable inference validation must follow those registered records.
+The v1 protocols and outcomes retain their original identities.
 
 ## Research exposure and evaluation roles
 
@@ -98,64 +98,9 @@ their declared stage. Automated integrity checks may expose hashes and coverage
 flags. A changed model after inspection receives an exposure record, not a
 restored holdout label.
 
-The new evaluation sequence must be registered at M2. It does not override the
-failed v1 escalation gates or authorize later-period runs of the old studies.
+The evaluation sequence is registered by the M2 study contract. It does not
+override failed v1 escalation gates or authorize later-period runs of the old studies.
 M0 performed no historical acquisition, model fitting or strategy scoring.
-
-## Authoritative implementation and extension boundaries
-
-Paths below are the existing implementations, not proposed duplicate engines.
-The [architecture](architecture.md) and linked contract notes give their detailed
-invariants.
-
-| Responsibility | Existing source / owner | Extension boundary |
-| --- | --- | --- |
-| Historical HTTP and credentials | `src/alpaca/alpaca_market_data_client.hpp`; Windows implementations under `src/platform/windows/` | Preserve read-only historical transport and credential storage |
-| Requests and calendar | `src/alpaca/alpaca_bar_request.cpp`, `alpaca_corporate_action_request.cpp`; `src/market/market_calendar.cpp` | Parameterize supported symbols/date plans without weakening legacy contracts |
-| Acquisition and authentication | `src/storage/session_batch.cpp`, `development_study_dataset.cpp`, `risk_input_dataset.cpp` | A symbol/date panel, resumable evidence and outcome-independent masks; retain old loaders |
-| Momentum | `src/research/intraday_momentum.*`, `DevelopmentStudy` | Reuse completed-prefix decisions and `evaluate_long_prices`; generalize explicit SPY restrictions |
-| Continuation | `src/research/intraday_continuation.*`, `ContinuationStudy` | Per-symbol history; preserve volume as an entry filter and prior-only scales |
-| Reversion | `src/research/intraday_reversion.*`, `reversion_strategy.*`, `ReversionStudy` | Preserve within-session pairs, occupied missing-history slots and frozen signals under cost stresses |
-| Daily risk and fractional accounts | `src/research/daily_risk_study.*`, `daily_risk_dataset.cpp`; `src/accounting/long_cash_account.*` | Wider calendar/action evidence, explicit calibration and continuously marked accounts |
-| Whole-share targets and accounting | `src/execution/momentum_order_adapter.*`, `strategy_order_adapters.*`, `order_runtime.*` | One global cash/reservation owner, symbol positions, strategy ownership and deterministic allocation |
-| Durable accounting | `src/execution/journaled_runtime.*`, `paper_execution.*`, `journaled_paper_runtime.cpp`; `src/storage/journal_frame.*` | Preserve schema 1/2 cents and schema 3 USD 1e-9; version new contracts and bounded segment handover |
-| Broker matching and protocol | `src/execution/simulated_broker.*`; `src/alpaca/simulated_paper_wire.*`, `paper_transport.*`, `paper_control.*` | One matcher, independent durable peer state and a bounded process adapter |
-| Measurements | `src/execution/execution_measurement.*`, `runtime_benchmark.*` | Matched multi-symbol/process workloads; separate physical timings from simulated delays |
-| Evidence and verification | `src/reporting/`; `research/verify_*.py`, `build_report.py` | Saved records drive views; independent numerical checks do not become another production engine |
-
-At M0, `OrderRuntime` stored one symbol and one cash balance. Five separately
-funded instances do not establish shared capital. `LongCashAccount` is also
-single-instrument and fractional; it must not be presented as the exact integer
-broker ledger. The schema-3 bridge restricts the synthetic contract to SPY DAY
-limits and an explicit zero-fee policy, although the underlying matcher/core
-already carry fee fields. Extending those policies requires declarations and
-verification, not another matcher or silently accepted messages.
-
-The existing broker already covers partial fills, duplicate delivery, a
-cancellation race, ambiguous submission, snapshot mismatch and client restart.
-It does not provide a separate operating-system process, persisted peer restart,
-paginated activity recovery, strategy ownership or general cash-settlement rules.
-Detailed baseline contracts remain in [broker](paper_broker.md),
-[paper execution](paper_execution.md) and [journal recovery](journal_recovery.md).
-
-## Decisions to resolve in sequence
-
-| ID | Decision / concrete limitation | Resolution stage |
-| --- | --- | --- |
-| D1 | At v1, calendar conversion starts at 2020-12-31; reference calendars cover 2021 calibration and 2022-2023 development | M1 extends conversion to 2016-2025; all 20 provider calendar samples passed; old reference calendars retain their bounds |
-| D2 | At v1, calendar bar requests, session batches and corporate-action requests encode SPY | M1 adds explicit-symbol requests and a separate capability runner; legacy defaults/loaders remain; panel acquisition follows at M2 |
-| D3 | Historical access and source-action reconciliation are registered; completeness uses the declared cross-provider assumptions, and full execution quote windows remain unevaluated | M2 registration below; M6 evaluates complete declared quote windows |
-| D4 | Parent complete-grid coverage remains failed; registered amendments retain three unavailable daily marks and establish canonical action sources | M2 complete: the Windows study manifest binds recovery receipts, actions, masks and the original-SPY vintage bridge; M3 must enforce causal missing-input behavior |
-| D5 | Six endpoints, materiality, precision plan and risk matching are registered; final max-T coverage/size verification remains open | M2: controlled precision checks; M8: validate inference and freeze the executable before final evaluation |
-| D6 | Legacy defaults retain SPY contracts; explicit panel mode supports pre-2024 five-instrument primary replay | M3 complete: original-SPY parity and all primary pre-2024 panel records verified |
-| D7 | Shared cash, pending-fill claims, internal ownership transfers and bounded flat handover are implemented | M4 complete: Windows native and independent checks pass; all final account states match the GNU reference |
-| D8 | Independent peer history, process framing, explicit lifecycle/fee/cash policy and schema-5 replay are implemented | M5 complete: Windows Release, independent replay and exact final-state parity with the GNU reference passed |
-| D9 | Historical executable-price references, size assumptions and source/receipt delays require separate evidence | M6: bounded quote sample and fixed synthetic stress matrix, with unestimated quantities explicit |
-| D10 | Final period has known GLD research exposure and unverified exposure elsewhere | M2: carry the M0 qualifications into registration; M8/M9: preserve the project-specific lock and report labels |
-
-M1 must establish the input route before bulk acquisition or expanded scoring.
-Unsupported dates and symbols are known implementation work, not evidence of
-vendor entitlement failure. No native broker service or paid access is needed.
 
 ## Milestone order and acceptance
 
@@ -176,77 +121,8 @@ vendor entitlement failure. No native broker service or paid access is needed.
 The initial planning range was 228-368 focused hours plus unattended work;
 it is not a measured completion-time forecast. Seven completed milestones count
 work packages, not a fraction of engineering effort. M1 required no paid access;
-M2 registered the full-panel coverage,
-gap masks and action reconciliation. The remaining scope is M7-M10.
-
-## Build and verification record
-
-`Runtime.sln` delegates to the existing `build.py` compiler driver. Both CMake
-and CTest remain absent. C++ is authoritative for research, portfolio, execution
-and broker behaviour. Focused native checks exercise those classes directly;
-Python orchestrates executables and provides independent arithmetic/statistical
-references and publication. New native checks are added with the behaviour they
-verify, not as an empty framework at M0.
-
-Ordinary edits use focused checks and small fixtures. Full acquisition audits,
-historical experiments, large resampling and performance benchmarks are explicit
-checkpoint workloads. [Build and reproduction](running.md) remains the command
-reference. There is no continuous CI workflow.
-
-The following checks ran against the unmodified v1 implementation on Linux with
-GNU 13.3.0, C++20 and warnings as errors on 26 October 2026:
-
-| Check | Observed result |
-| --- | --- |
-| Native Release `project_demo` | 259 checks, 24 cases, zero network requests; independent verifier passed |
-| Native Debug `project_demo` | 259 checks, 24 cases, zero network requests; independent verifier passed |
-| Independent combined-demo verification, each configuration | 350 artifact hashes, strategy states, six broker cases, integer/Decimal ledgers, captures and quote budgets verified |
-| Registered identities | All seven frozen protocol/settings/data-policy records matched |
-| Publication verification | 14 hashes, eight SVG figures, two static embedded views and local links verified |
-| Repository hygiene audit | Filesystem/Git inspection passed with no findings |
-
-Local run directories are `scratch/runs/project_demo_4` (Release) and
-`scratch/runs/project_demo_5` (Debug). Their summary SHA-256 values are respectively
-`f5b6b5881ef08c5bb140c611c6c628d9384f3a9b5be0d7df163eeaef99d51606`
-and `9771b37a6356759b5d54417d81e5651e3f08c03828e63ab0df27847ec3319ad3`.
-These identify local evidence, not portable fixed suffixes or reproduced Windows
-performance. The [original native acceptance](https://github.com/KVInator/algorithmic-trading-runtime/actions/runs/40224499759)
-records earlier Windows Release/Debug and Linux Release verification at its
-stated commit. Windows, private acquisition trees and the full historical
-experiments were not rerun at M0. No new benchmark claim is made.
-
-## M1 implementation
-
-The capability runner and its native/independent checks are implemented. Calendar
-conversion covers 2016-2025. Explicit-symbol bar/action/tick requests reuse the
-historical read-only transport. The old SPY action constructor, study loaders,
-reference calendars, protocols and default demo retain their original contracts.
-Full-panel acquisition is not implemented at this stage.
-
-The runner samples two full sessions per symbol/year, a first page of historical
-quotes/trades, and paginated process-date actions. Its report separates
-accessible, empty, incomplete-field, gapped, forbidden and invalid evidence.
-A sampled bar route is not full-history readiness. Action completeness,
-payment-date/issuer agreement and announcement availability are not inferred
-from successful HTTP or an empty response.
-
-Every HTTP attempt is archived before decoding. Later-period responses remain
-under a local `sealed/` boundary. The review bundle contains counts, flags,
-request metadata and hashes. No strategy fitting, scoring, returns, spread
-calibration or price summaries are produced. The Windows provider run below
-establishes sampled access, rather than complete historical coverage.
-
-Run and sharing instructions are in
-[Extension data capability](running.md#extension-data-capability).
-
-Local GNU 13.3.0 Release and Debug runs passed 46 native checks each. The
-standard-library oracle independently verified all five constructed evidence
-bundles in both configurations and rejected altered raw evidence, false
-completion claims and an unexpected raw file in the review boundary. The
-existing Release demo retained its 259 checks across 24 cases and passed its
-independent accounting verification. The seven frozen identities and released
-publication/result evidence remain unchanged. These are software checks, not
-provider-access or full historical-coverage evidence.
+M2 registered full-panel coverage, gap masks and action reconciliation.
+The remaining scope is M7-M10. Build commands are in the [runbook](running.md).
 
 ## M1 provider evidence and disposition
 
@@ -282,9 +158,8 @@ It does not date the start of available history or establish a feasible scored
 period. The 2016-2025 target archive and all five instruments remain in scope;
 M2 must establish the usable calendar and initialization from full coverage.
 
-M1 is complete as a feasibility assessment. No entitlement workaround, paid
-feed or repeat of the same probe is warranted by this evidence. The following
-are M2 acceptance requirements before expanded scoring:
+M1 is complete as a feasibility assessment. M2 subsequently completed these
+prerequisites before expanded scoring:
 
 - Authenticate the full archive, retain each missing interval, and register
   outcome-independent session eligibility and common comparison masks.
@@ -316,66 +191,6 @@ The Windows source inventory is a run identity, not a verified Git commit:
 Visual Studio had expanded the local project items before compilation.
 Bulk/raw evidence stays outside version control. The v1 protocols, results and
 publication identities remain unchanged.
-
-## M2 implementation checkpoint
-
-The [registered study contract](../research/extension_protocol.md) fixes the
-dataset, six primary endpoints, materiality, pooling, uncertainty design,
-secondary neighborhood and access controls before expanded scoring. The
-JSON identity is pinned by the existing Python build driver. No CMake/CTest or
-hosted workflow is introduced.
-
-`panel_check`, `panel_acquire` and `panel_finalize` call cohesive native owners
-for resumable page acquisition, eligibility, action reconciliation and the
-original 496-date SPY vintage bridge. The independent Python panel verifier
-checks raw hashes, request chains, a separate fixed-date calendar oracle,
-minute grids and masks. The public price reader requires an acquisition
-identity and rejects reserved years before lookup.
-
-The initial controlled precision design checks nine Gaussian AR(1) cases with
-2,000 trials each against analytical mean variance and power. Its retained
-[table](evidence/m2_precision.csv) is a planning calculation, not an estimate
-from market outcomes. It does not establish final max-T coverage or market power.
-
-At the initial implementation checkpoint, free source extraction covered SPY,
-QQQ, IWM and TLT distributions. The reviewed source snapshots supplied 40, 41,
-40 and 120 cash records, respectively, in the ex-date horizon. Those counts are not a substitute for
-reconciling the complete provider archive. GLD and independent split-history
-coverage were unresolved at that checkpoint; later source resolution and final
-registration are recorded below.
-
-A pre-2024-only comparison with M1 evidence also found QQQ amount disagreements
-on 2018-06-18 and 2018-12-24, plus distinct provider records with the same
-2022-09-19 ex-date and different payable dates. These are retained source
-discrepancies, not rounding/zero-payment assumptions. The complete acquisition
-must establish their current-vintage status and an explicit source resolution
-before accounting registration. No reserved price data were inspected.
-
-M2 acceptance requires complete action-source review, resolution of the full-panel
-input limitations recorded below, the vintage bridge and final study manifest.
-The v1 results and seven original frozen identities remain unchanged.
-No expanded strategy has been fitted or scored. Run/sharing instructions are in
-[panel acquisition](running.md#extension-panel-acquisition-and-registration).
-
-That implementation checkpoint used GNU 13.3.0 on Linux:
-
-| Verification | Observed result |
-| --- | --- |
-| Release build | All 16 Linux applications built with warnings as errors |
-| Native panel checks | 91 passed in Release and Debug; no network requests |
-| Independent panel oracle | Four constructed raw archives verified in each configuration, including interrupted/outage recovery and history masks |
-| Existing capability contracts | 46 passed; five constructed bundles independently verified |
-| Existing offline demo | 259 checks / 24 cases passed; independent 350-artifact accounting/replay verification passed |
-| Controlled precision design | Nine cases, 2,000 trials each; analytical variance/power comparisons passed |
-| Legacy issuer extractor | Original twelve SPY financial records unchanged |
-| Frozen identities/publication | Seven original and one extension identity matched; v1 publication hashes/links verified |
-| Repository hygiene | Passed with no findings |
-
-Panel evidence directories are `scratch/runs/panel_check_6` (Release) and
-`scratch/runs/panel_check_7` (Debug), under source-inventory SHA-256
-`fb194e3307078fc0727e400e008d46e951aa3cf115ddc1e07b1aa3fc77efcc07`.
-These are local run identities, not provider coverage evidence. Native MSVC and
-the full private panel have not been verified by this checkpoint.
 
 ## Full-panel acquisition review
 
@@ -438,26 +253,6 @@ checkpoint; its completed comparison is recorded below.
 Reserved-year review used coverage metadata only; no prices, fitted models,
 returns or spread estimates were inspected.
 
-The readiness workflow now reports every source-coverage declaration alongside
-coverage gates and actual pre-2024 gap intervals. Incomplete split coverage no
-longer prevents cash amount/date comparisons from being reported. Duplicate
-provider records remain explicit discrepancies and cannot publish canonical
-income. Detailed reserved gaps and reserved cash discrepancy amounts are
-excluded from the review export. No eligibility rule or pinned protocol was
-changed. [Run instructions](running.md#extension-panel-acquisition-and-registration)
-describe the free source preparation and existing finalizer entry point.
-
-The implementation checkpoint built all 16 Linux Release applications with
-GNU 13.3.0 and warnings as errors. All 105 native panel checks passed, including
-missing references, grouped gaps, duplicate cash actions and blocked registration.
-The independent oracle verified five constructed archives and both readiness
-reports, including exact gap intervals; four altered-report cases were rejected.
-The source inventory is
-`cc8bf7d8edf338e87fda49b3e2beaccf0ef42ad04dffedcacfb795a4e3ed750a`.
-This verifies the software, not the outstanding provider discrepancies. The
-private Windows archive must produce the detailed readiness report before
-source resolutions or an eligibility amendment can be assessed.
-
 | Evidence identity | SHA-256 |
 | --- | --- |
 | Registered extension protocol | `269d6e677a3e62a21ede6e88659edb2f7a998bfe0137e62b13458e411f0c55ee` |
@@ -497,18 +292,8 @@ The closing-recovery collector requests only the registered three missing
 binds it to the original acquisition and amendment. It accepts actual bars at
 the exact original clock. Empty successful responses remain unavailable and are
 not repeatedly requested. Finalization preserves original missing flags and
-records each recovered daily-close source separately. No actual provider recovery
-response is retained at this implementation checkpoint; the constructed success
-cases do not establish that the provider can supply the missing observations.
-
-Verification used GNU 13.3.0 Release with warnings as errors: all 16 applications
-built, 135 native panel checks passed, and the independent verifier checked seven
-constructed archives and four readiness reports. Five altered-count, slot,
-identity, endpoint and raw-receipt cases were rejected. Existing capability
-checks (46), five capability reference bundles, the offline demo (259 checks /
-24 cases), independent 350-artifact accounting/replay verification and publication
-hash/link checks passed. All nine pinned identities match. The final source
-inventory is `533f57c37a21cb8c335b4c69c342de6e23f626df09e04a9ef807385eabad0ad6`.
+records each recovered daily-close source separately. The actual provider
+recovery returned no bars; its disposition is recorded below.
 
 | Record | SHA-256 |
 | --- | --- |
@@ -516,12 +301,9 @@ inventory is `533f57c37a21cb8c335b4c69c342de6e23f626df09e04a9ef807385eabad0ad6`.
 | Supplied detailed readiness summary | `5a2b674c446eb7624a66b71893bc2b4c3c18d0d1fdb2fe3100053d8a72cf6b98` |
 | Derived operational comparison table | `1ae006196b7074a1737c172fcf06850a4f292bee6bd433d936e96781ab3798b0` |
 
-At the input-amendment checkpoint, M2 remained open: actual closing evidence,
-QQQ cash/date resolutions, GLD/split coverage and the final vintage bridge were
-still required. No issuer coverage flag, amount tolerance or action-disagreement
-gate was relaxed by this
-input amendment. The original v1 results and acquisition snapshots are preserved.
-
+The input amendment changes only input eligibility. It relaxes no issuer-coverage
+flag, amount tolerance or action-disagreement gate. Source resolution and final
+registration are recorded below; original v1 snapshots are preserved.
 
 ## Source resolution after the provider recovery
 
@@ -553,30 +335,15 @@ infallible. Nonempty or conflicting split evidence remains blocking.
 
 The preparation command writes a separate resolved reference and retains every
 old file. The finalizer binds both amendments, canonical actions, missing masks
-and the original SPY vintage comparison. The initial source-resolution
-checkpoint still awaited the Windows registration recorded below; expanded
-strategy scoring has not started. No v1 result or reserved-price observation
-is changed by the source resolution.
+and the original SPY vintage comparison. Windows registration subsequently
+completed as recorded below. No v1 result or reserved-price observation is
+changed by the source resolution.
 
-
-Source-resolution verification used GNU 13.3.0 Release with warnings as errors.
-All 16 applications built; 156 native panel checks and the independent archive,
-readiness and registration checks passed. Truncated event coverage, a wrong
-instrument, nonempty split evidence, contradictory GLD cash and inconsistent
-resolution identities were rejected. Separate tampering checks rejected altered
-missing dates, forged resolution/registration hashes and erased missing masks.
-The actual free issuer/secondary source bundle reconciled 241 canonical cash
-events against the supplied pre-2024 provider discrepancies while retaining five
-conflict records. A cached preparation rerun completed with network access
-disabled and preserved the original reference. Existing offline-demo and
-publication checks passed. At that checkpoint, Windows/MSVC and the full
-private-archive vintage bridge remained local verification requirements.
 
 | Source-resolution record | SHA-256 |
 | --- | --- |
 | Source resolution | `9237188b4ac24282a4296e2622948666e8d8da0a78c8be103453658093d9d734` |
 | Supplied post-recovery readiness summary | `15424df8eca18e4defc394a4f3038f700a0a31bfd4d02f03f1a56e14804bf346` |
-
 
 ## M2 Windows registration completed
 
@@ -620,65 +387,10 @@ review remains tied to the same unchanged acquisition-manifest identity.
 | Windows build-source inventory | `d5f8e21919f6456275f4c70b7a286add91d63a6fa8a165be5543813f47a043cc` |
 
 The source inventory is a build identity, not an independently established Git
-commit. M2 is complete. M3 implements prior-only five-instrument replay,
-original-reference parity and the registered missing-input controls. Shared
-capital, the expanded synthetic broker, cost/execution research, stability,
-reserved-period evaluation and publication remain M4-M10 work. Milestone counts
+commit. M2 is complete. M3 subsequently verified prior-only replay and original-reference
+parity; M4-M6 completed shared capital, the synthetic peer and cost/execution
+evaluation. Stability, reserved periods and publication remain M7-M10. Milestone counts
 describe accepted work packages, not the fraction of engineering effort spent.
-
-
-## M3 implementation and local acceptance
-
-The [causal replay](panel_replay.md) reuses the existing numerical engines with
-an explicit panel mode. Legacy defaults retain their original SPY and
-complete-grid contracts. The registered M2 study manifest is authenticated
-without rewriting it; expanded price access is restricted to 2016-2023.
-
-The runner checks the original SPY reference path before the wider replay.
-It then emits primary intraday candidate/control targets and bar-reference
-outcomes, dividend-aware risk measurements and prior-only risk sizing targets.
-Cross-instrument outcome masks are applied after decisions. Missing features
-produce the registered paired cash behavior; an unavailable execution reference
-stops that policy path and remains NA. The report does not assert a continuous
-account across an unavailable execution or valuation mark.
-
-The constructed suite includes a 300-date five-instrument analytic stream,
-source-reader registration smoke coverage, future-data perturbations, missing
-prefix liquidation, unavailable execution, zero-volume features, missing
-reversion slots, daily-history resets and original-default parity. An independent
-Python oracle rebuilds the features, fit, targets and arithmetic from raw source
-pages or the declared analytic fixture. The Windows provider-data run passed
-independent verification, with its acceptance evidence recorded below.
-
-Local GNU 13.3.0 Release verification on 28 October 2026 produced:
-
-| Check | Observed result |
-| --- | --- |
-| Application build | All 17 applications compiled with warnings as errors |
-| Native panel checks | 187 checks passed, with no network requests |
-| Independent replay oracle | 300 dates across five instruments, plus a five-instrument registered-reader fixture; source features, histories, decisions, arithmetic and displayed records verified |
-| Independent acquisition/readiness oracle | Seven constructed archives and their available readiness reports verified |
-| Semantic corruption checks | Seven altered records rejected after refreshing their stream hashes, including future cutoffs, changed targets, risk forecasts, duplicate policies, false masks and reserved dates |
-| Original numerical/account regressions | Momentum, continuation, risk measurement and the full daily-risk contract suite passed against the current library |
-| Existing combined demonstration | 259 checks in 24 cases; independent verification passed |
-| Existing capability contracts | 46 checks passed |
-| Publication and repository checks | Registered identities, publication hashes/links and repository hygiene passed |
-| Instrumented changed paths | AddressSanitizer and UndefinedBehaviorSanitizer passed all 187 panel checks; unchanged library units were not instrumented |
-
-The archived daily-risk suite's pre-M1 rejection of a 2020 date was replaced by
-an ordering assertion for the already extended calendar; its numerical,
-causality and account assertions were retained. LeakSanitizer cannot run under
-this environment's process tracing and was disabled for the instrumented run.
-All five target-chart selector branches were executed and their generated SVGs
-rendered and inspected. A full browser layout check was unavailable locally.
-These constructed engineering checks accompany the Windows provider-data
-acceptance below.
-
-M3 covers primary settings and causal records. Shared-capital ownership/netting
-remains M4; the separate synthetic peer remains M5. Broader cost/delay and
-execution research, risk-account ledger extension, registered stability
-variants, risk-matched comparisons and uncertainty analysis remain M6-M7.
-Validation in 2024 and final evaluation in 2025 remain gated to M8 and M9.
 
 ## M3 Windows acceptance completed
 
@@ -730,151 +442,40 @@ The accepted study identity remains
 Network requests and broker events were zero. Strategy inputs for 2024 and
 2025 remain unopened. Shared capital, extended daily-risk account ledgers and
 simultaneous inference were not executed by this milestone. M3 is complete;
-M4 next establishes ownership, target netting, aggregate limits and recovery
-under one shared-capital ledger.
+The accepted M4 shared-capital ledger supplies ownership, target netting,
+aggregate limits and recovery for subsequent account integration.
 
-## M4 shared-capital implementation
+## Shared-capital and broker acceptance
 
-The [shared-capital contract](shared_capital.md) extends the existing integer
-order core to five symbol inventories under one global cash balance. Fifteen
-strategy/instrument owners retain explicit holdings and signed attribution cash
-flows. Primary M3 feature records feed the same strategy engines; continuation
-uses actual owned inventory when deciding whether its entry-volume rule applies.
+M4's [shared-capital acceptance](shared_capital.md#windows-acceptance) records
+one global cash ledger, five inventories and fifteen owners. Windows Release
+passed 182 checks in fifteen cases; 163 durable transitions were independently
+reconstructed. The M6 budget-limited-order regression extended local coverage
+to 190 checks in sixteen cases and 171 transitions. Original M4 hashes retain
+their original counts.
 
-The constructed diagnostic covers global reservations, internal crossing,
-acknowledgements, partial fills, proportional fees, cancel races, quote/target
-expiry, input permutations, market-move budget breaches, active-order recovery,
-flat segment handover and uncertain durable writes. It records zero network
-requests and no external broker observations or historical shared-capital return.
-The independent Python verifier checks every durable checkpoint, exact
-allocation, admission limit, recovery link and saved report event.
+M5's [independent broker acceptance](process_broker.md#windows-acceptance)
+records 313 Windows checks in twelve families across twenty-one native child
+processes. Independent reconstruction checked 139 broker commits, 98 client
+inputs and 294 logical peer calls. Broker history and client attribution have
+separate durable owners. All broker events are synthetic.
 
-Local Release verification and acceptance commands are recorded in the linked
-contract. Windows Release execution and its independent review completed on
-28 October 2026. The [acceptance record](shared_capital.md#windows-acceptance)
-binds the reviewed ZIP, manifest and report. M4 is complete. The separate
-synthetic broker process remains M5;
-historical cost/execution and daily-risk accounts remain M6, stability and
-uncertainty M7, reserved-year evaluations M8-M9 and publication M10. No frozen
-input identity, original research result or reserved-year access rule changes.
+## M6 development and execution acceptance
 
-## M5 independent broker implementation
+The [cost/execution note](cost_execution.md) is the authoritative method and
+result record for the frozen cost/delay grid, historical quote references,
+680-case synthetic matrix and funded accounts. It retains accepted hashes,
+case tables and the distinction between producer-machine raw-source verification
+and compact uploaded-artifact review.
 
-The [registered synthetic broker policy](../research/synthetic_broker_protocol.md)
-defines the independent account, fixed per-share fee, immediate trade-date cash,
-DAY/IOC/GTC lifecycle, framed process messages and bounded durable history.
-The [implementation and run record](process_broker.md) uses the existing FIFO
-matcher in both the in-process and separate C++ peer routes. The broker owns
-its account independently; shared-client intent and attribution remain in M4's
-journal. No broker snapshot is copied into the client ledger to obtain parity.
+The [account acceptance](cost_execution.md#windows-account-acceptance) records
+352,000 emitted risk records and 88,000 shared account days, of which 162,040 and
+2,750 respectively have observed returns. All shared paths stop after 65
+sessions at one-minute delay or 45 at two minutes. All active risk paths also
+stop; only passive QQQ/TLT reach December 2023. Stopped accounts do not restart;
+forecast-history recovery does not restore capital paths. These are material
+economic coverage limits, not a seven-year shared-capital result.
 
-Local verification passed 313 constructed checks across twelve families and
-twenty-one child processes. The independent oracle rebuilt 139 broker commits,
-98 client inputs and 294 logical peer calls. The suite includes simultaneous
-five-instrument ownership, stable terminal lookup/activity pages, missed-response
-recovery, cancellation races, client/broker restarts, uncertain appends and
-damaged tails. The process report replays saved broker and client ledgers.
-
-Windows Release acceptance and independent review completed on 28 October 2026.
-The [acceptance record](process_broker.md#windows-acceptance) binds the uploaded
-ZIP, manifest, calls and report to their reviewed hashes. M6's cost/execution and
-daily-risk account acceptance is recorded below. M7 adds stability, risk matching
-and uncertainty, M8-M9 the registered reserved
-periods, and M10 publication. Existing research outcomes, acquisition inputs
-and reserved-year boundaries remain unchanged.
-
-## M6 cost and execution input checkpoint
-
-The [registered contract](../research/cost_execution_protocol.md), SHA-256
-`827dee82278dbabf0f5d8fd6d0980afe07cd01c876847507df38080a587dc2ca`,
-precedes the new acquisition and account comparisons. It fixes the bar-reference
-cost/delay grid, the bounded pre-2024 historical quote sample and the 170-workload,
-680-account synthetic matrix. No strategy or policy is selected from that matrix.
-
-The [sampler and independent verifier](cost_execution.md) implement 910 one-second
-quote windows, complete pagination or explicit page-cap failure, authenticated
-resume and latest-record eligibility. The existing panel raw-response archive
-is reused without changing its artifact format. Constructed cases exercise
-pagination, denial, retries, interruptions, invalid geometry, nanosecond clocks,
-conflicting duplicates and tampered evidence. Windows/provider input acceptance
-completed on 28 October 2026: 1,322 retained HTTP responses, 232 eligible windows,
-all in 2022-2023. The [acceptance and coverage record](cost_execution.md#windows-quote-acceptance-and-coverage)
-retains the original artifact identities and the limits of compact review.
-
-The [cached diagnosis](cost_execution.md#cached-condition-and-timestamp-diagnosis)
-also passed on Windows with zero requests and an identical primary replay.
-Every nonempty sampled 2017-2021 window carries `["?"]`; the 2022-2023 windows
-carry `["R"]`. The 76 timestamp conflicts comprise 67 size, three price and
-six exchange-only disagreements. This completes quote-input diagnosis without
-changing eligibility; earlier-year eligible spread evidence remains unavailable.
-
-The historical cost/delay evaluator and independent oracle are implemented:
-400 instrument/policy/cost/delay series and 240 paired contrasts, preserving
-primary decisions and the common mask. The existing fractional account checks
-charged notionals; this does not establish shared-capital performance.
-Windows historical acceptance completed on 29 October 2026: 1,682 common
-development dates per instrument, with primary-reference parity and independent
-source/Decimal verification passed. The [accepted results](cost_execution.md#windows-costdelay-acceptance)
-retain all aggregate tables, identities and review limits. Positive paired point
-estimates do not establish candidate profitability or statistical superiority.
-The [synthetic execution evaluator](cost_execution.md#registered-synthetic-execution-study)
-now runs all 680 registered cases with exact independent-ledger reconciliation,
-fee-inclusive metrics, distinct source/receipt clocks and 510 matched contrasts.
-The M5 broker model and existing quality/path kernel are reused in-process;
-separate-process and durable recovery acceptance retains its M5 scope.
-Windows Release acceptance completed on 29 October 2026. Independent review
-verified the complete uploaded case traces, all 510 contrasts and plotted cells;
-all 680 traces match the GNU reference byte for byte. The
-[acceptance record](cost_execution.md#windows-synthetic-execution-acceptance)
-retains policy summaries, interpretation and artifact identities.
-The [quote-reference comparison](cost_execution.md#windows-quote-reference-acceptance)
-also passed Windows verification on 29 October 2026: 910 windows, 455 delay
-pairs, 232 eligible quotes and 108 pairs eligible at both delays. Raw source
-verification passed on the producer machine; uploaded sample identity, all
-derived costs and plot coordinates were checked separately. Eligibility and
-the primary cost assumptions remain unchanged. Continuous daily-risk accounts
-and shared-account economic integration passed Windows historical verification
-and uploaded-output review as recorded below.
-The three unavailable 2019 closes cannot be repaired by resetting capital:
-an affected continuous account stops at its first required missing endpoint.
-Recovering forecast history does not restore that account. Coverage and
-unavailable comparisons are retained. M6 is complete with these coverage
-qualifications; M7-M10 remain open.
-
-### Continuous risk and shared-capital implementation
-
-The final two M6 components are implemented in
-[`PanelAccountStudy`](../src/research/panel_account_study.cpp), with the existing
-lagged estimator, dividend-aware fractional account and exact shared-capital
-ledger. The [methodology](cost_execution.md#continuous-risk-and-shared-capital-accounts)
-defines 200 risk accounts, 50 shared accounts, 150 risk contrasts and forty shared
-contrasts. Each account retains its original capital, point-of-observation
-missing-price stop and explicit terminal convention. Prior-only forecast
-measurement continues independently of stopped economic accounts.
-
-GNU Release and the independent source/Decimal/integer/report oracle pass the
-300-date constructed calendar: 9,600 risk records, 2,400 shared account days,
-all 190 contrasts, 25 plotted paths and 279 displayed table rows. Twelve semantic
-mutations are rejected without relying on hashes. The integration also retains
-a budget-limited pending order whose quantity moves toward the unchanged target;
-a focused shared-capital acknowledgment/fill regression covers that condition.
-Windows Release and full independent verification completed on 29 October 2026:
-352,000 risk records and 88,000 shared account days, including unavailable
-post-stop outcomes. Uploaded-artifact review checked all 250 reported prefixes,
-190 contrasts, 25 curves and 279 table rows; the complete constructed bundle
-passed independent source and ledger reconstruction. Provider raw data and daily
-transcripts were authenticated on the producing machine and remain local.
-
-The [account acceptance record](cost_execution.md#windows-account-acceptance)
-retains the measured coverage: 162,040 observed risk returns and 2,750 shared
-account returns. All shared variants stop after 65 sessions at one-minute delay
-or 45 at two minutes. All active risk accounts also stop; only passive QQQ and
-TLT reach the final development close. These findings limit economic conclusions
-without changing the registered missing-price rule. M7 must retain each
-comparison's actual coverage and unavailable outcomes.
-
-The [runbook](running.md#continuous-risk-and-shared-capital-evaluation-m6) retains
-the single-target build and both acceptance runs. M6 is complete; stability,
-concentration, predefined risk matching and uncertainty are M7. Validation,
-final evaluation and publication remain M8-M10. Reserved strategy boundaries
-and all earlier research findings are unchanged.
+M6 is complete with those qualifications. M7 must retain each comparison's
+actual coverage and unavailable outcomes while assessing concentration,
+stability, risk matching and uncertainty. M8-M10 remain gated as specified above.
