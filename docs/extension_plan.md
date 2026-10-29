@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 29 October 2026: **M0-M6 complete; M7-M10 not started.**
+Status recorded 29 October 2026: **M0-M6 complete; M7 in progress; M8-M10 not started.**
 This is the accepted scope and evidence record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -113,7 +113,7 @@ M0 performed no historical acquisition, model fitting or strategy scoring.
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Complete with coverage qualifications: quote-reference, historical cost/delay, 680 synthetic execution cases, 200 risk and 50 shared accounts accepted; stopped economic paths remain unavailable |
-| M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
+| M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | In progress: primary diagnostics and joint uncertainty implemented; fourteen secondary cases and risk-matched ledgers remain |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
@@ -479,3 +479,12 @@ economic coverage limits, not a seven-year shared-capital result.
 M6 is complete with those qualifications. M7 must retain each comparison's
 actual coverage and unavailable outcomes while assessing concentration,
 stability, risk matching and uncertainty. M8-M10 remain gated as specified above.
+
+## M7 primary diagnostics checkpoint
+
+The [stability note](stability.md) specifies the saved-export evaluator, causal
+labels, selected-observation attribution, winner removals and complete six-endpoint
+family. Native and independent numerical verification precede Windows acceptance.
+This checkpoint does not complete M7: secondary cases and funded risk-matched
+replays remain. Controlled inference calibration and reserved strategy periods
+stay behind their existing gates.

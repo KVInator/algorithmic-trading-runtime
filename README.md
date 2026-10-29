@@ -9,12 +9,18 @@ history, and 2017-2023 supplies development observations.
 The [offline demo](#build-and-reproduce) runs without credentials or private data.
 Detailed methods and executable commands are in the [runbook](docs/running.md).
 
-**M0-M6 are complete: 7 of 11 milestones.** M7 is next: stability, concentration,
+**M0-M6 are complete: 7 of 11 milestones.** M7 is in progress: stability, concentration,
 predefined risk matching and uncertainty. Validation in 2024, final retrospective
 evaluation in 2025 and consolidated publication remain M8-M10. Those later
 strategy inputs remain unopened. Prior research exposure is recorded in the
 [roadmap](docs/extension_plan.md#research-exposure-and-evaluation-roles);
 the reserved panel is not claimed to be globally unseen.
+
+The [primary M7 analysis](docs/stability.md) now reads saved authenticated M6
+exports and produces year, instrument, causal-condition and holding-time
+attribution, winner concentration and paired six-endpoint uncertainty plots.
+The fourteen secondary cases and risk-matched ledgers remain open. Development
+bounds do not authorize advancement, and stopped account tails remain unavailable.
 
 ## Current extension results
 
@@ -39,7 +45,7 @@ All case summaries, denominators and primary results are retained in the linked
 acceptance records and curated CSV tables.
 
 The runtime's accounting and recovery conclusions are separate from economic
-benefit. M7 will assess sensitivity, exposure, concentration and uncertainty on
+benefit. M7 assesses sensitivity, exposure, concentration and uncertainty on
 the evidence actually available; completed engineering checks do not advance a
 failed strategy screen.
 

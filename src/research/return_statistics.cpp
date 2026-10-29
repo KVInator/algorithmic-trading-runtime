@@ -123,11 +123,20 @@ MovingBlockIndexSampler::MovingBlockIndexSampler(
 std::vector<std::size_t> MovingBlockIndexSampler::next() {
     std::vector<std::size_t> result;
     result.reserve(sample_size_);
-    while (result.size() < sample_size_) {
+    for (const auto& [start, length] : next_blocks()) {
+        for (std::size_t offset = 0; offset < length; ++offset) { result.push_back(start + offset); }
+    }
+    return result;
+}
+
+std::vector<std::pair<std::size_t, std::size_t>> MovingBlockIndexSampler::next_blocks() {
+    std::vector<std::pair<std::size_t, std::size_t>> result;
+    std::size_t count = 0;
+    while (count < sample_size_) {
         const auto start = uniform_start(engine_, sample_size_ - block_length_ + 1);
-        for (std::size_t offset = 0; offset < block_length_ && result.size() < sample_size_; ++offset) {
-            result.push_back(start + offset);
-        }
+        const auto length = std::min(block_length_, sample_size_ - count);
+        result.emplace_back(start, length);
+        count += length;
     }
     return result;
 }

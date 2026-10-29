@@ -6,6 +6,7 @@
 #include <random>
 #include <span>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace trading {
@@ -86,6 +87,7 @@ class MovingBlockIndexSampler {
 public:
     MovingBlockIndexSampler(std::size_t sample_size, std::size_t block_length, std::uint64_t seed);
     [[nodiscard]] std::vector<std::size_t> next();
+    [[nodiscard]] std::vector<std::pair<std::size_t, std::size_t>> next_blocks();
 private:
     std::size_t sample_size_;
     std::size_t block_length_;

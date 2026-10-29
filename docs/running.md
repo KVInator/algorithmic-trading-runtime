@@ -108,6 +108,7 @@ these checks are explicit local commands.
 | `quote_reference_development` | M6 cached quote crossing-cost comparisons; `--check` uses synthetic quotes, otherwise requires a saved acquisition summary and its raw archive |
 | `cost_delay_development` | M6 frozen-decision cost/delay evaluation; `--check` uses constructed observations, default uses the accepted pre-2024 panel |
 | `cost_execution_study` | M6 registered 680-case synthetic broker/client execution study; no credentials or market dataset |
+| `stability_development` | M7 primary diagnostics and paired full-calendar uncertainty from saved M6 exports; `--check` constructs its own inputs |
 | `panel_account_development` | M6 continuously funded risk and shared-capital accounts; `--check` is constructed, default requires the registered pre-2024 panel |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
 | `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
@@ -706,3 +707,49 @@ For the retained-console Visual Studio setup, keep the existing Command and
 Working Directory and use arguments
 `/d /s /k ""$(OutDir)panel_account_development.exe" --check"` for constructed
 checks, or `/d /s /k ""$(OutDir)panel_account_development.exe""` for history.
+
+## Primary stability and uncertainty (M7)
+
+This stage reads saved M6 exports. It does not replay historical strategies,
+request market data, use credentials or open 2024–2025 strategy inputs. Build and
+check it first:
+
+```powershell
+& {
+    git pull
+    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
+    py -3 -B build.py --configuration Release --target stability_development
+    if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+    & .\scratch\native\Release\stability_development.exe --check
+    if ($LASTEXITCODE -ne 0) { throw "Constructed analysis failed" }
+    py -3 -B research/verify_stability.py scratch/runs/stability_check_0 --self-check
+    if ($LASTEXITCODE -ne 0) { throw "Constructed verification failed" }
+}
+```
+
+Use the directory actually printed by the application if `_0` already exists.
+The constructed run creates both source exports inside its own directory. Its
+short development window intentionally fails the historical coverage requirement;
+the separate numerical fixtures exercise longer joint inference.
+
+After the constructed check succeeds, use the accepted saved historical M6
+outputs. Substitute their actual directories if different:
+
+```powershell
+& {
+    & .\scratch\native\Release\stability_development.exe scratch/runs/cost_delay_0 scratch/runs/panel_accounts_1
+    if ($LASTEXITCODE -ne 0) { throw "Saved-export analysis failed" }
+    py -3 -B research/verify_stability.py scratch/runs/stability_0 --self-check
+    if ($LASTEXITCODE -ne 0) { throw "Saved-export verification failed" }
+}
+```
+
+The independent verifier prints progress for source authentication and each joint
+block length. It may take longer than the native analysis because it recomputes
+10,000 draws with the standard library. Open the printed `report.html`; share
+`review.zip` after verification. A downloaded derived bundle can be checked with
+`--review-only`; that mode explicitly skips reopening original M6 records.
+
+The [method note](stability.md) describes units, masks and limitations. Secondary
+variants, risk-matched replay and later controlled inference validation remain
+open; an adequate-looking primary bound alone is not an advancement decision.

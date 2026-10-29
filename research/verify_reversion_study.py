@@ -11,47 +11,17 @@ import sys
 from zoneinfo import ZoneInfo
 
 import numpy as np
+from block_sampling import BlockSampler
 
 
-class SessionSampler:
-    """Independent MT19937-64 and non-circular rejection/modulo block sampling."""
-    mask = (1 << 64) - 1
-
-    def __init__(self, size, block, seed):
-        self.size, self.block = size, block
-        self.state = [seed & self.mask]
-        for i in range(1, 312):
-            x = self.state[-1]
-            self.state.append((6364136223846793005 * (x ^ (x >> 62)) + i) & self.mask)
-        self.position = 312
-
-    def integer(self):
-        if self.position == 312:
-            for i in range(312):
-                x = (self.state[i] & 0xFFFFFFFF80000000) | (self.state[(i+1) % 312] & 0x7FFFFFFF)
-                self.state[i] = self.state[(i+156) % 312] ^ (x >> 1) ^ (0xB5026F5AA96619E9 if x & 1 else 0)
-            self.position = 0
-        x = self.state[self.position]
-        self.position += 1
-        x ^= (x >> 29) & 0x5555555555555555
-        x ^= (x << 17) & 0x71D67FFFEDA60000
-        x ^= (x << 37) & 0xFFF7EEE000000000
-        return (x ^ (x >> 43)) & self.mask
+class SessionSampler(BlockSampler):
+    """NumPy multiplicities for the registered historical reversion oracle."""
 
     def weights(self, replicates):
         result = np.zeros((replicates, self.size))
-        bound = self.size-self.block+1
-        threshold = ((1 << 64)-bound) % bound
         for row in result:
-            count = 0
-            while count < self.size:
-                value = self.integer()
-                while value < threshold:
-                    value = self.integer()
-                start = value % bound
-                length = min(self.block, self.size-count)
+            for start, length in self.blocks():
                 row[start:start+length] += 1
-                count += length
         return result
 
 

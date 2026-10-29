@@ -103,7 +103,7 @@ estimates remain distinct from candidate profitability and statistical
 superiority. The [quote-reference comparison](../docs/cost_execution.md#windows-quote-reference-acceptance)
 passed Windows raw-archive verification and separate uploaded-artifact review.
 Continuous/shared accounts have the separate accepted evaluator below;
-M7 stability comparisons remain open. The v1 results retain their
+M7 primary stability diagnostics are implemented; secondary comparisons and risk-matched ledgers remain open. The v1 results retain their
 original sample and identities.
 
 `verify_cost_execution.py` independently rebuilds all 680 registered synthetic
@@ -144,3 +144,12 @@ research and literature exposure. Local 2024-2025 strategy prices and candidate
 performance remain unopened. Failed gates authorize neither a new search nor
 later-period access. Full historical reproduction requires the retained
 acquisition and corporate-action evidence described in the [runbook](../docs/running.md).
+
+`verify_stability.py` is the standard-library oracle for primary saved-export
+stability analysis. It authenticates the original M6 records when available and
+independently recomputes causal conditions, pooling, concentration and all four
+10,000-draw block analyses, including fixed original-sample HAC studentizers and
+the six-endpoint max-T family. Static report marks are checked against those
+results. Its shared `block_sampling.py` primitive also supplies the existing
+reversion oracle; production calculation remains C++. See
+[stability methods](../docs/stability.md) and [commands](../docs/running.md#primary-stability-and-uncertainty-m7).
