@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import re
 import shutil
 import subprocess
@@ -205,6 +205,110 @@ class JsonDependency:
 
 
 class NativeCompiler:
+    @staticmethod
+    def msvc_x64_environment(
+        environment: dict[str, str],
+    ) -> tuple[Path, dict[str, str]]:
+        def compatible(executable, values):
+            return (
+                executable
+                and PureWindowsPath(executable).parent.name.lower() == "x64"
+                and PureWindowsPath(executable).parent.parent.name.lower() == "hostx64"
+                and values.get("VSCMD_ARG_TGT_ARCH", "").lower() == "x64"
+                and values.get("INCLUDE")
+                and values.get("LIB")
+            )
+
+        executable = shutil.which("cl.exe", path=environment.get("PATH", ""))
+        if compatible(executable, environment):
+            return Path(executable), environment
+        program_files = Path(
+            environment.get("PROGRAMFILES(X86)", r"C:\Program Files (x86)")
+        )
+        finder = program_files / "Microsoft Visual Studio/Installer/vswhere.exe"
+        if not finder.is_file():
+            raise BuildError("Visual Studio x64 C++ tools and vswhere.exe are required")
+        install = subprocess.check_output(
+            [
+                str(finder),
+                "-latest",
+                "-products",
+                "*",
+                "-requires",
+                "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+                "-property",
+                "installationPath",
+            ],
+            text=True,
+        ).strip()
+        setup = Path(install) / "VC/Auxiliary/Build/vcvars64.bat"
+        if not install or not setup.is_file():
+            raise BuildError("MSVC x64 environment script is missing")
+        # Start a child environment without inherited x86 compiler/SDK state.
+        # The calling PowerShell/Visual Studio environment remains unchanged.
+        system_keys = {
+            "SYSTEMROOT",
+            "SYSTEMDRIVE",
+            "WINDIR",
+            "COMSPEC",
+            "TEMP",
+            "TMP",
+            "USERPROFILE",
+            "USERNAME",
+            "USERDOMAIN",
+            "APPDATA",
+            "LOCALAPPDATA",
+            "ALLUSERSPROFILE",
+            "PROGRAMDATA",
+            "PROGRAMFILES",
+            "PROGRAMFILES(X86)",
+            "PROGRAMW6432",
+            "PATHEXT",
+            "OS",
+            "NUMBER_OF_PROCESSORS",
+            "PROCESSOR_ARCHITECTURE",
+            "PROCESSOR_ARCHITEW6432",
+        }
+        bootstrap = {
+            key: value for key, value in environment.items() if key in system_keys
+        }
+        if not bootstrap.get("SYSTEMROOT"):
+            raise BuildError(
+                "Windows SYSTEMROOT is required to initialize the x64 toolchain"
+            )
+        system = Path(bootstrap["SYSTEMROOT"])
+        bootstrap["PATH"] = ";".join(
+            str(p)
+            for p in (
+                system / "System32",
+                system,
+                system / "System32/Wbem",
+                system / "System32/WindowsPowerShell/v1.0",
+            )
+        )
+        shell = bootstrap.get("COMSPEC", str(system / "System32/cmd.exe"))
+        result = subprocess.run(
+            [shell, "/d", "/s", "/c", f'call "{setup}" >nul && set'],
+            env=bootstrap,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode:
+            raise BuildError(
+                "MSVC x64 initialization failed:\n" + result.stdout + result.stderr
+            )
+        configured = {}
+        for line in result.stdout.splitlines():
+            key, separator, value = line.partition("=")
+            if separator and key:
+                configured[key.upper()] = value
+        executable = shutil.which("cl.exe", path=configured.get("PATH", ""))
+        if not compatible(executable, configured):
+            raise BuildError(
+                "MSVC initialization did not select Hostx64/x64 with matching headers and libraries"
+            )
+        return Path(executable), configured
+
     def __init__(
         self,
         executable: Path,
@@ -264,40 +368,7 @@ class NativeCompiler:
             key.upper() if windows else key: value for key, value in os.environ.items()
         }
         if windows:
-            if not shutil.which("cl.exe"):
-                program_files = Path(
-                    environment.get("PROGRAMFILES(X86)", r"C:\Program Files (x86)")
-                )
-                finder = program_files / "Microsoft Visual Studio/Installer/vswhere.exe"
-                if not finder.is_file():
-                    raise BuildError("Visual Studio C++ tools are required")
-                install = subprocess.check_output(
-                    [
-                        str(finder),
-                        "-latest",
-                        "-products",
-                        "*",
-                        "-requires",
-                        "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
-                        "-property",
-                        "installationPath",
-                    ],
-                    text=True,
-                ).strip()
-                setup = Path(install) / "VC/Auxiliary/Build/vcvars64.bat"
-                if not setup.is_file():
-                    raise BuildError("MSVC x64 environment script is missing")
-                result = subprocess.run(
-                    ["cmd.exe", "/d", "/s", "/c", f'call "{setup}" >nul && set'],
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                )
-                for line in result.stdout.splitlines():
-                    key, separator, value = line.partition("=")
-                    if separator and key:
-                        environment[key.upper()] = value
-            executable = shutil.which("cl.exe", path=environment.get("PATH"))
+            executable, environment = cls.msvc_x64_environment(environment)
         elif sys.platform.startswith("linux"):
             executable = shutil.which(environment.get("CXX", "g++"))
         else:
@@ -478,8 +549,9 @@ class ApplicationBuild:
             self.header_identity = self.header_identity.digest()
             core = self.sources.core(self.compiler.windows)
             units = core + list(selected.values())
+            architecture = " | x64" if self.compiler.windows else ""
             print(
-                f"{self.compiler.identity} | {self.configuration} | {len(selected)} applications",
+                f"{self.compiler.identity}{architecture} | {self.configuration} | {len(selected)} applications",
                 flush=True,
             )
             objects = {}

@@ -44,6 +44,15 @@ For a terminal build, the driver discovers the installed x64 MSVC toolchain:
 py -3 build.py --configuration Release --target project_demo --run
 ```
 
+Windows builds require the native Hostx64/x64 MSVC toolchain. The driver reuses
+an initialized x64 environment or loads the installed `vcvars64.bat` in a clean
+child environment when the current shell exposes x86 tools. The build banner
+includes `x64`. Compiler-path and environment fingerprints invalidate incompatible
+cached objects automatically; datasets and earlier reports do not need deletion.
+`py -3 -B research/verify_native_build.py` exercises discovery with simulated
+Windows environments, including inherited x86 tools and failed initialization;
+it does not execute MSVC.
+
 ## Linux
 
 Requirements: Python 3.10+, GCC/Clang with C++20, `ar` and OpenSSL development
@@ -631,6 +640,12 @@ one target with the existing Python compiler driver:
 ```powershell
 py -3 -B build.py --configuration Release --target panel_account_development
 ```
+
+The executable is created by a successful build. Its `panel_accounts_<suffix>`
+run directory is created only when the executable runs; it is not an input folder
+supplied by Git. If the build fails, stop before running the executable or its
+verifier. Artifact hashing uses bounded chunks and a `uintmax_t` file-size limit,
+so the declared 8 GiB ledger cap is not narrowed to a 32-bit allocation size.
 
 First run the constructed calendar and the independent financial/report check:
 
