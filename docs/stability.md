@@ -155,8 +155,65 @@ Six malformed-source cases were rejected without modifying their inputs. The
 existing five cost/delay artifacts and seven continuous-account artifacts remained
 byte-identical; their independent checks, the panel replay and the 259-check
 offline demonstration also passed. Static report pages were rendered and reviewed.
-Windows build acceptance and the full historical M7 run remain pending; these
-synthetic checks are not historical strategy findings or inference calibration.
+The Windows development run and independent derived-bundle review are accepted
+below. The constructed checks remain separate from historical findings and
+controlled inference calibration.
+
+## Windows development acceptance
+
+The 29 October 2026 MSVC 19.51.36260 x64 Release run `stability_1` completed
+77 primary series on 1,760 development dates, with 1,106 descriptive groups and
+six registered endpoints. The Windows verifier authenticated both saved M6
+sources and reproduced all four 10,000-draw block analyses. The source summaries
+match the accepted M6 cost/delay and continuous-account identities. The uploaded
+derived bundle independently passed `--review-only --self-check`, including
+causal labels, pooling, concentration, inference and static plot checks; all eight
+rendered report pages were inspected. That local review did not reopen the
+Windows M6 files or reauthenticate the provider archive.
+
+Accepted `summary.json` SHA-256:
+`b1664fb97d8f541bfb8395eb6b58c00d40e1438d178ae367ec231e1d9fe75874`.
+
+The [endpoint table](evidence/m7_stability_endpoints.csv) retains all 24
+endpoint/block rows in their original numerical units. The [primary descriptive
+table](evidence/m7_stability_primary.csv) retains the twelve equal-weight research
+indices and five shared accounts, including concentration diagnostics. Every row
+references the accepted summary identity. Reproduce the source exports with the
+[runbook](running.md#primary-stability-and-uncertainty-m7), then use the verifier
+before comparing these tables.
+
+The primary simultaneous block is 40; block 20 is the registered sensitivity.
+Both numerical families are available, with no undefined resamples, but the
+complete family's calendar coverage is inadequate. The following are provisional
+development bounds, pending controlled calibration and risk matching:
+
+| Endpoint | Valid dates / 1,760 | Observed increment | Block-40 simultaneous lower bound | Material increment |
+| --- | --- | --- | --- | --- |
+| Momentum minus same-window always-long | 1,682 | +1.368720 bp/day | +0.569945 bp/day | +0.5 bp/day |
+| Volume continuation minus price-only | 1,682 | +0.241233 bp/day | -0.287867 bp/day | +0.5 bp/day |
+| Reversion minus sign-only | 1,682 | +0.616468 bp/day | +0.225313 bp/day | +0.5 bp/day |
+| Reversion minus drift | 1,682 | +0.003075 bp/day | -0.301498 bp/day | +0.5 bp/day |
+| Intraday-risk minus daily-only annual CER | 655 | +0.364677 percentage points/year | -0.211072 percentage points/year | +0.5 percentage points/year |
+| Control-minus-candidate QLIKE | 479 | +0.023751 loss units | +0.000465 loss units | +0.01 loss units |
+
+Only momentum's numerical lower bound clears its material increment for both
+simultaneous blocks. This is a relative comparison: the momentum research index's
+own mean is **-1.062061 bp/day**, versus **-2.430781 bp/day** for its always-long
+control. Its mean is negative in every development year. Mean session-time
+exposure also differs, so the pending risk-matched replay remains necessary.
+These results do not establish profitable performance or authorize advancement.
+
+The volume-continuation research index has a positive mean of +0.277001 bp/day,
+but zeroing its five largest winning-date contributions reduces that mean to
+-0.309719 bp/day. This is arithmetic concentration attribution, not a funded
+counterfactual replay. The shared candidate has only 65 observed dates; it does
+not supply a seven-year portfolio outcome. The risk CER and QLIKE endpoints have
+37.22% and 27.22% calendar coverage, respectively, below the registered 80%
+requirement. Stopped tails remain unavailable.
+
+No 2024 or 2025 strategy inputs were opened. Fourteen secondary cases,
+risk-matched ledgers and later controlled inference calibration remain open.
+The primary diagnostic checkpoint is accepted; M7 is not complete.
 
 ## Remaining M7 work
 

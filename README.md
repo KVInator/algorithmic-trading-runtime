@@ -16,9 +16,10 @@ strategy inputs remain unopened. Prior research exposure is recorded in the
 [roadmap](docs/extension_plan.md#research-exposure-and-evaluation-roles);
 the reserved panel is not claimed to be globally unseen.
 
-The [primary M7 analysis](docs/stability.md) now reads saved authenticated M6
-exports and produces year, instrument, causal-condition and holding-time
-attribution, winner concentration and paired six-endpoint uncertainty plots.
+The accepted [primary M7 analysis](docs/stability.md#windows-development-acceptance)
+covers 77 series and 1,760 development dates, with year, instrument, causal-condition
+and holding-time attribution, winner concentration and paired six-endpoint
+uncertainty plots.
 The fourteen secondary cases and risk-matched ledgers remain open. Development
 bounds do not authorize advancement, and stopped account tails remain unavailable.
 
@@ -34,6 +35,7 @@ bounds do not authorize advancement, and stopped account tails remain unavailabl
 | [Quote references](docs/cost_execution.md#windows-quote-reference-acceptance) | 910 fixed windows; 232 eligible, all in 2022-2023 | Earlier sampled spread evidence remains unestimated; quotes do not calibrate all-in execution costs |
 | [Synthetic execution](docs/cost_execution.md#windows-synthetic-execution-acceptance) | 680 cases, 510 matched contrasts and exact terminal reconciliation | Model-based execution sensitivity, not empirical fill probabilities or latency |
 | [Continuous accounts](docs/cost_execution.md#windows-account-acceptance) | 200 risk and 50 shared accounts; 190 contrasts, with stops retained | 162,040 of 352,000 risk records and 2,750 of 88,000 shared days have observed returns |
+| [Primary stability](docs/stability.md#windows-development-acceptance) | 77 series, 1,106 descriptive groups and six endpoints; Windows and derived-bundle verification passed | Momentum clears a provisional relative material bound while its own net mean remains negative; the risk endpoints lack adequate coverage. Sensitivity and risk matching remain open |
 
 The continuous-account limitation is material. Shared paths stop after **65
 sessions at one-minute delay** or **45 at two minutes** when a required raw
