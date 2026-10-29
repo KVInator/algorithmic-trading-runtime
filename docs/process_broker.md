@@ -195,5 +195,6 @@ independently established Git commit. The ZIP contains the summary and all 32
 manifested synthetic artifacts, including retained rejected files. The review
 therefore requires no private market archive. Network requests and external
 broker observations were zero; no historical strategy was scored and no
-reserved 2024-2025 strategy input was opened. M5 is complete. M6 next extends
-the cost/execution research and daily-risk accounts under the registered design.
+reserved 2024-2025 strategy input was opened. M5 is complete. The subsequent
+[M6 acceptance](cost_execution.md#windows-account-acceptance) records cost,
+execution and daily-risk findings with their economic coverage limits.

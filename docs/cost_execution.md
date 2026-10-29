@@ -1,13 +1,15 @@
 # Cost and execution research
 
-M6 is in progress. Historical quote acquisition and cached diagnosis are accepted.
+M6 is complete as a development and synthetic evidence package. Historical quote
+acquisition and cached diagnosis are accepted.
 The cached quote-reference comparison has passed Windows verification and
 independent review of the uploaded sample, costs and report.
 Windows historical cost/delay evaluation is accepted as a development comparison.
 The 680-case synthetic execution evaluator has passed Windows Release acceptance
 and full-bundle independent review. Continuous risk and shared-capital accounts
-are implemented and locally verified; Windows historical acceptance remains open. The v1
-findings and M2-M5 evidence retain their identities.
+passed Windows verification and uploaded-output review, with the stopped paths
+reported in the [account acceptance record](#windows-account-acceptance).
+The v1 findings and M2-M5 evidence retain their identities.
 
 ## Registered comparisons
 
@@ -625,8 +627,8 @@ acquisition or change to the primary strategy results follows from this diagnosi
 The [runbook](running.md#cost-and-execution-inputs-m6) gives the Windows commands.
 The provider sampler uses only the existing historical-data credential route.
 The M6 input checkpoint is accepted with the recorded coverage limitation.
-Continuous daily-risk and shared-capital economic integration are implemented
-below; Windows historical acceptance remains open. M7 adds stability,
+Continuous daily-risk and shared-capital economic integration are accepted
+below with their observed-prefix limits. M7 adds stability,
 concentration, risk matching and uncertainty; M8-M9 evaluate the reserved periods;
 M10 consolidates publication and release.
 
@@ -789,8 +791,8 @@ The [runbook](running.md#continuous-risk-and-shared-capital-evaluation-m6) gives
 Windows acceptance commands. Historical verification requires the retained
 registered panel; provider review bundles omit raw prices and daily transcripts.
 The v1 findings and accepted M2-M6 input/results identities remain unchanged.
-M6 acceptance remains open until the Windows historical account run is verified
-and reviewed. Stability, concentration, predefined risk matching and uncertainty
+Windows historical verification and compact review are recorded below.
+Stability, concentration, predefined risk matching and uncertainty
 remain M7; validation, final evaluation and publication remain M8-M10.
 
 Local regression review also passed 190 shared-capital checks in sixteen cases
@@ -802,3 +804,117 @@ fractional-account units instrumented. Other library units were not instrumented
 LeakSanitizer was disabled because tracing prevents it in this environment.
 The static HTML was rendered and inspected, including equity axes and complete
 account tables. The retained v1 publication hashes, figures and local links pass.
+
+### Windows account acceptance
+
+Windows Release execution and the full independent verifier completed on
+29 October 2026 with MSVC 19.51.36260. The historical replay contains 2,012
+calendar dates, including 252 initialization sessions and 1,760 development
+sessions from 3 January 2017 through 29 December 2023. It emits **352,000 risk
+records and 88,000 shared account days** across the registered 200 and 50 cases.
+These counts include unavailable outcomes after a stop: only 162,040 risk
+records and 2,750 shared account days have observed returns. Network requests
+were zero and reserved 2024/2025 strategy inputs remained unopened.
+
+The producing machine's verifier authenticated retained source observations,
+causal histories, risk estimates and the full daily ledgers. Decimal fractional
+accounting and integer shared ownership/admission reconstruction passed, as did
+all twelve semantic corruption checks. The complete constructed Windows bundle
+also passed the full verifier during independent review; its financial summaries
+and forecasts agree with the GNU reference within existing tolerances.
+
+Historical compact review authenticated the saved native plan, report hash and
+separately supplied summary/report against their ZIP members. It reconstructed
+all 250 reported equity-prefix means, CERs and drawdowns, all 190 paired contrasts,
+25 plotted curves and 279 displayed table rows. The report was rendered to
+seventeen pages and visually inspected. Raw provider prices and six daily
+transcripts remain on the producing machine and were not reauthenticated during
+compact review. The summary binds the producer's reported artifact identities.
+
+#### Observed account coverage
+
+Every cost case retains the same stopping rule. No stopped path restarts,
+bridges a missing mark or becomes an observed cash return on subsequent dates.
+The first observed cash session is included in the risk-prefix counts.
+
+| Accounts | Cases | Observed sessions per case | Last observed close | First unavailable date and cause |
+| --- | ---: | ---: | --- | --- |
+| All four risk accounts on SPY, IWM and GLD | 120 | 655 | 2019-08-09 | 2019-08-12: required closing mark unavailable |
+| Intraday, daily-only and static-risk accounts on QQQ and TLT | 60 | 804 | 2020-03-13 | 2020-03-16: delayed execution open unavailable |
+| Passive QQQ and TLT | 20 | 1,760 | 2023-12-29 | None; terminal liquidation reached |
+| All five shared variants, one-minute delay | 25 | 65 | 2017-04-05 | 2017-04-06: required shared execution quote unavailable |
+| All five shared variants, two-minute delay | 25 | 45 | 2017-03-08 | 2017-03-09: required shared execution quote unavailable |
+
+The missing shared reference is the required raw minute-open input to the
+constructed bid/ask, not a failure to acquire a live quote or a subscription
+restriction. Each scheduled batch needs all five instruments for aggregate
+marking and admission. These early stops therefore prevent a seven-year
+shared-capital performance conclusion. The eligible-date cost/delay experiment
+uses a different denominator and does not repair these continuous accounts.
+
+#### Primary development results
+
+At one-minute delay and one basis point per side, intraday-risk versus daily-only
+comparisons use the same observed prefix within each instrument. Annual CER
+increments are percentage points per year under the stated mean-variance
+definition, not compounded annual growth rates.
+
+| Instrument | Common sessions | Intraday-risk last observed equity USD | Intraday-risk prefix drawdown % | CER increment over daily-only pp/year |
+| --- | ---: | ---: | ---: | ---: |
+| SPY | 655 | 128,215.87 | 12.2495 | +0.1998 |
+| QQQ | 804 | 159,293.81 | 11.4156 | +1.4064 |
+| IWM | 655 | 106,251.92 | 16.9402 | -0.2886 |
+| TLT | 804 | 141,659.66 | 10.8448 | -0.1313 |
+| GLD | 655 | 124,445.46 | 13.4738 | +0.0925 |
+
+The primary shared candidate's last observed equity is USD 100,072.60 after
+65 sessions, with a 0.2425% prefix drawdown and USD 456.03 in reached crossing
+charges. Candidate-minus-control mean increments are -0.0439 bp/day versus the
+momentum replacement, +0.1880 versus price-only continuation, +0.2817 versus
+sign-only reversion and +0.2648 versus drift reversion. They describe only that
+short common prefix. The two-minute candidate has 45 observed sessions and last
+observed equity of USD 99,893.13, so delay comparisons also have unequal coverage.
+
+Holding-risk forecast measurements continue separately after account stops.
+At one-minute delay, all five mean control-minus-intraday QLIKE differences are
+positive, with unequal outcome availability:
+
+| Instrument | RV5 outcomes | Common QLIKE dates | Mean control-minus-intraday QLIKE |
+| --- | ---: | ---: | ---: |
+| SPY | 1,751 | 1,462 | +0.021243 |
+| QQQ | 1,754 | 1,730 | +0.037817 |
+| IWM | 1,751 | 1,462 | +0.011896 |
+| TLT | 1,600 | 877 | +0.033708 |
+| GLD | 1,696 | 817 | +0.042884 |
+
+These are development point estimates with different exposure and observation
+prefixes. They establish neither uniform benefit nor statistical superiority.
+No risk-matched or uncertainty result is implied. M7 must preserve unavailable
+comparisons and report each actual denominator; completion of M6 does not turn
+stopped paths into full-horizon results or authorize reserved-year access.
+
+The curated [250-case summary](evidence/m6_panel_accounts_series.csv) and
+[190 paired contrasts](evidence/m6_panel_accounts_paired.csv) are direct
+projections of the accepted historical summary. `layer` distinguishes fractional
+risk from whole-share shared accounts. Return, CER, exposure and drawdown fields
+are fractions; `cost_bps` is the per-side charge in basis points. Equity, traded
+notional and paid-cost fields are USD. `last_observed_date` and `stopped`
+distinguish the final complete close from the first unavailable date. Costs and turnover include
+reached activity on that stopping date. No raw prices or daily transcripts are
+distributed in these tables.
+
+| Accepted account record | SHA-256 |
+| --- | --- |
+| Historical Windows summary | `592c8ab3a99afd2d8adc59d8b7c504d95d5609d0962224e5acce494f1c4993bc` |
+| Historical HTML report | `2128c09f6a7ca2f551c53b426201ba759351ce28c898d7e54225392c53c72a77` |
+| Historical review ZIP | `863417257ae469f382023104c396b58e0f08843f1fbbfbef51df9d3a534680a6` |
+| Saved plan file | `be75730ffc8bb8723abb3ea19266e7a2693c67e1c6ef8b5388250559405124eb` |
+| Compact native plan identity | `8f7382e7cce46af6f328b5e267e64784d2ab91a75b3957343677ee450dcbb4b6` |
+| Producer daily account transcript | `283babc25e25d3840002a361d54f7a8ed5c81666175c8c7163c646a3e4078743` |
+| Complete constructed Windows review ZIP | `0fad28890145465d4a74cb9808c6cef37d973116e142f8f29f738831dd1a4998` |
+| Reported native source inventory | `1d876707890c1f60a245d17609c4cf2c8cf031c7fedc76e607f1ea973ad89553` |
+
+The source inventory identifies producer-file bytes, not an independently
+established Git commit. The original uploads are preserved. M6 acceptance is
+complete with these coverage qualifications; v1 findings and frozen inputs are
+unchanged. M7-M10 remain open.

@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 29 October 2026: **M0-M5 complete; M6 in progress; M7-M10 not started.**
+Status recorded 29 October 2026: **M0-M6 complete; M7-M10 not started.**
 This is the implementation record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -167,17 +167,17 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
-| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: quote-reference, historical cost/delay and 680-case synthetic execution studies accepted on Windows; 200 risk and 50 shared accounts implemented and locally verified, pending Windows historical acceptance |
+| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Complete with coverage qualifications: quote-reference, historical cost/delay, 680 synthetic execution cases, 200 risk and 50 shared accounts accepted; stopped economic paths remain unavailable |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
 
 The initial planning range was 228-368 focused hours plus unattended work;
-it is not a measured completion-time forecast. Six of eleven accepted
-milestones describes completed work packages, not a fraction of engineering
-effort. M1 required no paid access; M2 registered the full-panel coverage,
-gap masks and action reconciliation. The remaining scope is M6-M10.
+it is not a measured completion-time forecast. Seven completed milestones count
+work packages, not a fraction of engineering effort. M1 required no paid access;
+M2 registered the full-panel coverage,
+gap masks and action reconciliation. The remaining scope is M7-M10.
 
 ## Build and verification record
 
@@ -777,9 +777,9 @@ damaged tails. The process report replays saved broker and client ledgers.
 
 Windows Release acceptance and independent review completed on 28 October 2026.
 The [acceptance record](process_broker.md#windows-acceptance) binds the uploaded
-ZIP, manifest, calls and report to their reviewed hashes. M0-M5 are complete.
-M6 next extends cost/execution and daily-risk
-accounts, M7 stability/risk matching/uncertainty, M8-M9 the registered reserved
+ZIP, manifest, calls and report to their reviewed hashes. M6's cost/execution and
+daily-risk account acceptance is recorded below. M7 adds stability, risk matching
+and uncertainty, M8-M9 the registered reserved
 periods, and M10 publication. Existing research outcomes, acquisition inputs
 and reserved-year boundaries remain unchanged.
 
@@ -833,12 +833,13 @@ pairs, 232 eligible quotes and 108 pairs eligible at both delays. Raw source
 verification passed on the producer machine; uploaded sample identity, all
 derived costs and plot coordinates were checked separately. Eligibility and
 the primary cost assumptions remain unchanged. Continuous daily-risk accounts
-and shared-account economic integration are now implemented; Windows historical
-acceptance remains open.
+and shared-account economic integration passed Windows historical verification
+and uploaded-output review as recorded below.
 The three unavailable 2019 closes cannot be repaired by resetting capital:
 an affected continuous account stops at its first required missing endpoint.
 Recovering forecast history does not restore that account. Coverage and
-unavailable comparisons will be retained. M6 remains open; M7-M10 follow it.
+unavailable comparisons are retained. M6 is complete with these coverage
+qualifications; M7-M10 remain open.
 
 ### Continuous risk and shared-capital implementation
 
@@ -857,8 +858,23 @@ all 190 contrasts, 25 plotted paths and 279 displayed table rows. Twelve semanti
 mutations are rejected without relying on hashes. The integration also retains
 a budget-limited pending order whose quantity moves toward the unchanged target;
 a focused shared-capital acknowledgment/fill regression covers that condition.
-Windows historical execution and uploaded-output review remain open. The
-[runbook](running.md#continuous-risk-and-shared-capital-evaluation-m6) gives the
-single-target build and both acceptance runs. No historical account performance
-or M6 completion is claimed from the constructed fixture. The reserved strategy
-boundaries remain unchanged; M7-M10 follow M6 acceptance.
+Windows Release and full independent verification completed on 29 October 2026:
+352,000 risk records and 88,000 shared account days, including unavailable
+post-stop outcomes. Uploaded-artifact review checked all 250 reported prefixes,
+190 contrasts, 25 curves and 279 table rows; the complete constructed bundle
+passed independent source and ledger reconstruction. Provider raw data and daily
+transcripts were authenticated on the producing machine and remain local.
+
+The [account acceptance record](cost_execution.md#windows-account-acceptance)
+retains the measured coverage: 162,040 observed risk returns and 2,750 shared
+account returns. All shared variants stop after 65 sessions at one-minute delay
+or 45 at two minutes. All active risk accounts also stop; only passive QQQ and
+TLT reach the final development close. These findings limit economic conclusions
+without changing the registered missing-price rule. M7 must retain each
+comparison's actual coverage and unavailable outcomes.
+
+The [runbook](running.md#continuous-risk-and-shared-capital-evaluation-m6) retains
+the single-target build and both acceptance runs. M6 is complete; stability,
+concentration, predefined risk matching and uncertainty are M7. Validation,
+final evaluation and publication remain M8-M10. Reserved strategy boundaries
+and all earlier research findings are unchanged.

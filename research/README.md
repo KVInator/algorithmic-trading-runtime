@@ -93,8 +93,8 @@ the producing machine and separate compact review. Positive paired point
 estimates remain distinct from candidate profitability and statistical
 superiority. The [quote-reference comparison](../docs/cost_execution.md#windows-quote-reference-acceptance)
 passed Windows raw-archive verification and separate uploaded-artifact review.
-Continuous/shared accounts have the separate evaluator below; Windows historical
-acceptance and M7 stability comparisons remain open. The v1 results retain their
+Continuous/shared accounts have the separate accepted evaluator below;
+M7 stability comparisons remain open. The v1 results retain their
 original sample and identities.
 
 `verify_cost_execution.py` independently rebuilds all 680 registered synthetic
@@ -122,7 +122,13 @@ contain summary, report and plan only, with full source authentication performed
 locally against the retained registered panel. No 2024-2025 strategy observations
 are opened by this evaluator. Its [methodology and acceptance scope](../docs/cost_execution.md#continuous-risk-and-shared-capital-accounts)
 keep forecasts, continuously funded accounts and conditional reference returns
-distinct.
+distinct. Windows historical verification and uploaded-output review completed
+on 29 October 2026. Of 352,000 risk records and 88,000 shared account days,
+162,040 and 2,750 respectively have observed returns; the others retain explicit
+unavailability. The [account acceptance record](../docs/cost_execution.md#windows-account-acceptance)
+binds the curated 250-case and 190-contrast tables, stop coverage and primary
+point estimates to their historical summary. M6 is complete with those coverage
+qualifications; no full-horizon shared-capital performance is inferred.
 
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate

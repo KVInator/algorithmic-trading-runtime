@@ -17,7 +17,7 @@ and open it locally. The [v1.0.0 release](https://github.com/KVInator/algorithmi
 contains the report downloads and original Windows benchmark evidence.
 
 The [multi-instrument extension](docs/extension_plan.md) has completed
-**M0-M5: 6 of 11 milestones**. A Windows Release run registered the 2016-2025
+**M0-M6: 7 of 11 milestones**. A Windows Release run registered the 2016-2025
 panel for **SPY, QQQ, IWM, TLT and GLD**, covering 2,514 exchange dates and
 12,570 symbol-days. The original SPY vintage bridge matched all 202,103 retained
 bars across 752 development and calibration windows, with no changed or missing
@@ -46,7 +46,7 @@ through missed responses or client/broker restarts. Windows Release passed
 313 checks in twelve scenario families across twenty-one child processes.
 Independent review verified the broker history, client attribution and peer calls.
 
-**M6 is in progress:** the [cost and execution contract](docs/cost_execution.md)
+**M6 is complete:** the [cost and execution contract](docs/cost_execution.md)
 registers the cost/delay comparisons and 680 synthetic execution cases. Its
 first checkpoint provides a resumable, fully paginated sample of 910 pre-2024
 SIP quote windows selected from input masks. Windows acquisition retained 1,322
@@ -72,11 +72,17 @@ retain the complete tables and review limits. The
 also passed Windows verification: 910 windows, 455 delay pairs and unchanged
 eligibility. The [continuous and shared-account evaluator](docs/cost_execution.md#continuous-risk-and-shared-capital-accounts)
 implements the final two M6 parts: 200 dividend-aware risk accounts and 50
-whole-share shared-capital accounts, with 190 matched contrasts. Its constructed
-calendar and independent financial/report checks pass locally; Windows historical
-execution and review remain the M6 acceptance step. Missing required prices stop
-the affected account without liquidation, reset or restart. Account coverage is
-reported separately from forecast-history recovery.
+whole-share shared-capital accounts, with 190 matched contrasts. Windows Release
+and independent verification passed 352,000 risk records and 88,000 shared account
+days, including explicit unavailable outcomes. Only 162,040 risk records and 2,750
+shared account days have observed returns. Shared paths stop after 65 sessions at
+one-minute delay and 45 at two minutes; required missing prices also stop all
+active risk paths. QQQ and TLT passive accounts reach December 2023. The
+[account acceptance record](docs/cost_execution.md#windows-account-acceptance)
+retains this coverage limit, primary results and all 250 cases. Stopped accounts
+are never liquidated early, reset or restarted; recovered forecast histories
+do not restore their economic paths. M7 will assess stability, concentration,
+risk matching and uncertainty on the available evidence.
 The registered [synthetic execution study](docs/cost_execution.md#registered-synthetic-execution-study)
 now executes all 680 cases through the existing five-symbol broker model and a
 separate client ledger, with 510 matched contrasts, explicit fees and delivery
