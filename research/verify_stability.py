@@ -484,6 +484,59 @@ def empty_observation():
     return dict.fromkeys(FIELDS) | {"condition": "unavailable"}
 
 
+def intraday_observations(record):
+    """Decode primary intraday outcomes against the independent exchange clock."""
+    primary = record["primary"]
+    date = primary["date"]
+    require("2016-01-01" <= date < "2024-01-01", "Intraday input outside development")
+    sessions = PanelVerifier(Path(".")).calendar(date, date)
+    require(len(sessions) == 1, "Intraday input is not an exchange session")
+    observations = {policy: empty_observation() for policy in INTRADAY}
+    if sessions[0]["close"] != "16:00":
+        require(
+            not primary["policies"]
+            and not record["paths"]
+            and not primary["common_operational"]
+            and not primary["availability"]["operational"],
+            "Shortened session contains intraday paths or an operational outcome",
+        )
+        return observations
+    paths = [x for x in record["paths"] if x["delay_minutes"] == 1]
+    require(
+        len(paths) == 8 and {x["policy"] for x in paths} == set(INTRADAY),
+        "M6 primary paths differ",
+    )
+    for path in paths:
+        costs = [c for c in path["costs"] if c["cost_bps"] == 1]
+        require(
+            len(costs) == 1
+            and path["outcome_available"]
+            == (primary["common_operational"] and path["resolved"]),
+            "M6 mask/charge differs",
+        )
+        cost = costs[0]
+        require(
+            (cost["net"] is not None) == path["outcome_available"],
+            "M6 outcome missingness differs",
+        )
+        observations[path["policy"]].update(
+            net=cost["net"],
+            gross=cost["gross"],
+            turnover=cost["traded_notional_per_initial_equity"],
+            cost=cost["cost_per_initial_equity"],
+            holding_minutes=(
+                float(path["minutes_held"]) if path["outcome_available"] else None
+            ),
+            exposure=path["minutes_held"] / 390 if path["outcome_available"] else None,
+            trades=(
+                float(len(path["completed_trades"]))
+                if path["outcome_available"]
+                else None
+            ),
+        )
+    return observations
+
+
 class StabilityVerifier:
     def __init__(self, directory):
         self.directory = Path(directory).resolve()
@@ -609,45 +662,15 @@ class StabilityVerifier:
                 )
                 if p["date"] not in index:
                     continue
-                paths = [x for x in row["paths"] if x["delay_minutes"] == 1]
-                require(
-                    len(paths) == 8 and {x["policy"] for x in paths} == set(INTRADAY),
-                    "M6 primary paths differ",
-                )
-                for path in paths:
-                    c = [c for c in path["costs"] if c["cost_bps"] == 1]
-                    require(
-                        len(c) == 1
-                        and path["outcome_available"]
-                        == (p["common_operational"] and path["resolved"]),
-                        "M6 mask/charge differs",
-                    )
-                    c = c[0]
-                    v = dict(
-                        net=c["net"],
-                        gross=c["gross"],
-                        turnover=c["traded_notional_per_initial_equity"],
-                        cost=c["cost_per_initial_equity"],
-                        holding_minutes=(
-                            float(path["minutes_held"])
-                            if path["outcome_available"]
-                            else None
-                        ),
-                        exposure=(
-                            path["minutes_held"] / 390
-                            if path["outcome_available"]
-                            else None
-                        ),
-                        trades=(
-                            float(len(path["completed_trades"]))
-                            if path["outcome_available"]
-                            else None
-                        ),
-                    )
-                    actual = observed[f"intraday/{symbol}/{path['policy']}"]["days"][
+                for policy, expected in intraday_observations(row).items():
+                    actual = observed[f"intraday/{symbol}/{policy}"]["days"][
                         index[p["date"]]
                     ]
-                    same({key: actual[key] for key in FIELDS}, v, "Intraday extraction")
+                    same(
+                        {key: actual[key] for key in FIELDS},
+                        {key: expected[key] for key in FIELDS},
+                        "Intraday extraction",
+                    )
             require(len(hashes) == len(calendar), "Cost calendar truncated")
             same(logs, self.market["log_returns"][symbol], "Market returns")
             n = 0
@@ -940,6 +963,22 @@ class StabilityVerifier:
                     JointInference(checks["input"]).run(block),
                     f"Numerical fixture {block}",
                 )
+            if "session_calendar_checks" in checks:
+                for case in checks["session_calendar_checks"]:
+                    try:
+                        observations = intraday_observations(case["record"])
+                    except ValueError:
+                        require(
+                            case["accepted"] is False and case["observations"] is None,
+                            "Native and independent session rejection differ",
+                        )
+                    else:
+                        require(case["accepted"] is True, "Valid session was rejected")
+                        same(
+                            case["observations"],
+                            observations,
+                            "Native session calendar conversion",
+                        )
             zero = deepcopy(checks["input"])
             for e in zero:
                 e["days"] = [[0.0, 0.0] for _ in e["days"]]
@@ -1238,6 +1277,27 @@ class StabilityVerifier:
             "Holding boundaries differ",
         )
         checks += 5
+        short = {
+            "primary": {
+                "date": "2017-07-03",
+                "policies": [],
+                "common_operational": False,
+                "availability": {"operational": False},
+            },
+            "paths": [],
+        }
+        values = intraday_observations(short)
+        require(
+            set(values) == set(INTRADAY)
+            and all(all(row[k] is None for k in FIELDS) for row in values.values()),
+            "Shortened session was converted into cash",
+        )
+        regular = deepcopy(short)
+        regular["primary"]["date"] = "2017-07-05"
+        reject(lambda: intraday_observations(regular))
+        short["primary"]["common_operational"] = True
+        reject(lambda: intraday_observations(short))
+        checks += 1
         print(
             f"Numerical/failure checks passed: {checks}; semantic mutations bypass artifact hashes."
         )

@@ -26,6 +26,77 @@ std::string numeric(const Json &value, double scale = 1) {
     out << std::fixed << std::setprecision(4) << value.get<double>() * scale;
     return out.str();
 }
+Json session_calendar_checks() {
+    const auto empty = [](const char *date) {
+        return Json{{"primary",
+                     {{"date", date},
+                      {"policies", Json::array()},
+                      {"common_operational", false},
+                      {"availability", {{"operational", false}}}}},
+                    {"paths", Json::array()}};
+    };
+    const auto short_day = empty("2017-07-03");
+    auto cash = empty("2017-07-05");
+    cash["primary"]["common_operational"] = true;
+    cash["primary"]["availability"]["operational"] = true;
+    for (const auto *policy :
+         {"momentum", "momentum_always_long", "continuation_price", "continuation_volume",
+          "reversion_candidate", "reversion_sign_only", "reversion_drift", "reversion_always_long"}) {
+        cash["primary"]["policies"].push_back({{"policy", policy}});
+        cash["paths"].push_back({{"policy", policy},
+                                 {"delay_minutes", 1},
+                                 {"resolved", true},
+                                 {"outcome_available", true},
+                                 {"minutes_held", 0},
+                                 {"completed_trades", Json::array()},
+                                 {"costs", Json::array({{{"cost_bps", 1},
+                                                         {"net", 0.0},
+                                                         {"gross", 0.0},
+                                                         {"traded_notional_per_initial_equity", 0.0},
+                                                         {"cost_per_initial_equity", 0.0}}})}});
+    }
+    Json cases = Json::array();
+    const auto check = [&](const char *name, const Json &record, bool expected) {
+        Json observations = nullptr;
+        bool accepted = false;
+        try {
+            const auto values = StabilityDataset::intraday_observations(record);
+            observations = Json::object();
+            for (const auto &[policy, value] : values) {
+                observations[policy] = stability_observation_json(value);
+            }
+            accepted = true;
+        } catch (const std::invalid_argument &) {
+        }
+        if (accepted != expected) {
+            throw std::logic_error(std::string{"session calendar check failed: "} + name);
+        }
+        cases.push_back({{"case", name},
+                         {"record", record},
+                         {"accepted", accepted},
+                         {"observations", observations}});
+    };
+    check("independence_day_early_close", short_day, true);
+    check("thanksgiving_early_close", empty("2017-11-24"), true);
+    check("regular_cash_is_observed", cash, true);
+    check("regular_empty_paths_rejected", empty("2017-07-05"), false);
+    auto changed = cash;
+    changed["paths"].erase(0);
+    check("regular_missing_policy_rejected", changed, false);
+    changed = short_day;
+    changed["primary"]["common_operational"] = true;
+    check("short_common_mask_rejected", changed, false);
+    changed = short_day;
+    changed["paths"] = cash.at("paths");
+    check("short_paths_rejected", changed, false);
+    changed = short_day;
+    changed["primary"]["policies"] = cash.at("primary").at("policies");
+    check("short_policies_rejected", changed, false);
+    changed = short_day;
+    changed["primary"]["availability"]["operational"] = true;
+    check("short_operational_rejected", changed, false);
+    return cases;
+}
 class StabilityFigures {
   public:
     explicit StabilityFigures(const Json &summary) : summary_(summary) {}
@@ -315,7 +386,9 @@ std::filesystem::path StabilityReport::write(const std::filesystem::path &direct
     }
     save("inference_inputs.json", Json{{"dates", inputs.dates}, {"endpoints", endpoints}}.dump() + "\n");
     if (include_checks) {
-        save("kernel_checks.json", study.numerical_checks().dump() + "\n");
+        auto checks = study.numerical_checks();
+        checks["session_calendar_checks"] = session_calendar_checks();
+        save("kernel_checks.json", checks.dump() + "\n");
     }
     results.update({{"kind", "stability_primary_diagnostics"},
                     {"schema_version", 1},

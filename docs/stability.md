@@ -24,6 +24,12 @@ funded portfolio ledgers. Their costs, turnover, holding time and exposure are
 component averages. Shared-capital accounts retain the M6 global ledger.
 
 Cash is an observed zero return. A missing or stopped outcome remains unavailable.
+On a shortened exchange session, M6 records no intraday policy paths. The loader
+checks the exchange calendar and requires both the primary policy list and the
+cost/delay path list to be empty, with operational masks false. All eight intraday
+observations remain unavailable on that retained date. A regular session still
+requires all eight primary paths; an absent path is not an accepted exclusion.
+Daily-risk measurements and continuous-account records are read independently.
 Costs and turnover incurred before an incomplete account day remain in their
 accounting totals; an unavailable daily return is not inferred from them. Risk
 exposure uses the retained mark; shared exposure uses the day's observed maximum.
@@ -142,7 +148,9 @@ contains derived evidence, not raw price pages or order records.
 The local GNU 13.3.0 Release build passed for all 27 applications. Constructed
 and saved-export runs agreed exactly on 77 series and 48 development dates.
 The independent oracle reproduced all four 10,000-draw analyses and the separate
-360-date numerical fixtures, including constant and unavailable endpoints.
+360-date numerical fixtures, including constant and unavailable endpoints. Shortened-session conversion and
+regular-session cash/missing-policy cases have dedicated native and independent
+calendar regressions.
 Six malformed-source cases were rejected without modifying their inputs. The
 existing five cost/delay artifacts and seven continuous-account artifacts remained
 byte-identical; their independent checks, the panel replay and the 259-check

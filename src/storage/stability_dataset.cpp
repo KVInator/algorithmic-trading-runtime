@@ -166,6 +166,59 @@ StabilityDataset::StabilityDataset(std::filesystem::path cost_directory,
                                    ExtensionStudyContract contract)
     : costs_(std::move(cost_directory)), accounts_(std::move(account_directory)),
       contract_(std::move(contract)) {}
+std::map<std::string, StabilityObservation> StabilityDataset::intraday_observations(const Json &record) {
+    const auto &primary = record.at("primary");
+    const auto date = primary.at("date").get<std::string>();
+    require(date >= "2016-01-01" && date < "2024-01-01", "M7 intraday input is outside development");
+    const auto sessions = extension_calendar(CalendarRange{date, date});
+    require(sessions.size() == 1, "M7 intraday input is not an exchange session");
+    std::map<std::string, StabilityObservation> observations;
+    for (const auto &policy : policies) {
+        observations.emplace(policy, StabilityObservation{});
+    }
+    if (!sessions.front().regular()) {
+        require(primary.at("policies").empty() && record.at("paths").empty() &&
+                    !primary.at("common_operational").get<bool>() &&
+                    !primary.at("availability").at("operational").get<bool>(),
+                "M6 shortened session contains intraday paths or an operational outcome");
+        return observations;
+    }
+    std::set<std::string> seen_policies;
+    for (const auto &path : record.at("paths")) {
+        if (path.at("delay_minutes").get<int>() != 1) {
+            continue;
+        }
+        const auto policy = path.at("policy").get<std::string>();
+        require(std::find(policies.begin(), policies.end(), policy) != policies.end() &&
+                    seen_policies.insert(policy).second,
+                "M6 primary policy matrix differs");
+        const bool valid = path.at("outcome_available").get<bool>();
+        require(valid ==
+                    (primary.at("common_operational").get<bool>() && path.at("resolved").get<bool>()),
+                "M6 availability differs");
+        auto &observation = observations.at(policy);
+        std::size_t found = 0;
+        for (const auto &cost : path.at("costs")) {
+            if (cost.at("cost_bps").get<double>() != 1) {
+                continue;
+            }
+            ++found;
+            observation.net = number(cost.at("net"));
+            observation.gross = number(cost.at("gross"));
+            observation.turnover = number(cost.at("traded_notional_per_initial_equity"));
+            observation.cost = number(cost.at("cost_per_initial_equity"));
+        }
+        require(found == 1 && observation.net.has_value() == valid,
+                "M6 primary charge or outcome differs");
+        if (valid) {
+            observation.holding_minutes = path.at("minutes_held").get<double>();
+            observation.exposure = *observation.holding_minutes / 390;
+            observation.trades = static_cast<double>(path.at("completed_trades").size());
+        }
+    }
+    require(seen_policies.size() == 8, "M6 primary policies incomplete");
+    return observations;
+}
 StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress) const {
     const Source costs{costs_}, accounts{accounts_};
     require(costs.summary.at("kind").get<std::string>() == "cost_delay_comparison",
@@ -249,40 +302,9 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
                 return;
             }
             const auto index = dates.at(date);
-            std::set<std::string> seen_policies;
-            for (const auto &path : row.at("paths")) {
-                if (path.at("delay_minutes").get<int>() != 1) {
-                    continue;
-                }
-                const auto policy = path.at("policy").get<std::string>();
-                require(std::find(policies.begin(), policies.end(), policy) != policies.end() &&
-                            seen_policies.insert(policy).second,
-                        "M6 primary policy matrix differs");
-                const bool valid = path.at("outcome_available").get<bool>();
-                require(valid == (primary.at("common_operational").get<bool>() &&
-                                  path.at("resolved").get<bool>()),
-                        "M6 availability differs");
-                auto &observation = series.at("intraday/" + symbol + "/" + policy).days[index];
-                std::size_t found = 0;
-                for (const auto &cost : path.at("costs")) {
-                    if (cost.at("cost_bps").get<double>() != 1) {
-                        continue;
-                    }
-                    ++found;
-                    observation.net = number(cost.at("net"));
-                    observation.gross = number(cost.at("gross"));
-                    observation.turnover = number(cost.at("traded_notional_per_initial_equity"));
-                    observation.cost = number(cost.at("cost_per_initial_equity"));
-                }
-                require(found == 1 && observation.net.has_value() == valid,
-                        "M6 primary charge or outcome differs");
-                if (valid) {
-                    observation.holding_minutes = path.at("minutes_held").get<double>();
-                    observation.exposure = *observation.holding_minutes / 390;
-                    observation.trades = static_cast<double>(path.at("completed_trades").size());
-                }
+            for (auto &[policy, observation] : intraday_observations(row)) {
+                series.at("intraday/" + symbol + "/" + policy).days[index] = std::move(observation);
             }
-            require(seen_policies.size() == 8, "M6 primary policies incomplete");
         });
         if (calendar.empty()) {
             calendar = seen_dates;
