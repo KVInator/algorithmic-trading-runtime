@@ -14,6 +14,8 @@ public:
         PanelInputPolicy policy, PanelSourceResolution resolution, PanelOrigin origin = PanelOrigin::provider,
         std::string expected_study_sha256 = std::string{registered_panel_study_sha256});
     [[nodiscard]] const nlohmann::json& provenance() const noexcept;
+    [[nodiscard]] const nlohmann::json& accounting_actions() const noexcept;
+    [[nodiscard]] std::optional<MinuteBar> recovered_close(const std::string& symbol, const std::string& date) const;
     using Consumer = std::function<void(std::vector<PanelReplayDay>)>;
     void replay(const Consumer& consume, const HistoricalPanelDataset::Progress& progress = {}) const;
     using MarketConsumer = std::function<void(std::vector<PanelReplayDay>, std::vector<SessionDownload>)>;
@@ -26,7 +28,7 @@ private:
     ExtensionStudyContract contract_;
     PanelInputPolicy policy_;
     PanelOrigin origin_;
-    nlohmann::json manifest_, masks_, provenance_;
+    nlohmann::json manifest_, masks_, provenance_, actions_;
     std::map<std::string, double> dividends_;
     std::map<std::string, MinuteBar> recovered_;
     std::vector<CalendarRange> ranges_;

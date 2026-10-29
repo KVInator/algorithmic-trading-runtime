@@ -167,7 +167,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
-| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: quote-reference, historical cost/delay and 680-case synthetic execution studies accepted on Windows; continuous/shared-account comparisons remain open |
+| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: quote-reference, historical cost/delay and 680-case synthetic execution studies accepted on Windows; 200 risk and 50 shared accounts implemented and locally verified, pending Windows historical acceptance |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
@@ -833,8 +833,32 @@ pairs, 232 eligible quotes and 108 pairs eligible at both delays. Raw source
 verification passed on the producer machine; uploaded sample identity, all
 derived costs and plot coordinates were checked separately. Eligibility and
 the primary cost assumptions remain unchanged. Continuous daily-risk accounts
-and shared-account economic integration remain open.
+and shared-account economic integration are now implemented; Windows historical
+acceptance remains open.
 The three unavailable 2019 closes cannot be repaired by resetting capital:
 an affected continuous account stops at its first required missing endpoint.
 Recovering forecast history does not restore that account. Coverage and
 unavailable comparisons will be retained. M6 remains open; M7-M10 follow it.
+
+### Continuous risk and shared-capital implementation
+
+The final two M6 components are implemented in
+[`PanelAccountStudy`](../src/research/panel_account_study.cpp), with the existing
+lagged estimator, dividend-aware fractional account and exact shared-capital
+ledger. The [methodology](cost_execution.md#continuous-risk-and-shared-capital-accounts)
+defines 200 risk accounts, 50 shared accounts, 150 risk contrasts and forty shared
+contrasts. Each account retains its original capital, point-of-observation
+missing-price stop and explicit terminal convention. Prior-only forecast
+measurement continues independently of stopped economic accounts.
+
+GNU Release and the independent source/Decimal/integer/report oracle pass the
+300-date constructed calendar: 9,600 risk records, 2,400 shared account days,
+all 190 contrasts, 25 plotted paths and 279 displayed table rows. Twelve semantic
+mutations are rejected without relying on hashes. The integration also retains
+a budget-limited pending order whose quantity moves toward the unchanged target;
+a focused shared-capital acknowledgment/fill regression covers that condition.
+Windows historical execution and uploaded-output review remain open. The
+[runbook](running.md#continuous-risk-and-shared-capital-evaluation-m6) gives the
+single-target build and both acceptance runs. No historical account performance
+or M6 completion is claimed from the constructed fixture. The reserved strategy
+boundaries remain unchanged; M7-M10 follow M6 acceptance.

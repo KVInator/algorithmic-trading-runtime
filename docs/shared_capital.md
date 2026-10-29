@@ -167,3 +167,23 @@ does not depend on a private raw archive. Network requests and external broker
 observations were zero. Historical shared-capital performance was not scored,
 and reserved 2024-2025 strategy inputs remained unopened. M4 is complete;
 the separate synthetic broker and its lifecycle policies remain M5 work.
+
+## Budget-limited order regression
+
+Historical M6 integration exercises admission below an owner's complete desired
+position. Such a pending order remains valid while its projected shares move
+toward that intent. Cancellation checks an overshoot or reversal, alongside the
+existing expiry and aggregate-limit rules; it does not require every admitted
+order to complete the full target. Dispatch-time owner claims remain immutable.
+
+The focused diagnostic holds 132 SPY shares across two owners, reprices SPY from
+USD 100 to 110, and admits 52 shares of a third owner's 61-share target under
+the instrument cap. Acknowledgment must not cancel that request; its fill leaves
+USD 81,080 cash, 52 shares assigned to the third owner and no replacement loop.
+The earlier equality-based cancellation rule fails this regression. With the
+corrected rule, GNU Release passes 190 checks in sixteen cases and the independent
+oracle verifies 171 durable transitions plus its seven semantic mutations.
+The oracle also requires admissible routing and internal transfers to be present,
+rather than only checking the terms of orders that happen to be reported.
+These are local regression results; the original Windows M4 acceptance identities
+and counts above remain historical evidence.

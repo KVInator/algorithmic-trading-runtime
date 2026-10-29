@@ -5,7 +5,8 @@ The cached quote-reference comparison has passed Windows verification and
 independent review of the uploaded sample, costs and report.
 Windows historical cost/delay evaluation is accepted as a development comparison.
 The 680-case synthetic execution evaluator has passed Windows Release acceptance
-and full-bundle independent review. Continuous accounts remain separate work. The v1
+and full-bundle independent review. Continuous risk and shared-capital accounts
+are implemented and locally verified; Windows historical acceptance remains open. The v1
 findings and M2-M5 evidence retain their identities.
 
 ## Registered comparisons
@@ -20,7 +21,7 @@ separate evidence layers:
 | Synthetic execution | 170 matched one-factor workloads crossed with four limit/deadline policies: 680 cases | Windows Release accepted; complete case traces, 510 contrasts and report marks independently verified |
 
 Daily risk remains a separate experiment with intraday-risk, daily-only,
-static-risk-budget and passive accounts. It will reuse the existing lagged
+static-risk-budget and passive accounts. The account evaluator reuses the existing lagged
 estimator and dividend-aware fractional account. If a required actual price is
 unavailable, the continuous account stops; subsequent outcomes remain unavailable.
 The three registered missing 2019 closes cannot be filled, bridged or repaired
@@ -624,7 +625,180 @@ acquisition or change to the primary strategy results follows from this diagnosi
 The [runbook](running.md#cost-and-execution-inputs-m6) gives the Windows commands.
 The provider sampler uses only the existing historical-data credential route.
 The M6 input checkpoint is accepted with the recorded coverage limitation.
-M6 still requires continuous daily-risk accounts and shared-account economic
-integration. M7 adds stability,
+Continuous daily-risk and shared-capital economic integration are implemented
+below; Windows historical acceptance remains open. M7 adds stability,
 concentration, risk matching and uncertainty; M8-M9 evaluate the reserved periods;
 M10 consolidates publication and release.
+
+## Continuous risk and shared-capital accounts
+
+`panel_account_development` completes the remaining M6 implementation using one
+causal replay of the accepted M2 panel. `PanelReplayDataset` exposes its already
+authenticated cash actions and recovered closing marks; it adds no acquisition,
+price substitution or later-year access. `PanelAccountStudy` consumes the existing
+M3 decisions and lagged risk estimates. Accounting is delegated to the existing
+`LongCashAccount` and `SharedCapitalBook`, with separate financial conventions.
+The executable plan is retained as `plan.json` and authenticated by its native
+compact-token SHA-256. The plan specifies initial capital, clocks, units,
+rounding, budgets, actions, missing-reference behaviour and fill assumptions.
+
+### Continuously funded risk accounts
+
+The matrix contains five instruments, four accounts, two delays and five
+per-side charges: **200 accounts**. Each starts with USD 100,000, no debt or
+short positions, and zero cash interest. The accounts are intraday-risk,
+daily-only, static-risk-budget and passive equity. All four wait in cash until
+the first development date with all three prior-only risk weights available.
+The 252 calibration closes provide only 251 close-to-close returns, so that
+start need not be the first session of 2017. Calibration cash is not scored;
+observed development cash days have zero returns.
+
+Risk targets are the unchanged M3 estimates. Each active account is marked at
+the actual session opening, rebalanced at the actual open one or two minutes
+later, then marked at the actual final-minute close. Passive equity buys once
+at the common start. A still-observed account liquidates at the actual open
+four minutes before the final development session's close. Shortened exchange
+sessions are retained. Missing intraday risk uses the registered daily fallback
+when available; missing a required sizing estimate stops an active allocation
+account. The passive account needs no subsequent risk estimate.
+
+For cash $C$, shares $q$, raw price $P$, liquid wealth $L=C+qP$, target weight
+$w$ and per-side rate $c$, the charged signed notional is
+
+$$
+D=wL-qP,\qquad N=\frac{D}{1+\operatorname{sgn}(D)cw},\qquad
+C'=C-N-c|N|,\qquad q'=q+N/P.
+$$
+
+This solves the post-cost stock-weight constraint. Dividend receivables enter
+equity but do not fund purchases. On each reached ex-date, the previous raw
+mark less the cash amount supplies the existing accounting continuity
+convention; it is not an executable price. Entitlement uses shares held across
+the ex-date. Payment transfers the claim to cash once, including when payment
+falls between exchange sessions. Terminal unpaid claims remain in equity.
+Canonical split coverage is the registered M2 no-split basis, not a new split
+assumption introduced by this evaluator.
+
+The first required missing opening, trade or closing reference stops the
+account at that observation. Activity earlier that day remains in the ledger,
+but the day's return and subsequent account returns are NA. The last observed
+close remains the final point in the equity curve. No earlier liquidation,
+interpolation, return bridge, capital reset or silent restart is introduced.
+The three unavailable 2019 closes therefore remain consequential for the
+corresponding continuously held accounts. Forecast-history recovery cannot
+restore those accounts.
+
+Holding-risk measurements are reported separately from account availability.
+Each frozen prior estimate is compared with the next-session dividend-aware
+morning-to-morning endpoint square and RV5, when the necessary observations
+exist. QLIKE uses $\log h+RV5/h$; positive control-minus-candidate loss favours
+the intraday estimate. The final forecast horizon is NA. Forecast outcomes
+never feed an earlier allocation. The ten instrument/delay coverage rows remain
+visible even after an economic account stops.
+
+### Historical shared capital
+
+The shared matrix contains **50 accounts**: five portfolio variants, two delays
+and five charges. Each variant starts with one USD 100,000 balance across
+fifteen strategy owners. The candidate combines momentum, volume-conditioned
+continuation and reversion on all five instruments. Four controls replace just
+one family at a time: always-long momentum, price-only continuation, sign-only
+reversion or drift reversion. Daily-risk allocation remains a separate experiment.
+
+This is a frozen-signal economic comparison. Continuation intent retains the
+M3 reference path's held-state convention; an admission shortfall does not
+regenerate that signal from shared-account inventory. The actual-inventory
+feedback adapter remains covered by M4's separate integration diagnostic.
+Consequently these paths isolate allocation and charging of the registered
+signals, rather than establishing the behaviour of an inventory-adaptive
+deployed strategy.
+
+The existing ownership, target-netting, proportional admission and integer cash
+rules apply. Budgets are equity/15 per owner, equity/3 per family, equity/5 per
+instrument and equity in total, with whole shares and no borrowing. Raw opens
+are rounded to the nearest nanodollar. For registered cost $b$ in bp, the
+per-share crossing charge in nanodollars is
+
+$$
+a=\left\lceil\frac{P_{nano}(2b)}{20000}\right\rceil,\qquad
+P_{bid}=P_{nano}-a,\quad P_{ask}=P_{nano}+a.
+$$
+
+Both sides of the constructed quote are supplied to the existing allocator.
+No additional broker fee is added to this cost grid. Notional and crossing
+charges use exact integers; owner cash flows and internal transfers reconcile
+to the global account. A valid pending order admitted below its desired target
+because of a budget cap is retained. Cancellation follows an overshooting or
+reversed intent, expiry, or an admission-limit violation, rather than requiring
+one order to reach the complete target.
+
+Each frozen decision arrives after the selected delay. Sizing uses the current
+arrival-clock prices and equity. All five actual opens are required at each
+scheduled batch to mark aggregate admission limits. The common full-day
+operational mask is not used to avoid a later missing price before it is
+observed. An unavailable target or quote stops the account at that clock,
+retaining earlier transitions and inventory with the remaining outcome NA.
+Known unavailable strategy features retain their registered cash intent.
+
+Acknowledgments, full fills and cancellation responses are constructed,
+synchronous reference events at the cost-shifted raw opens. They establish
+funded accounting and allocation behaviour, not available liquidity, realized
+broker execution, queue priority or measured network latency. Event processing
+is iterative and bounded. Every successful day must be flat and sealed; its
+checkpoint carries the same cash and owner attribution into the next day,
+without resetting capital. A stopped account never resumes. Separate-process
+and durable restart evidence remains the accepted M5 diagnostic.
+
+### Comparison, reporting and verification
+
+The manifest contains 150 risk and 40 shared candidate/control contrasts.
+Comparisons use each pair's common observed prefix. Mean daily increments and
+annual CER increments retain that denominator; CER is
+$252(\bar r-\tfrac{3}{2}s_r^2)$ with sample variance. Tables also report observed
+coverage, last observed equity, drawdown, traded notional divided by initial
+capital, paid costs and exposure. Risk exposure is the observed close stock
+fraction of liquid wealth; shared exposure is the maximum gross fraction over
+that day's reached transitions. The two exposure summaries have different
+sampling conventions. Costs and turnover include reached activity on the
+stopping date even though no complete return exists for that date.
+
+Six static figures show all 25 primary account paths at one minute and one bp
+per side. Each uses the full development calendar axis and ends stopped curves
+at the last observed close. All 250 case rows, ten forecast-coverage rows and
+nineteen primary paired rows are embedded without requiring JavaScript. Complete
+cost/delay contrasts and daily ledgers remain in the saved artifacts.
+
+`verify_panel_accounts.py` first reuses the independent M3 source/history/fit
+oracle. It then reconstructs fractional cash, shares and receivables with
+50-digit Decimal arithmetic, expected event clocks and action entitlements.
+The independent M4 integer oracle reconstructs every shared input, ownership
+allocation, order, acknowledgment, fill, cancellation and complete-state digest.
+It checks exact matrices, coverage, summaries, all 190 contrasts, forecasts,
+25 plotted curves and 279 displayed table rows. Native compact JSON tokens are
+preserved for plan identity checks; decoded floats are not reserialized to
+validate an identity. Twelve semantic mutations exercise cash, charges, missing
+events, restarts, future measurements, aggregates and chart coordinates without
+relying on artifact-hash failure.
+
+The 300-date analytic fixture passed GNU Release and independent verification:
+9,600 risk records and 2,400 shared account days across 48 development sessions.
+It includes a cash distribution, missing close, missing intraday reference,
+terminal liquidation and stopped-account continuation. These results establish
+constructed arithmetic and failure behaviour, not historical performance.
+The [runbook](running.md#continuous-risk-and-shared-capital-evaluation-m6) gives the
+Windows acceptance commands. Historical verification requires the retained
+registered panel; provider review bundles omit raw prices and daily transcripts.
+The v1 findings and accepted M2-M6 input/results identities remain unchanged.
+M6 acceptance remains open until the Windows historical account run is verified
+and reviewed. Stability, concentration, predefined risk matching and uncertainty
+remain M7; validation, final evaluation and publication remain M8-M10.
+
+Local regression review also passed 190 shared-capital checks in sixteen cases
+and independently reconstructed 171 durable transitions. The focused
+budget-limited acknowledgment test fails under the earlier cancellation rule.
+AddressSanitizer and UndefinedBehaviorSanitizer passed the complete constructed
+account calendar with the study, report, application, shared-capital core and
+fractional-account units instrumented. Other library units were not instrumented;
+LeakSanitizer was disabled because tracing prevents it in this environment.
+The static HTML was rendered and inspected, including equity axes and complete
+account tables. The retained v1 publication hashes, figures and local links pass.

@@ -95,6 +95,7 @@ these checks are explicit local commands.
 | `cost_quote_acquire` | M6 fixed 2017-2023 SIP quote sample; Windows historical-data credentials and accepted M2 masks |
 | `cost_delay_development` | M6 frozen-decision cost/delay evaluation; `--check` uses constructed observations, default uses the accepted pre-2024 panel |
 | `cost_execution_study` | M6 registered 680-case synthetic broker/client execution study; no credentials or market dataset |
+| `panel_account_development` | M6 continuously funded risk and shared-capital accounts; `--check` is constructed, default requires the registered pre-2024 panel |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
 | `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
 | `reversion_validation` | Thirteen seeded finite-sample/noise controls; full interval experiment |
@@ -587,8 +588,8 @@ evaluation. Keep the existing Command and Working Directory settings.
 
 `--report-only` on the Python verifier checks a compact saved report without
 claiming source or aggregate-path authentication. No cost or delay is selected
-as a replacement primary strategy. Synthetic matching, continuous daily-risk
-accounts and shared-capital economic evaluation remain separate work.
+as a replacement primary strategy. Synthetic matching and continuously funded
+accounts have separate entry points below.
 
 ## Synthetic execution study (M6)
 
@@ -620,3 +621,58 @@ the existing M5 diagnostic, not a claim of this measurement run.
 For the retained-console Visual Studio setup, keep the existing Command and
 Working Directory and use arguments
 `/d /s /k ""$(OutDir)cost_execution_study.exe""`.
+
+## Continuous risk and shared-capital evaluation (M6)
+
+This final M6 evaluator uses the existing registered panel. No acquisition,
+quote rerun, credential entry or reserved-year strategy data is needed. Build
+one target with the existing Python compiler driver:
+
+```powershell
+py -3 -B build.py --configuration Release --target panel_account_development
+```
+
+First run the constructed calendar and the independent financial/report check:
+
+```powershell
+& .\scratch\native\Release\panel_account_development.exe --check
+py -3 -B research/verify_panel_accounts.py scratch/runs/panel_accounts_0 --self-check
+```
+
+Expect 200 risk cases, 50 shared-capital cases, zero network requests and
+`Reserved strategy inputs opened: false`. The constructed run covers 300 dates,
+including 48 development sessions. The verifier checks 9,600 risk records,
+2,400 shared account days and twelve deliberately altered records.
+
+Then run the historical evaluation and its verifier:
+
+```powershell
+& .\scratch\native\Release\panel_account_development.exe
+py -3 -B research/verify_panel_accounts.py scratch/runs/panel_accounts_1 --self-check
+```
+
+Use the actual directories printed by each native run. Historical replay loads
+2016 for initialization and stops at the final exchange session of December
+2023: 2,012 dates, including 1,760 development dates. Native progress prints
+every 25 dates; the verifier prints source progress per instrument and account
+progress every 250 dates. This is an explicit research checkpoint, not a
+routine build check. Daily account evidence is streamed locally with an 8 GiB
+bound; retain several GiB of free space alongside the existing panel.
+
+Open `report.html` for six equity plots, forecast coverage, primary matched
+contrasts and all case rows. Stopped curves end at the last observed close.
+Missing registered prices can produce unavailable economic outcomes while
+verification succeeds: success means the retained accounting, coverage and
+failure rules were followed, not that a strategy passed a benefit screen.
+
+Share each generated `review.zip` and the console result. Constructed bundles
+include generated paths and ledgers. Provider bundles contain only summary,
+HTML and executable plan; source prices and daily transcripts stay local.
+Complete provider verification requires that local evidence. M6 historical
+acceptance follows review of the completed output; M7 stability/risk matching
+and uncertainty remain separate work.
+
+For the retained-console Visual Studio setup, keep the existing Command and
+Working Directory and use arguments
+`/d /s /k ""$(OutDir)panel_account_development.exe" --check"` for constructed
+checks, or `/d /s /k ""$(OutDir)panel_account_development.exe""` for history.

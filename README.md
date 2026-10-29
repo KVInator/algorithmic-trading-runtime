@@ -39,7 +39,7 @@ per instrument. The [M4 shared-capital diagnostic](docs/shared_capital.md) now
 exercises one cash balance, fifteen strategy owners, netting, aggregate admission
 limits and durable recovery. Windows Release acceptance passed 182 native checks
 in 15 synthetic cases, with 163 durable transitions independently verified.
-Broader historical economic comparisons remain later work.
+The M6 account evaluator extends this ledger to historical economic comparisons.
 The [M5 broker extension](docs/process_broker.md) adds a separate native process,
 independent durable activities, DAY/IOC/GTC limits, explicit fees and recovery
 through missed responses or client/broker restarts. Windows Release passed
@@ -70,7 +70,13 @@ The [accepted cost/delay results](docs/cost_execution.md#windows-costdelay-accep
 retain the complete tables and review limits. The
 [quote-reference comparison](docs/cost_execution.md#windows-quote-reference-acceptance)
 also passed Windows verification: 910 windows, 455 delay pairs and unchanged
-eligibility. Continuous daily-risk accounts and shared-account economic integration remain open.
+eligibility. The [continuous and shared-account evaluator](docs/cost_execution.md#continuous-risk-and-shared-capital-accounts)
+implements the final two M6 parts: 200 dividend-aware risk accounts and 50
+whole-share shared-capital accounts, with 190 matched contrasts. Its constructed
+calendar and independent financial/report checks pass locally; Windows historical
+execution and review remain the M6 acceptance step. Missing required prices stop
+the affected account without liquidation, reset or restart. Account coverage is
+reported separately from forecast-history recovery.
 The registered [synthetic execution study](docs/cost_execution.md#registered-synthetic-execution-study)
 now executes all 680 cases through the existing five-symbol broker model and a
 separate client ledger, with 510 matched contrasts, explicit fees and delivery

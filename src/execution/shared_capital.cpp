@@ -300,7 +300,10 @@ void SharedCapitalBook::route(SharedResult& result) {
             const auto found = plan.remaining.find(key);
             const auto remaining = found == plan.remaining.end() ? 0 : found->second;
             const auto projected = plan.request.side == Side::buy ? add(owner.shares, remaining) : owner.shares - remaining;
-            if (projected != desired(key)) { changed = true; }
+            // A budget-limited request may cover only part of the desired
+            // position. It remains valid while it moves toward that target.
+            // Cancel only claims that now overshoot or reverse the intent.
+            if (plan.request.side == Side::buy ? projected > desired(key) : projected < desired(key)) { changed = true; }
         }
         if (plan.request.side == Side::buy) {
             const auto equity = snapshot().equity_units;

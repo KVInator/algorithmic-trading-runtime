@@ -30,7 +30,8 @@ PanelReplayDataset::PanelReplayDataset(std::filesystem::path directory, Extensio
     }
     masks_ = parse_json_document(read_text_file(directory_ / "eligibility_masks.json", 16U * 1024U * 1024U));
     if (masks_.at("protocol_sha256").get<std::string>() != contract_.identity()) { throw std::invalid_argument("mask protocol identity changed"); }
-    const auto actions = parse_json_document(read_text_file(directory_ / "sealed/accounting_actions.json", 8U * 1024U * 1024U));
+    actions_ = parse_json_document(read_text_file(directory_ / "sealed/accounting_actions.json", 8U * 1024U * 1024U));
+    const auto& actions = actions_;
     if (actions.at("protocol_sha256").get<std::string>() != contract_.identity() || actions.at("source_resolution_sha256").get<std::string>() != resolution.identity() ||
         actions.at("issuer_reference_sha256").get<std::string>() != manifest_.at("issuer_reference_sha256").get<std::string>() || !actions.at("splits").empty()) {
         throw std::invalid_argument("panel action identities or registered no-split basis changed");
@@ -70,6 +71,11 @@ PanelReplayDataset::PanelReplayDataset(std::filesystem::path directory, Extensio
     provenance_["study_manifest_sha256"] = expected;
 }
 const nlohmann::json& PanelReplayDataset::provenance() const noexcept { return provenance_; }
+const nlohmann::json& PanelReplayDataset::accounting_actions() const noexcept { return actions_; }
+std::optional<MinuteBar> PanelReplayDataset::recovered_close(const std::string& symbol, const std::string& date) const {
+    const auto it = recovered_.find(symbol + '/' + date);
+    return it == recovered_.end() ? std::nullopt : std::optional<MinuteBar>{it->second};
+}
 void PanelReplayDataset::replay(const Consumer& consume, const HistoricalPanelDataset::Progress& progress) const {
     if (!consume) { throw std::invalid_argument("panel replay requires a record consumer"); }
     replay_with_sessions([&](auto day, auto) { consume(std::move(day)); }, progress);

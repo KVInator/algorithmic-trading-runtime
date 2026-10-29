@@ -93,8 +93,9 @@ the producing machine and separate compact review. Positive paired point
 estimates remain distinct from candidate profitability and statistical
 superiority. The [quote-reference comparison](../docs/cost_execution.md#windows-quote-reference-acceptance)
 passed Windows raw-archive verification and separate uploaded-artifact review.
-Continuous/shared-account and stability comparisons remain open; the v1 results
-retain their original sample and identities.
+Continuous/shared accounts have the separate evaluator below; Windows historical
+acceptance and M7 stability comparisons remain open. The v1 results retain their
+original sample and identities.
 
 `verify_cost_execution.py` independently rebuilds all 680 registered synthetic
 cases, broker matching, client receipt-time accounting and fee-inclusive
@@ -107,6 +108,21 @@ independent verification passed on 29 October 2026; all 680 native case traces
 match the GNU reference byte for byte. The
 [acceptance record](../docs/cost_execution.md#windows-synthetic-execution-acceptance)
 retains the policy results and evidence identities.
+
+`verify_panel_accounts.py` authenticates the executable account plan without
+rewriting its native number tokens, then reuses the M3 causal source/history
+oracle. It reconstructs the 200 fractional risk accounts with 50-digit Decimal
+cash/share/receivable arithmetic and the 50 shared-capital accounts through the
+independent M4 integer ownership/admission oracle. Expected event clocks,
+missing-reference stops, exact owner attribution, all 190 common-prefix
+contrasts, forecast coverage, 25 static curves and 279 table rows are verified.
+Its self-check rejects twelve semantic mutations independently of artifact
+hashes. Constructed bundles include generated daily paths; provider bundles
+contain summary, report and plan only, with full source authentication performed
+locally against the retained registered panel. No 2024-2025 strategy observations
+are opened by this evaluator. Its [methodology and acceptance scope](../docs/cost_execution.md#continuous-risk-and-shared-capital-accounts)
+keep forecasts, continuously funded accounts and conditional reference returns
+distinct.
 
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate

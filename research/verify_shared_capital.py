@@ -290,7 +290,8 @@ class AccountAudit:
             nav = self.equity()
             for identity, o in sorted(self.active().items()):
                 side, symbol = o["order"]["side"], o["order"]["symbol"]
-                changed = any(r["shares"] + (1 if side == "buy" else -1) * o["claims"].get(k, 0) != self.desired(k)
+                changed = any((r["shares"] + o["claims"].get(k, 0) > self.desired(k) if side == "buy"
+                               else r["shares"] - o["claims"].get(k, 0) < self.desired(k))
                               for k, r in self.owners.items() if k[1] == symbol)
                 if side == "buy":
                     changed = changed or self.exposure() > nav or self.exposure(lambda k: k[1] == symbol) > nav // 5
@@ -316,6 +317,24 @@ class AccountAudit:
             require(cancel["cancel_id"] == cancel["order_id"] + "-c" + str(self.cancel_count) and o["status"] != "pending_cancel", "Cancel identity/state differs")
             self.cancels[cancel["cancel_id"]] = cancel["order_id"]
             o.update(status="pending_cancel", pending_cancel_id=cancel["cancel_id"])
+        routing = (may_route and self.connected and not self.reconciliation and len(self.quotes) == len(SYMBOLS)
+                   and all(0 <= self.at - q["source_at_seconds"] <= self.config["maximum_quote_age_seconds"]
+                           for q in self.quotes.values()))
+        if routing:
+            # Free inventory must cross internally before another broker order.
+            pending = {o["order"]["symbol"] for o in self.active().values()}
+            nav = self.equity()
+            for symbol in SYMBOLS:
+                if symbol in pending:
+                    continue
+                sellers = any(k[1] == symbol and r["shares"] > self.desired(k)
+                              for k, r in self.owners.items())
+                if sellers:
+                    for k, r in self.owners.items():
+                        if k[1] == symbol and r["shares"] < self.desired(k):
+                            room = min(max(0, nav // 15 - self.exposure(lambda key: key == k)),
+                                       max(0, nav // 3 - self.exposure(lambda key: key[0] == k[0])))
+                            require(room < self.mark(symbol), "Required internal transfer omitted")
         require(not result["orders"] or all(0 <= self.at - q["source_at_seconds"] <= self.config["maximum_quote_age_seconds"] for q in self.quotes.values()), "Stale quote dispatched entry")
         for request in result["orders"]:
             symbol, side = request["symbol"], request["side"]
@@ -343,6 +362,23 @@ class AccountAudit:
             saved = next(o for o in checkpoint["open_orders"] if o["order"]["id"] == request["id"])
             require({owner(r): r["remaining"] for r in saved["claims"]} == claims, "Dispatch-time frozen allocation differs")
             self.orders[request["id"]] = dict(order=request, filled_shares=0, status="pending_new", acknowledged=False, pending_cancel_id="", claims=claims)
+        if routing:
+            pending = {o["order"]["symbol"] for o in self.active().values()}
+            nav = self.equity()
+            for symbol in SYMBOLS:
+                if symbol in pending:
+                    continue
+                require(not any(k[1] == symbol and r["shares"] > self.desired(k)
+                                for k, r in self.owners.items()), "Required sell order omitted")
+                price = self.quotes[symbol]["ask_units"] + self.config["fee_per_share_ceiling_units"]
+                affordable = min(self.cash - self.reserved(), max(0, nav // 5 - self.exposure(lambda k: k[1] == symbol)),
+                                 max(0, nav - self.exposure())) // price
+                if affordable > 0:
+                    for k, r in self.owners.items():
+                        if k[1] == symbol and r["shares"] < self.desired(k):
+                            room = min(max(0, nav // 15 - self.exposure(lambda key: key == k)),
+                                       max(0, nav // 3 - self.exposure(lambda key: key[0] == k[0])))
+                            require(room < price, "Required buy order omitted")
 
     def snapshot(self):
         nav = self.equity()
@@ -380,6 +416,15 @@ class AccountAudit:
                     at_seconds=self.at, generation=self.generation, sealed=self.sealed)
 
     def apply(self, record):
+        self._apply(record, compact=False)
+
+    def apply_compact(self, input_record, effects, claims, checkpoint_sha256):
+        """Verify reconstructed inputs against the same oracle and a state digest."""
+        self._apply(dict(input=input_record, result=effects,
+                         checkpoint=dict(open_orders=claims),
+                         checkpoint_sha256=checkpoint_sha256), compact=True)
+
+    def _apply(self, record, compact):
         require(not self.sealed, "Input follows sealed segment")
         i, result, saved = record["input"], record["result"], record["checkpoint"]
         kind, expected_fills = i["kind"], []
@@ -415,7 +460,11 @@ class AccountAudit:
             require(not any(result[k] for k in ("orders", "cancels", "transfers")), "Rejected/duplicate input dispatched effects")
         self.effects(result, saved, kind in {"targets", "report"} and outcome in {"applied", "obsolete"})
         actual = self.snapshot()
-        require(actual == saved, "Checkpoint differs: " + ", ".join(k for k in actual if actual[k] != saved.get(k)))
+        if compact:
+            payload = json.dumps(actual, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+            require(hashlib.sha256(payload).hexdigest() == record["checkpoint_sha256"], "Reconstructed shared checkpoint differs")
+        else:
+            require(actual == saved, "Checkpoint differs: " + ", ".join(k for k in actual if actual[k] != saved.get(k)))
 
 
 class SharedCapitalVerifier:

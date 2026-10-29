@@ -55,7 +55,7 @@ public:
     Cases(std::filesystem::path directory, SharedCapitalConfiguration config) : directory_(std::move(directory)), config_(std::move(config)) {}
     SharedDiagnosticResult run() {
         result_.evidence = {{"rejected_files", Json::array()}, {"financial_parity", Json::array()}, {"strategy_records", Json::array()}};
-        global_resources(); internal_netting(); cancel_race(); fault_gates(); expiry_and_permutation(); mark_limits(); recovery(); handover(); precision(); storage_faults(); strategy_integration();
+        global_resources(); internal_netting(); cancel_race(); fault_gates(); expiry_and_permutation(); mark_limits(); recovery(); handover(); precision(); storage_faults(); strategy_integration(); budget_limited_order();
         return std::move(result_);
     }
 private:
@@ -117,6 +117,36 @@ private:
             {"late-ack", order.id, ReportKind::accepted, "", 0, 0, 0, 0, ""}}).outcome == Outcome::obsolete && runtime.snapshot().account.open_orders == 0);
         check("all five symbols share the resulting global cash", runtime.snapshot().account.cash_units == 1000 * unit - 7 && runtime.snapshot().account.reserved_cash_units == 0);
         save("global_resources", runtime);
+    }
+    void budget_limited_order() {
+        auto runtime = start("budget_limited_order", config_);
+        const auto initial =
+            batch(runtime, "two-owners", 1000, {{{"momentum", "SPY"}, true}, {{"reversion", "SPY"}, true}});
+        check("initial two owners share a 132-share order",
+              initial.dispatch_orders.size() == 1 && initial.dispatch_orders.front().shares == 132);
+        static_cast<void>(fill(runtime, initial.dispatch_orders.front(), 132, 1000, "budget-initial"));
+        const auto next =
+            batch(runtime, "third-owner", 1001, {{{"volume_conditioned_continuation", "SPY"}, true}},
+                  quotes(1001, 110 * unit));
+        check("instrument cap admits 52 shares of a 61-share target",
+              next.dispatch_orders.size() == 1 && next.dispatch_orders.front().shares == 52 &&
+                  runtime.snapshot().owners.at({"volume_conditioned_continuation", "SPY"}).desired_shares ==
+                      61);
+        const auto order = next.dispatch_orders.front();
+        const auto acknowledged = runtime.execute(
+            SharedDelivery{1001, {"budget-ack", order.id, ReportKind::accepted, "", 0, 0, 0, 0, ""}});
+        check("budget-limited acknowledgement does not cancel unchanged intent",
+              acknowledged.dispatch_cancels.empty() &&
+                  runtime.snapshot().open_plans.at(order.id).remaining.at(
+                      {"volume_conditioned_continuation", "SPY"}) == 52);
+        const auto completed = fill(runtime, order, 52, 1001, "budget-complete");
+        check("budget-limited fill terminates without a replacement loop",
+              completed.dispatch_orders.empty() && completed.dispatch_cancels.empty() &&
+                  runtime.snapshot().account.open_orders == 0);
+        check("budget-limited cash and ownership remain exact",
+              runtime.snapshot().account.cash_units == 81080 * unit &&
+                  runtime.snapshot().owners.at({"volume_conditioned_continuation", "SPY"}).shares == 52);
+        save("budget_limited_order", runtime);
     }
     void internal_netting() {
         auto runtime = start("internal_netting", config_);
