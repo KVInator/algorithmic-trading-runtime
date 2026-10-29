@@ -91,8 +91,10 @@ records accepted Windows development results: all 400 series and 240 contrasts
 use 1,682 common dates per instrument, with full source/Decimal verification on
 the producing machine and separate compact review. Positive paired point
 estimates remain distinct from candidate profitability and statistical
-superiority. Quote-reference, account/execution and stability comparisons remain
-open; the v1 results retain their original sample and identities.
+superiority. The [quote-reference comparison](../docs/cost_execution.md#windows-quote-reference-acceptance)
+passed Windows raw-archive verification and separate uploaded-artifact review.
+Continuous/shared-account and stability comparisons remain open; the v1 results
+retain their original sample and identities.
 
 `verify_cost_execution.py` independently rebuilds all 680 registered synthetic
 cases, broker matching, client receipt-time accounting and fee-inclusive

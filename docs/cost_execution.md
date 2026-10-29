@@ -1,6 +1,8 @@
 # Cost and execution research
 
 M6 is in progress. Historical quote acquisition and cached diagnosis are accepted.
+The cached quote-reference comparison has passed Windows verification and
+independent review of the uploaded sample, costs and report.
 Windows historical cost/delay evaluation is accepted as a development comparison.
 The 680-case synthetic execution evaluator has passed Windows Release acceptance
 and full-bundle independent review. Continuous accounts remain separate work. The v1
@@ -14,7 +16,7 @@ separate evidence layers:
 | Layer | Registered design | Implementation status |
 | --- | --- | --- |
 | Bar references | 0, 0.5, 1, 2 and 5 bp per side, crossed with one-/two-minute delay; primary signals and entry hurdles fixed | Windows development comparison and independent local verification accepted: 400 series, 240 paired contrasts |
-| Historical SIP quotes | Seven input-selected dates, five instruments, thirteen decision clocks and two delays: 910 one-second windows | Windows acquisition complete; 232 eligible windows, all in 2022-2023 |
+| Historical SIP quotes | Seven input-selected dates, five instruments, thirteen decision clocks and two delays: 910 one-second windows | Windows acquisition and crossing-cost comparison accepted; 232 eligible windows, all in 2022-2023; 108 delay pairs jointly eligible |
 | Synthetic execution | 170 matched one-factor workloads crossed with four limit/deadline policies: 680 cases | Windows Release accepted; complete case traces, 510 contrasts and report marks independently verified |
 
 Daily risk remains a separate experiment with intraday-risk, daily-only,
@@ -336,7 +338,7 @@ displayed size as realized execution cost or latency. Earlier-year eligibility
 remains unchanged. The independent verifier reauthenticates raw quotes, checks
 Decimal arithmetic, every group and delay pair, and all static plot coordinates.
 The constructed run passed 130 windows, 65 delay pairs and two semantic
-corruption checks. Windows provider-run acceptance remains pending.
+corruption checks. Windows provider-run acceptance is recorded below.
 
 The saved sample identity hashes the native compact JSON serialization. Its
 pretty-printed `sample.json` retains the same tokens; verification removes only
@@ -360,6 +362,60 @@ Use the actual printed suffixes. The provider command uses existing retained
 quotes and sends no requests. Share each generated `review.zip`; provider raw
 quotes remain local. Continuous risk and shared-capital economic verification
 remain in progress.
+
+### Windows quote-reference acceptance
+
+Windows Release execution with MSVC 19.51.36260 and full local verification
+completed on 29 October 2026. The producing machine reauthenticated the cached
+raw HTTP evidence and passed all 910 windows, 455 paired delay records, static
+marks, sixteen identity checks and two financial corruption rejections. Network
+requests were zero. The comparison sample, quote eligibility and original
+reports were preserved through the serialization-verifier fix.
+
+Independent review checked the uploaded summary and HTML against their ZIP
+members, authenticated the separate sample against its compact native identity,
+and verified all Decimal costs, group statistics, reference thresholds, delay
+differences and plotted coordinates. The sample's file hash matches the bound
+original acquisition summary, and its bytes match the earlier accepted sample.
+Raw HTTP archives remained on the producer machine and were not reauthenticated
+during this uploaded-artifact review.
+
+Of 910 planned windows, 232 are eligible, all in 2022-2023. The remaining
+classifications are unchanged: 520 nonregular, 76 ambiguous, 80 empty and two
+locked. Only 108 of 455 delay pairs have eligible quotes at both delays; other
+paired differences remain unavailable. The following pooled means give each
+eligible window equal weight across the two sampled dates:
+
+| Instrument | Eligible windows | Mean half-spread bp | Minimum bp | Maximum bp |
+| --- | ---: | ---: | ---: | ---: |
+| SPY | 52 | 0.186983 | 0.104744 | 0.654048 |
+| QQQ | 44 | 0.263581 | 0.124538 | 0.751456 |
+| IWM | 51 | 0.340602 | 0.220755 | 1.142204 |
+| TLT | 42 | 0.433681 | 0.341355 | 0.975895 |
+| GLD | 43 | 0.421103 | 0.289176 | 1.161170 |
+
+Half-spread is at or below 0.5 bp in 201 eligible windows and at or below 1 bp
+in 230. These counts describe the sampled spread component. They exclude
+implementation shortfall from price moves before execution, market impact,
+unfilled orders and other charges. They do not establish a complete all-in cost
+estimate or authorize changing the registered cost grid. The seven selected
+dates are not a representative liquidity sample; earlier-year spread evidence
+remains unavailable under the unchanged condition rule.
+
+| Accepted quote-reference record | SHA-256 |
+| --- | --- |
+| Windows comparison summary | `44d222ebc3dea8c6f5d9859eb53ced2276878d0db9fd585523f2bd8cb0e076c7` |
+| Windows HTML report | `17e21aa78c9ba7319e25bc9c04227927acf01d98c0629a93b755728d1395579b` |
+| Uploaded review ZIP | `a8eb1214313bdc728fe7f4874f18204afd840e4308966e972c4109c05dc2f295` |
+| Saved sample / original acquisition summary | `89a35fc123c43923f573e9f1809aa5fdd2391a3e60baf9ee8bea77d02f89424f` |
+| Compact native sample identity | `525e9e28a8ad5424e544fd2ec6dd85d3b6190536426d51597505ab9879a68a39` |
+| Reported native source inventory | `5ff405e260af4ed4a556a46566cc8834fcc654fa712baa895b61d23948041046` |
+
+The source inventory identifies producer-file bytes rather than an independently
+established Git commit. Historical strategy results, frozen rules and reserved
+2024/2025 strategy-input boundaries retain their original scope and identities.
+
+### Sampling and eligibility
 
 For each year 2017-2023, the plan takes the earliest regular date on which all five
 instruments have operational inputs in the accepted M2 masks. No strategy return
@@ -568,7 +624,7 @@ acquisition or change to the primary strategy results follows from this diagnosi
 The [runbook](running.md#cost-and-execution-inputs-m6) gives the Windows commands.
 The provider sampler uses only the existing historical-data credential route.
 The M6 input checkpoint is accepted with the recorded coverage limitation.
-M6 still requires quote-reference comparisons, continuous daily-risk accounts
-and shared-account economic integration. M7 adds stability,
+M6 still requires continuous daily-risk accounts and shared-account economic
+integration. M7 adds stability,
 concentration, risk matching and uncertainty; M8-M9 evaluate the reserved periods;
 M10 consolidates publication and release.

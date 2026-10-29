@@ -67,8 +67,10 @@ volume versus price-only continuation, and +0.6165/+0.0031 for reversion versus
 sign-only/drift. Momentum and reversion candidate net means remain negative;
 these are development point estimates pending stability and uncertainty checks.
 The [accepted cost/delay results](docs/cost_execution.md#windows-costdelay-acceptance)
-retain the complete tables and review limits. Quote-reference comparisons,
-continuous daily-risk accounts and shared-account economic integration remain open.
+retain the complete tables and review limits. The
+[quote-reference comparison](docs/cost_execution.md#windows-quote-reference-acceptance)
+also passed Windows verification: 910 windows, 455 delay pairs and unchanged
+eligibility. Continuous daily-risk accounts and shared-account economic integration remain open.
 The registered [synthetic execution study](docs/cost_execution.md#registered-synthetic-execution-study)
 now executes all 680 cases through the existing five-symbol broker model and a
 separate client ledger, with 510 matched contrasts, explicit fees and delivery

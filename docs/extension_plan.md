@@ -167,7 +167,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
-| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: quote inputs, Windows historical cost/delay and 680-case synthetic execution studies accepted; account/quote comparisons remain open |
+| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: quote-reference, historical cost/delay and 680-case synthetic execution studies accepted on Windows; continuous/shared-account comparisons remain open |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
@@ -827,8 +827,13 @@ verified the complete uploaded case traces, all 510 contrasts and plotted cells;
 all 680 traces match the GNU reference byte for byte. The
 [acceptance record](cost_execution.md#windows-synthetic-execution-acceptance)
 retains policy summaries, interpretation and artifact identities.
-Quote-reference comparisons, continuous daily-risk
-accounts and shared-account economic integration remain open.
+The [quote-reference comparison](cost_execution.md#windows-quote-reference-acceptance)
+also passed Windows verification on 29 October 2026: 910 windows, 455 delay
+pairs, 232 eligible quotes and 108 pairs eligible at both delays. Raw source
+verification passed on the producer machine; uploaded sample identity, all
+derived costs and plot coordinates were checked separately. Eligibility and
+the primary cost assumptions remain unchanged. Continuous daily-risk accounts
+and shared-account economic integration remain open.
 The three unavailable 2019 closes cannot be repaired by resetting capital:
 an affected continuous account stops at its first required missing endpoint.
 Recovering forecast history does not restore that account. Coverage and
