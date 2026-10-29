@@ -572,6 +572,13 @@ checkpoint workload rather than an ordinary build check. Share each run's
 raw provider pages and the five local path files stay local. The constructed
 bundle also includes its generated path files.
 
+If an earlier verifier stopped at `Cost curve lines differ from verified
+coordinates`, retain that run. Pull the corrected verifier and rerun only the
+Python command against the existing `cost_delay_<suffix>` directory. No C++
+rebuild, historical replay or report regeneration is required. The fix accounts
+for the SVG's six-decimal serialization; source, cash and return checks remain
+unchanged.
+
 For the existing retained-console Visual Studio setup, the application arguments
 are `/d /s /k ""$(OutDir)cost_delay_development.exe" --check"` for constructed
 checks and `/d /s /k ""$(OutDir)cost_delay_development.exe""` for historical

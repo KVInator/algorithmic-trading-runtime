@@ -75,6 +75,16 @@ exercise financial verification. A provider `review.zip` contains the summary
 and HTML; full local verification additionally requires the five path files and
 original panel. Synthetic review bundles include their small generated paths.
 
+SVG line coordinates are serialized to six decimal places. Verification bounds
+each coordinate's error by half that last place plus a $10^{-9}$ canvas-unit
+floating-point allowance. One-to-one line matching retains duplicates and
+rejects missing, extra, reordered or altered vertices. Comparing coarser rounded
+buckets can falsely reject valid coordinates at a bucket boundary; the Windows
+historical report reproduced two such cases on 29 October 2026. This correction
+changes only SVG verification, with all financial tolerances and saved artifacts
+unchanged. Regression checks retain both observed boundary cases and malformed
+line/coordinate rejection.
+
 The HTML embeds all 44 plots and 400 case rows. JavaScript only selects among
 the forty instrument/policy panels; all plots remain available without scripts.
 No acquisition, credentials, quote-code changes or later-period prices are

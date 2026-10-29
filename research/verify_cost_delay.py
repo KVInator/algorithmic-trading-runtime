@@ -115,6 +115,106 @@ def charge(trades, cost):
         )
 
 
+def verify_curve_lines(actual, expected):
+    # Native SVG vertices use fixed six-decimal serialization. Its maximum
+    # rounding error is half a canvas micro-unit; the extra 1e-9 covers binary
+    # evaluation/parsing of the same coordinates, not financial calculations.
+    tolerance = 0.5e-6 + 1e-9
+    require(len(actual) == len(expected), "Cost curve line count differs")
+    require(
+        all(
+            len(point) == 2 and all(math.isfinite(v) for v in point)
+            for line in [*actual, *expected]
+            for point in line
+        ),
+        "Cost curve contains an invalid coordinate",
+    )
+    edges = [
+        [
+            i
+            for i, saved in enumerate(actual)
+            if len(saved) == len(reference)
+            and all(
+                abs(a - b) <= tolerance
+                for saved_point, reference_point in zip(saved, reference)
+                for a, b in zip(saved_point, reference_point)
+            )
+        ]
+        for reference in expected
+    ]
+    matched = [None] * len(actual)
+
+    def assign(reference, visited):
+        for index in edges[reference]:
+            if index in visited:
+                continue
+            visited.add(index)
+            if matched[index] is None or assign(matched[index], visited):
+                matched[index] = reference
+                return True
+        return False
+
+    # One-to-one matching preserves multiplicity for coincident curves and
+    # avoids greedy mismatches when valid rounding intervals overlap.
+    require(
+        all(assign(i, set()) for i in range(len(expected))),
+        "Cost curve lines differ from verified coordinates",
+    )
+
+
+def verify_curve_numerics():
+    checks = 0
+    x = [85.0, 145.0, 205.0, 325.0, 685.0]
+    # Retained Windows report markers straddle the old four-decimal buckets.
+    cases = [
+        [67.0068319707, 81.0254812028, 95.0419836276, 123.0685499304, 207.0967741935],
+        [57.9032258065, 72.1095969537, 86.3137501094, 114.7154044448, 199.8671875973],
+        [-0.0000499304, -0.0000501094, 0.0000499304, 0.0000501094, 0.0],
+    ]
+    expected = [list(zip(x, values)) for values in cases]
+    saved = [[(a, float(f"{b:.6f}")) for a, b in line] for line in expected]
+    for actual, reference in (
+        (saved, expected),
+        (saved[::-1], expected),
+        ([saved[0], saved[0]], [expected[0], expected[0]]),
+    ):
+        verify_curve_lines(actual, reference)
+        checks += 1
+    # A flexible first match must be reassigned to preserve the rigid second.
+    delta = 0.5e-6 + 1e-9
+    verify_curve_lines(
+        [[(0.0, 0.75 * delta)], [(0.0, -0.75 * delta)]],
+        [[(0.0, 0.0)], [(0.0, 1.5 * delta)]],
+    )
+    checks += 1
+    bad = [
+        [saved[0], saved[0], saved[2]],
+        saved[:-1],
+        [*saved, saved[0]],
+        [saved[0][:-1], *saved[1:]],
+        [[*saved[0], saved[0][-1]], *saved[1:]],
+        [saved[0][::-1], *saved[1:]],
+    ]
+    for value in [
+        expected[0][0][1] + 1e-6,
+        expected[0][0][1] + 0.001,
+        math.nan,
+        math.inf,
+        -math.inf,
+    ]:
+        bad.append([[(x[0], value), *saved[0][1:]], *saved[1:]])
+    for actual in bad:
+        try:
+            verify_curve_lines(actual, expected)
+        except ValueError:
+            checks += 1
+        else:
+            raise ValueError("Altered or incomplete SVG curve was accepted")
+    print(
+        f"Curve serialization checks passed: {checks}; financial tolerances unchanged."
+    )
+
+
 class Markup(HTMLParser):
     def __init__(self, html):
         super().__init__(convert_charrefs=True)
@@ -431,11 +531,7 @@ class CostDelayVerifier:
         lines = []
         for name, delay in sorted({(key[0], key[1]) for key in expected_points}):
             lines.append([expected_points[name, delay, cost][1:] for cost in COSTS])
-        signature = lambda points: tuple((round(x, 4), round(y, 4)) for x, y in points)
-        require(
-            Counter(map(signature, markup.polylines)) == Counter(map(signature, lines)),
-            "Cost curve lines differ from verified coordinates",
-        )
+        verify_curve_lines(markup.polylines, lines)
         require(len(markup.tables) == 400, "Static cost table lost cases")
         for row in s["series"]:
             key = (
@@ -556,6 +652,7 @@ class CostDelayVerifier:
             self.aggregates()
             if self_check:
                 self.corruption_checks()
+                verify_curve_numerics()
         elif self_check:
             raise ValueError("Self-check requires local source and path evidence")
         self.report()
