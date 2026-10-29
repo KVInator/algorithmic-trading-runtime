@@ -319,6 +319,38 @@ does not alter the accepted historical cost/delay evidence or registered rules.
 
 ## Historical quote sample
 
+### Crossing-cost reference comparison
+
+`quote_reference_development` authenticates the saved sample through the existing
+read-only raw-response replay. It compares each eligible quoted half-spread
+with the five registered all-in per-side charges. For bid $B$ and ask $A$,
+the hypothetical one-sided crossing cost relative to the contemporaneous
+midpoint is $10^4(A-B)/(A+B)$ basis points, for either buy or sell direction.
+It replaces the fixed charge in this descriptive comparison; the two charges
+are never added. No strategy P&L or empirical fill estimate is produced.
+
+All planned windows retain their original status. Year/instrument groups without
+eligible observations display NA. Paired one-/two-minute windows compare spread
+variation only, without interpreting the midpoint move, retrieval time or
+displayed size as realized execution cost or latency. Earlier-year eligibility
+remains unchanged. The independent verifier reauthenticates raw quotes, checks
+Decimal arithmetic, every group and delay pair, and all static plot coordinates.
+The constructed run passed 130 windows, 65 delay pairs and two semantic
+corruption checks. Windows provider-run acceptance remains pending.
+
+```powershell
+py -3 -B build.py --configuration Release --target quote_reference_development
+& .\scratch\native\Release\quote_reference_development.exe --check
+py -3 -B research/verify_quote_reference.py scratch/runs/quote_reference_0 --self-check
+& .\scratch\native\Release\quote_reference_development.exe scratch/runs/cost_quotes_0/summary.json
+py -3 -B research/verify_quote_reference.py scratch/runs/quote_reference_1 --self-check
+```
+
+Use the actual printed suffixes. The provider command uses existing retained
+quotes and sends no requests. Share each generated `review.zip`; provider raw
+quotes remain local. Continuous risk and shared-capital economic verification
+remain in progress.
+
 For each year 2017-2023, the plan takes the earliest regular date on which all five
 instruments have operational inputs in the accepted M2 masks. No strategy return
 or quote is consulted for selection. It samples decision offsets 30, 60, ..., 360
