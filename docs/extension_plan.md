@@ -167,7 +167,7 @@ vendor entitlement failure. No native broker service or paid access is needed.
 | M3 | Multi-instrument causal replay | Original-reference parity and past-only panel records | Complete: Windows Release replay, 187 native checks, original-SPY parity and independent verification of all 10,060 records |
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
-| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: quote inputs and Windows historical cost/delay comparison accepted; 680-case synthetic execution study locally verified, Windows acceptance pending; account/quote comparisons remain open |
+| M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | In progress: quote inputs, Windows historical cost/delay and 680-case synthetic execution studies accepted; account/quote comparisons remain open |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Not started |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
@@ -822,7 +822,12 @@ now runs all 680 registered cases with exact independent-ledger reconciliation,
 fee-inclusive metrics, distinct source/receipt clocks and 510 matched contrasts.
 The M5 broker model and existing quality/path kernel are reused in-process;
 separate-process and durable recovery acceptance retains its M5 scope.
-Windows acceptance is pending. Quote-reference comparisons, continuous daily-risk
+Windows Release acceptance completed on 29 October 2026. Independent review
+verified the complete uploaded case traces, all 510 contrasts and plotted cells;
+all 680 traces match the GNU reference byte for byte. The
+[acceptance record](cost_execution.md#windows-synthetic-execution-acceptance)
+retains policy summaries, interpretation and artifact identities.
+Quote-reference comparisons, continuous daily-risk
 accounts and shared-account economic integration remain open.
 The three unavailable 2019 closes cannot be repaired by resetting capital:
 an affected continuous account stops at its first required missing endpoint.

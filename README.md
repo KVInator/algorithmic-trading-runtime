@@ -72,7 +72,8 @@ continuous daily-risk accounts and shared-account economic integration remain op
 The registered [synthetic execution study](docs/cost_execution.md#registered-synthetic-execution-study)
 now executes all 680 cases through the existing five-symbol broker model and a
 separate client ledger, with 510 matched contrasts, explicit fees and delivery
-clocks. Local native and independent checks pass; Windows acceptance is pending.
+clocks. [Windows acceptance](docs/cost_execution.md#windows-synthetic-execution-acceptance)
+passed on 29 October 2026; all 680 case traces match the GNU reference byte for byte.
 Its heatmaps retain unfilled/stale/zero-liquidity cases. Identical constructed
 symbol paths are engineering evidence, separate from historical market results.
 

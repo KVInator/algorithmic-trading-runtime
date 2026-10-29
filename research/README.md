@@ -100,7 +100,11 @@ shortfall. It reuses the M5 broker oracle and checks 510 paired contrasts,
 policy denominators and all static heatmap values. Its self-check rejects
 semantic corruption without relying on artifact hashes. The study is in-process
 engineering evidence; it does not load historical strategy prices or extend
-the M5 process/recovery claim. Windows acceptance remains pending.
+the M5 process/recovery claim. Windows Release acceptance and full-bundle
+independent verification passed on 29 October 2026; all 680 native case traces
+match the GNU reference byte for byte. The
+[acceptance record](../docs/cost_execution.md#windows-synthetic-execution-acceptance)
+retains the policy results and evidence identities.
 
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate

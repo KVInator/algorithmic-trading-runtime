@@ -2,8 +2,8 @@
 
 M6 is in progress. Historical quote acquisition and cached diagnosis are accepted.
 Windows historical cost/delay evaluation is accepted as a development comparison.
-The 680-case synthetic execution evaluator is implemented and locally verified;
-Windows acceptance is pending. Continuous accounts remain separate work. The v1
+The 680-case synthetic execution evaluator has passed Windows Release acceptance
+and full-bundle independent review. Continuous accounts remain separate work. The v1
 findings and M2-M5 evidence retain their identities.
 
 ## Registered comparisons
@@ -15,7 +15,7 @@ separate evidence layers:
 | --- | --- | --- |
 | Bar references | 0, 0.5, 1, 2 and 5 bp per side, crossed with one-/two-minute delay; primary signals and entry hurdles fixed | Windows development comparison and independent local verification accepted: 400 series, 240 paired contrasts |
 | Historical SIP quotes | Seven input-selected dates, five instruments, thirteen decision clocks and two delays: 910 one-second windows | Windows acquisition complete; 232 eligible windows, all in 2022-2023 |
-| Synthetic execution | 170 matched one-factor workloads crossed with four limit/deadline policies: 680 cases | All cases executed and independently verified locally; Windows acceptance pending |
+| Synthetic execution | 170 matched one-factor workloads crossed with four limit/deadline policies: 680 cases | Windows Release accepted; complete case traces, 510 contrasts and report marks independently verified |
 
 Daily risk remains a separate experiment with intraday-risk, daily-only,
 static-risk-budget and passive accounts. It will reuse the existing lagged
@@ -255,8 +255,8 @@ money is exact; Decimal calculations supply an independent ratio reference.
 records without relying on hashes. The self-contained `review.zip` contains
 summary, HTML and all synthetic cases; it needs no private market data.
 The [runbook](running.md#synthetic-execution-study-m6) gives the commands.
-Windows Release acceptance is pending; the original historical reports are
-unchanged and do not retroactively claim these synthetic cases were executed.
+Windows Release acceptance is recorded below. The original historical reports
+retain their original executed-case counts and identities.
 
 Local GNU 13.3.0 Release verification passed all 680 terminal reconciliations,
 510 paired contrasts and 680 plotted cells. The independent oracle rejected six
@@ -269,6 +269,53 @@ archive units were not instrumented and LeakSanitizer was disabled in the traced
 environment. All ten report-selector branches executed, and static overview,
 detail and print layouts were rendered and inspected. These checks establish
 the constructed implementation's behavior, not empirical execution performance.
+
+## Windows synthetic execution acceptance
+
+Windows Release execution completed on 29 October 2026 with MSVC 19.51.36260.
+All 680 cases ended with exact broker/client reconciliation. The complete
+uploaded bundle passed independent reconstruction of broker commands, client
+receipts and ledgers, fills, fees, costs, 510 matched contrasts and 680 report
+cells. Six semantic corruption checks passed without relying on artifact hashes.
+The separately uploaded summary and HTML are byte-identical to their bundle
+members. All 680 native case traces are byte-identical to the GNU Release
+reference; plan and paired comparisons agree exactly. Policy counts agree
+exactly, with floating-point mean differences below $10^{-12}$.
+
+Each policy covers the same 170 workloads and 2,510 requested shares. Case-mean
+fill fraction gives each workload equal weight; share-weighted fill fraction
+divides total filled shares by total requested shares. Both cost columns include
+fees and terminal opportunity cost for unfilled shares. The notional-weighted
+column divides total shortfall by total arrival notional.
+
+| Policy | Case-mean fill % | Share-weighted fill % | Censored cases | Mean shortfall bp | Notional-weighted shortfall bp |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Aggressive, 5 s | 80.0000 | 61.3546 | 40 | 0.977271 | 0.733681 |
+| Aggressive, 11 s | 82.3529 | 70.1195 | 40 | 1.000824 | 0.821418 |
+| Passive, 5 s | 11.7647 | 7.9681 | 150 | 0.647176 | 0.438327 |
+| Passive, 11 s | 11.7647 | 7.9681 | 150 | 0.647176 | 0.438327 |
+
+The longer aggressive deadline fills 1,760 shares versus 1,540 at five seconds,
+with higher aggregate shortfall. Passive policies each fill only 200 shares and
+have censored completion in 150 of 170 cases. Their lower shortfall therefore
+does not establish better execution. Both passive deadlines give identical
+outcomes under this fixed one-factor matrix. These results characterize the
+declared model; repeated symbol paths supply no independent market samples.
+Network requests, external broker events and child processes were zero.
+Historical strategy inputs, including reserved years, were not opened.
+
+| Accepted synthetic execution record | SHA-256 |
+| --- | --- |
+| Windows summary | `d0b48e01ddaf158ae4f5e87aea1760b85c3e6b700d575aeafdd04c3867fcf742` |
+| Windows HTML report | `56b48b5a21474209db977d96755507fa7ebe4a4c0d44f2a12df5967e5f4adb4f` |
+| Complete case traces | `2a3b5332dd2bb4d65607a4835727aa4f7b3e59bd16a22883dda4c81d1cd45f66` |
+| Uploaded review ZIP | `048a9e98dd5fed9b4336baed731730f67b3ed63f7bacd8b04096469e39cda67e` |
+| Execution plan | `8b0e297326cbf0a89ae23c0ad30f971e46b61193cc11ead7e05ff4ef9316c4bd` |
+| Reported native source inventory | `c6562df01544a0ee63276a3dcd2a8eb38c416f58855b446e0f0290be1e7c2c3b` |
+
+The source inventory identifies producer-file bytes, not an independently
+established Git commit. The original uploaded files are preserved; verification
+does not alter the accepted historical cost/delay evidence or registered rules.
 
 ## Historical quote sample
 
@@ -479,7 +526,7 @@ acquisition or change to the primary strategy results follows from this diagnosi
 The [runbook](running.md#cost-and-execution-inputs-m6) gives the Windows commands.
 The provider sampler uses only the existing historical-data credential route.
 The M6 input checkpoint is accepted with the recorded coverage limitation.
-M6 still requires Windows synthetic-execution acceptance, quote-reference
-comparisons, continuous daily-risk accounts and shared-account economic integration. M7 adds stability,
+M6 still requires quote-reference comparisons, continuous daily-risk accounts
+and shared-account economic integration. M7 adds stability,
 concentration, risk matching and uncertainty; M8-M9 evaluate the reserved periods;
 M10 consolidates publication and release.
