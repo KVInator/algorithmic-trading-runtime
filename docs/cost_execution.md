@@ -338,6 +338,16 @@ Decimal arithmetic, every group and delay pair, and all static plot coordinates.
 The constructed run passed 130 windows, 65 delay pairs and two semantic
 corruption checks. Windows provider-run acceptance remains pending.
 
+The saved sample identity hashes the native compact JSON serialization. Its
+pretty-printed `sample.json` retains the same tokens; verification removes only
+JSON whitespace outside strings before hashing. Re-encoding parsed values in
+Python can change decimal spellings for the same binary floating-point value.
+The retained provider sample reproduced that mismatch. Sixteen identity
+regression checks cover the observed decimal, exponents, large integers,
+escaped paths, Unicode and altered-content rejection. Raw-response authentication
+and financial tolerances are unchanged. Existing comparison folders require only
+the Python verifier to be rerun; acquisition and native reports remain unchanged.
+
 ```powershell
 py -3 -B build.py --configuration Release --target quote_reference_development
 & .\scratch\native\Release\quote_reference_development.exe --check

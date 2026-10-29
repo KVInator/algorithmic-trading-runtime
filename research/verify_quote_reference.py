@@ -15,6 +15,92 @@ from verify_cost_quotes import QuoteVerifier, require, digest, POLICY
 COSTS = (0, 0.5, 1, 2, 5)
 
 
+def authenticated_sample(payload: bytes, identity: str):
+    """Match native dump() bytes without rewriting numbers or string escapes.
+
+    The producer saves dump(2) plus a newline and hashes dump(). Those forms
+    differ only in whitespace outside strings. A Python serialization can
+    choose a different decimal spelling for the same binary floating value.
+    """
+    sample = json.loads(payload)
+    compact = bytearray()
+    quoted = escaped = False
+    for byte in payload:
+        if quoted:
+            compact.append(byte)
+            if escaped:
+                escaped = False
+            elif byte == 92:
+                escaped = True
+            elif byte == 34:
+                quoted = False
+        elif byte == 34:
+            quoted = True
+            compact.append(byte)
+        elif byte not in b" \t\r\n":
+            compact.append(byte)
+    require(
+        hashlib.sha256(compact).hexdigest() == identity,
+        "Comparison sample identity differs",
+    )
+    return sample
+
+
+def identity_checks():
+    # Native nlohmann/json 3.12.0 output spellings. The first reproduces the
+    # retained provider sample; the decimal value rounds to the same Python
+    # float as 0.297238652914425, whose serialized bytes differ.
+    fixtures = [
+        b'{"half_spread_bps":0.29723865291442497}',
+        b'{"small":1e-06,"large":1e+20,"negative":-0.0}',
+        b'{"nested":[true,false,null,{"price":100.0,"shares":500}]}',
+        rb'{"path":"C:\\Users\\Two Names\\quote\"archive","text":"a b\ttab\nline","escaped":"\\\""}',
+        '{"text":"Δ 東京","escaped":"\\u0394"}'.encode("utf-8"),
+        b'{"integer":9007199254740993,"tiny":5e-324}',
+    ]
+    checks = 0
+    for compact in fixtures:
+        # Add whitespace only at the outer object boundary. String bytes and
+        # the original numerical spellings remain independent reference data.
+        pretty = b" \r\n{\t\n  " + compact[1:-1] + b"\r\n}\n"
+        identity = hashlib.sha256(compact).hexdigest()
+        require(
+            authenticated_sample(pretty, identity) == json.loads(compact),
+            "Native sample formatting regression",
+        )
+        checks += 1
+        # A valid extra field must fail even though the original tokens remain.
+        changed = compact[:-1] + b',"altered":true}'
+        try:
+            authenticated_sample(changed, identity)
+        except ValueError:
+            checks += 1
+        else:
+            raise ValueError("Altered sample accepted")
+    reference = fixtures[0]
+    identity = hashlib.sha256(reference).hexdigest()
+    mutations = [
+        b'{"half_spread_bps":0.297238652914425}',
+        b'{"half_spread_bps":1.29723865291442497}',
+        b'{"half_spread_bps":null}',
+    ]
+    for changed in mutations:
+        try:
+            authenticated_sample(changed, identity)
+        except ValueError:
+            checks += 1
+        else:
+            raise ValueError("Changed native sample tokens accepted")
+    text = b'{"path":"Two Names"}'
+    try:
+        authenticated_sample(b'{"path":"TwoNames"}', hashlib.sha256(text).hexdigest())
+    except ValueError:
+        checks += 1
+    else:
+        raise ValueError("Changed string whitespace accepted")
+    print(f"Sample identity serialization checks passed: {checks}.")
+
+
 class Marks(HTMLParser):
     def __init__(self, text):
         super().__init__()
@@ -131,51 +217,16 @@ def expected(sample):
     return dict(windows=rows, groups=groups, delay_pairs=pairs)
 
 
-def verify(run, self_check=False):
-    s = json.loads((run / "summary.json").read_text())
-    sample = json.loads((run / "sample.json").read_text())
-    require(
-        s["kind"] == "quote_reference_comparison"
-        and s["policy_sha256"] == POLICY
-        and s["network_requests"] == 0
-        and not s["historical_strategy_scored"]
-        and not s["reserved_strategy_inputs_opened"],
-        "Quote comparison scope differs",
-    )
-    require(
-        hashlib.sha256(
-            json.dumps(
-                sample, sort_keys=True, separators=(",", ":"), ensure_ascii=False
-            ).encode()
-        ).hexdigest()
-        == s["sample_sha256"],
-        "Comparison sample identity differs",
-    )
-    QuoteVerifier(run, run / "sample.json").verify(bundle=False, verify_report=False)
-    auth = s["authentication"]
-    if auth["mode"] == "raw_archive_read_only_replay":
-        require(
-            digest(Path(auth["sample_file"])) == auth["sample_file_sha256"],
-            "Original quote summary differs",
-        )
-        require(
-            json.loads(Path(auth["sample_file"]).read_text()) == sample,
-            "Original quote projection differs",
-        )
-    else:
-        require(
-            auth["mode"] == "constructed_archive"
-            and sample["evidence_origin"] == "synthetic",
-            "Unrecognized quote provenance",
-        )
+def verify_projection(s, sample, report_file):
+    """Check derived costs and plots after separate source authentication."""
     e = expected(sample)
     for key in e:
         compare(s[key], e[key])
     require(
-        digest(run / "report.html") == s["report_sha256"],
+        digest(report_file) == s["report_sha256"],
         "Quote comparison report changed",
     )
-    marks = Marks((run / "report.html").read_text()).marks
+    marks = Marks((report_file).read_text(encoding="utf-8")).marks
     svg = {a["data-symbol"]: a for t, a in marks if t == "svg"}
     circles = {a["data-group"]: a for t, a in marks if t == "circle"}
     na = {a["data-na"] for t, a in marks if "data-na" in a}
@@ -203,6 +254,42 @@ def verify(run, self_check=False):
                 < Decimal("1e-9"),
                 "Quote plot coordinates differ",
             )
+    return e
+
+
+def verify(run, self_check=False):
+    if self_check:
+        identity_checks()
+    s = json.loads((run / "summary.json").read_bytes())
+    sample = authenticated_sample(
+        (run / "sample.json").read_bytes(), s["sample_sha256"]
+    )
+    require(
+        s["kind"] == "quote_reference_comparison"
+        and s["policy_sha256"] == POLICY
+        and s["network_requests"] == 0
+        and not s["historical_strategy_scored"]
+        and not s["reserved_strategy_inputs_opened"],
+        "Quote comparison scope differs",
+    )
+    QuoteVerifier(run, run / "sample.json").verify(bundle=False, verify_report=False)
+    auth = s["authentication"]
+    if auth["mode"] == "raw_archive_read_only_replay":
+        require(
+            digest(Path(auth["sample_file"])) == auth["sample_file_sha256"],
+            "Original quote summary differs",
+        )
+        require(
+            json.loads(Path(auth["sample_file"]).read_bytes()) == sample,
+            "Original quote projection differs",
+        )
+    else:
+        require(
+            auth["mode"] == "constructed_archive"
+            and sample["evidence_origin"] == "synthetic",
+            "Unrecognized quote provenance",
+        )
+    e = verify_projection(s, sample, run / "report.html")
     if self_check:
         for key in ("crossing_cost_bps", "reference_differences"):
             bad = deepcopy(s["windows"])
