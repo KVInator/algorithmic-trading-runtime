@@ -2,7 +2,8 @@
 
 M6 is in progress. Historical quote acquisition and cached diagnosis are accepted.
 Windows historical cost/delay evaluation is accepted as a development comparison.
-Continuous-account and synthetic execution results remain separate work. The v1
+The 680-case synthetic execution evaluator is implemented and locally verified;
+Windows acceptance is pending. Continuous accounts remain separate work. The v1
 findings and M2-M5 evidence retain their identities.
 
 ## Registered comparisons
@@ -14,7 +15,7 @@ separate evidence layers:
 | --- | --- | --- |
 | Bar references | 0, 0.5, 1, 2 and 5 bp per side, crossed with one-/two-minute delay; primary signals and entry hurdles fixed | Windows development comparison and independent local verification accepted: 400 series, 240 paired contrasts |
 | Historical SIP quotes | Seven input-selected dates, five instruments, thirteen decision clocks and two delays: 910 one-second windows | Windows acquisition complete; 232 eligible windows, all in 2022-2023 |
-| Synthetic execution | 170 matched one-factor workloads crossed with four limit/deadline policies: 680 cases | Workload plan registered and checked; execution evaluation remains open |
+| Synthetic execution | 170 matched one-factor workloads crossed with four limit/deadline policies: 680 cases | All cases executed and independently verified locally; Windows acceptance pending |
 
 Daily risk remains a separate experiment with intraday-risk, daily-only,
 static-risk-budget and passive accounts. It will reuse the existing lagged
@@ -174,6 +175,100 @@ verifier correction. The Windows constructed run separately passed 32 native
 checks. Its uploaded bundle passed independent verification of all 300
 five-instrument dates, 400 series, 240 contrasts, six financial corruption
 rejections and fifteen SVG serialization checks.
+
+## Registered synthetic execution study
+
+`cost_execution_study` executes the registered 170 workloads against four
+policies: aggressive/passive fixed DAY limits, each with five-/eleven-second
+cancellation deadlines. Every workload is retained. Three policies are compared
+with the fixed aggressive/five-second reference on the same workload, giving
+510 paired contrasts. No best-policy selection or historical strategy scoring
+is performed.
+
+The runner reuses `BrokerState`, the five-symbol FIFO matcher, `OrderRuntime`
+and the existing execution-quality kernel. Broker and client start with
+separate USD 100,000 ledgers and integer USD $10^{-9}$ units. Fee per filled
+share is USD 0.00001. No fees or liquidity parameters are estimated from the
+historical quote sample. Client cash/inventory updates only on delivered
+broker reports and must reconcile exactly after all terminal deliveries.
+Command/reply/checkpoint records and client receipt states are retained for
+independent reconstruction. This study uses the in-process broker model;
+M5 retains the separate-process, durable journal and restart evidence.
+
+The implementation makes these clock/path conventions explicit in its hashed
+plan before running cases. They complete the engineering specification of the
+fixed matrix; they are not empirical estimates or historical validation:
+
+- The constructed regular session is 2023-01-03. Decision and dispatch are at
+  second 10 after the open; all cases end at the common second-30 horizon.
+- Quotes arrive at seconds 10, 12, 15, 18, 21, 24 and 30. Midpoint starts at
+  USD 100. The steady path has zero moves; adverse moves are 0, 2, 4, 6, 8, 10,
+  12 cents; reverting moves are 0, 0, -2, -4, 0, 2, 0 cents. Moves are signed
+  against the buy/sell direction. This path generator is shared with v1.
+- An aggressive buy/sell uses the decision ask/bid as its fixed limit; passive
+  uses the decision bid/ask. Subsequent source quotes never revise the limit.
+- Outbound delay applies to both submission and cancellation. Receipt delay
+  applies to broker activities. Source quote age is separate and the existing
+  two-second freshness rule applies at actual broker processing time.
+- At a tied clock: advance the broker, process quotes, submit arrivals, process
+  due cancel arrivals/completions, deliver due reports, then check the client
+  deadline. Zero-delay cancellation generated at the deadline is processed
+  immediately afterward. Quotes can therefore fill before same-clock terminal
+  cancellation. Cancellation requests retain reservations until confirmation.
+- Sell cases first buy their requested inventory at second 1 and USD 100, with
+  the explicit fee. Setup fills and fees remain in both ledgers but are excluded
+  from measured execution costs. No shorting or assumed initial inventory is used.
+
+For direction $s=+1$ for buys and $-1$ for sells, requested shares $Q$, filled
+shares $q_i$, fill prices $P_i$, fill-time midpoints $M_i$, common arrival
+midpoint $M_0$ and terminal midpoint $M_T$, monetary shortfall is
+
+$$
+IS=s\sum_i q_i(P_i-M_0)+s\left(Q-\sum_iq_i\right)(M_T-M_0)+\sum_i f_i.
+$$
+
+The filled component is also decomposed into spread
+$s\sum_iq_i(P_i-M_i)$ and timing $s\sum_iq_i(M_i-M_0)$. Doubled integer units
+preserve half-unit midpoints exactly. Total shortfall basis points divide by
+$QM_0$, retaining unfilled opportunity cost and explicit fees. The filled-only
+shortfall excludes fees and is NA when no shares fill. Fees remain separately
+reported; total shortfall includes them. Source and receipt delays, first fill,
+completion and cancellation censoring remain distinct. No-fill cases do not
+receive an invented completion time or a filled-only cost estimate.
+
+The static report embeds ten instrument/side matrices, all 680 cell widths and
+labels, and four policy summaries. JavaScript only changes panel visibility.
+Policy summaries show both equal-case and quantity/notional-weighted measures.
+All five symbols share identical constructed paths; label repetition checks
+routing symmetry, not five independent samples of market liquidity. The fixed
+one-factor matrix does not identify interactions among adverse paths, liquidity
+and delays. A passive no-fill case on a steady midpoint has zero opportunity
+cost under this benchmark; its zero fill fraction and censored completion remain
+visible. Lower shortfall alone is not a successful-execution criterion.
+
+`verify_cost_execution.py` rebuilds the entire plan independently, reuses the
+M5 Python broker oracle for matching and fees, reconstructs a separate client
+ledger, then checks every command checkpoint, report delivery, baseline/terminal
+account, fill, cost decomposition, matched comparison and plotted value. Integer
+money is exact; Decimal calculations supply an independent ratio reference.
+`--self-check` rejects deliberately corrupted financial, timing and source
+records without relying on hashes. The self-contained `review.zip` contains
+summary, HTML and all synthetic cases; it needs no private market data.
+The [runbook](running.md#synthetic-execution-study-m6) gives the commands.
+Windows Release acceptance is pending; the original historical reports are
+unchanged and do not retroactively claim these synthetic cases were executed.
+
+Local GNU 13.3.0 Release verification passed all 680 terminal reconciliations,
+510 paired contrasts and 680 plotted cells. The independent oracle rejected six
+semantic corruptions, including altered fees, client cash and report clocks.
+The original 144-case execution study also passed its independent Decimal ledger
+and 108-comparison checks after the shared measurement-kernel change.
+AddressSanitizer/UndefinedBehaviorSanitizer passed the new study, report and entry
+point plus the changed measurement unit across the full matrix; the remaining
+archive units were not instrumented and LeakSanitizer was disabled in the traced
+environment. All ten report-selector branches executed, and static overview,
+detail and print layouts were rendered and inspected. These checks establish
+the constructed implementation's behavior, not empirical execution performance.
 
 ## Historical quote sample
 
@@ -384,7 +479,7 @@ acquisition or change to the primary strategy results follows from this diagnosi
 The [runbook](running.md#cost-and-execution-inputs-m6) gives the Windows commands.
 The provider sampler uses only the existing historical-data credential route.
 The M6 input checkpoint is accepted with the recorded coverage limitation.
-M6 still requires quote-reference comparisons, synthetic execution, continuous
-daily-risk accounts and shared-account economic integration. M7 adds stability,
+M6 still requires Windows synthetic-execution acceptance, quote-reference
+comparisons, continuous daily-risk accounts and shared-account economic integration. M7 adds stability,
 concentration, risk matching and uncertainty; M8-M9 evaluate the reserved periods;
 M10 consolidates publication and release.

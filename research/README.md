@@ -94,6 +94,14 @@ estimates remain distinct from candidate profitability and statistical
 superiority. Quote-reference, account/execution and stability comparisons remain
 open; the v1 results retain their original sample and identities.
 
+`verify_cost_execution.py` independently rebuilds all 680 registered synthetic
+cases, broker matching, client receipt-time accounting and fee-inclusive
+shortfall. It reuses the M5 broker oracle and checks 510 paired contrasts,
+policy denominators and all static heatmap values. Its self-check rejects
+semantic corruption without relying on artifact hashes. The study is in-process
+engineering evidence; it does not load historical strategy prices or extend
+the M5 process/recovery claim. Windows acceptance remains pending.
+
 The 2022-2023 period remains inspected development data, with prior pilot,
 research and literature exposure. Local 2024-2025 strategy prices and candidate
 performance remain unopened. Failed gates authorize neither a new search nor

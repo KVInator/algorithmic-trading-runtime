@@ -68,9 +68,13 @@ sign-only/drift. Momentum and reversion candidate net means remain negative;
 these are development point estimates pending stability and uncertainty checks.
 The [accepted cost/delay results](docs/cost_execution.md#windows-costdelay-acceptance)
 retain the complete tables and review limits. Quote-reference comparisons,
-continuous daily-risk accounts, shared-account economic integration and
-synthetic execution evaluation remain open.
-Registered synthetic cases are not executed results.
+continuous daily-risk accounts and shared-account economic integration remain open.
+The registered [synthetic execution study](docs/cost_execution.md#registered-synthetic-execution-study)
+now executes all 680 cases through the existing five-symbol broker model and a
+separate client ledger, with 510 matched contrasts, explicit fees and delivery
+clocks. Local native and independent checks pass; Windows acceptance is pending.
+Its heatmaps retain unfilled/stale/zero-liquidity cases. Identical constructed
+symbol paths are engineering evidence, separate from historical market results.
 
 The 2024 validation and 2025 final-evaluation strategy inputs remain unopened
 until M8 and M9. The [registration record](docs/extension_plan.md#m2-windows-registration-completed)

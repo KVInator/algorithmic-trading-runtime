@@ -42,23 +42,13 @@ std::vector<TopOfBook> quotes(const ExecutionWorkload &w) {
                 w.delivery_delay_seconds <= 2 && w.cancel_processing_seconds >= 0 &&
                 w.cancel_processing_seconds <= 3,
             "unsupported measurement delay bounds");
-    const std::vector<std::int64_t> times{10, 12, 15, 18, 21, 24, 30};
-    std::vector<Cents> moves;
-    if (w.path == "steady")
-        moves = {0, 0, 0, 0, 0, 0, 0};
-    else if (w.path == "reverting")
-        moves = {0, 0, -2, -4, 0, 2, 0};
-    else if (w.path == "adverse")
-        moves = {0, 2, 4, 6, 8, 10, 12};
-    else
-        throw std::invalid_argument("unknown synthetic execution path");
     static_cast<void>(name(w.side));
     const auto sign = w.side == Side::buy ? 1 : -1;
     std::vector<TopOfBook> result;
-    for (std::size_t i = 0; i < times.size(); ++i) {
-        const auto mid = 10000 + sign * moves[i];
-        result.push_back({i + 2, times[i], mid - w.spread_cents / 2, mid + w.spread_cents / 2, w.quote_size,
-                          w.quote_size});
+    for (const auto &step : synthetic_execution_midpoint_path(w.path)) {
+        const auto mid = 10000 + sign * step.move_cents;
+        result.push_back({result.size() + 2, step.at_seconds, mid - w.spread_cents / 2,
+                          mid + w.spread_cents / 2, w.quote_size, w.quote_size});
     }
     return result;
 }
@@ -305,14 +295,29 @@ class MeasurementReplay {
 };
 } // namespace
 
-Json ExecutionQuality::measure(const ExecutionObservation &o) const {
+std::vector<SyntheticMidpointStep> synthetic_execution_midpoint_path(std::string_view path) {
+    const std::vector<std::int64_t> times{10, 12, 15, 18, 21, 24, 30};
+    const std::vector<std::int64_t> moves =
+        path == "steady"      ? std::vector<std::int64_t>{0, 0, 0, 0, 0, 0, 0}
+        : path == "reverting" ? std::vector<std::int64_t>{0, 0, -2, -4, 0, 2, 0}
+        : path == "adverse"   ? std::vector<std::int64_t>{0, 2, 4, 6, 8, 10, 12}
+                              : throw std::invalid_argument("unknown synthetic execution path");
+    std::vector<SyntheticMidpointStep> out;
+    for (std::size_t i = 0; i < times.size(); ++i) {
+        out.push_back({times[i], moves[i]});
+    }
+    return out;
+}
+Json ExecutionQuality::measure(const ExecutionObservation &o, MoneyUnits scale) const {
+    require(scale == 100 || scale == 1000000000, "unsupported execution monetary scale");
+    const auto maximum_price = 10000 * scale;
     static_cast<void>(name(o.side));
     require(o.requested_quantity > 0 && o.requested_quantity <= 1000 && o.limit_cents > 0 &&
-                o.limit_cents <= 1000000,
+                o.limit_cents <= maximum_price,
             "invalid execution measurement order bounds");
     require(o.arrival_bid_cents > 0 && o.arrival_ask_cents >= o.arrival_bid_cents &&
-                o.arrival_ask_cents <= 1000000 && o.terminal_bid_cents > 0 &&
-                o.terminal_ask_cents >= o.terminal_bid_cents && o.terminal_ask_cents <= 1000000,
+                o.arrival_ask_cents <= maximum_price && o.terminal_bid_cents > 0 &&
+                o.terminal_ask_cents >= o.terminal_bid_cents && o.terminal_ask_cents <= maximum_price,
             "invalid execution benchmark quotes");
     require(o.decision_seconds >= 0 && o.dispatch_seconds >= o.decision_seconds &&
                 o.horizon_seconds >= o.dispatch_seconds && o.horizon_seconds <= 3600 &&
@@ -331,14 +336,15 @@ Json ExecutionQuality::measure(const ExecutionObservation &o) const {
     const auto arrival2 = o.arrival_bid_cents + o.arrival_ask_cents;
     const auto terminal2 = o.terminal_bid_cents + o.terminal_ask_cents;
     Shares filled = 0;
-    std::int64_t notional = 0, spread2 = 0, timing2 = 0;
+    std::int64_t notional = 0, spread2 = 0, timing2 = 0, fees = 0;
     Json first_source = nullptr, first_receipt = nullptr, completion_source = nullptr,
          completion_receipt = nullptr;
     std::int64_t previous_source = o.acknowledgement_source_seconds, previous_receipt = o.dispatch_seconds;
     for (const auto &f : o.fills) {
         require(f.quantity > 0 && f.quantity <= o.requested_quantity - filled && f.price_cents > 0 &&
-                    f.price_cents <= 1000000 && f.bid_cents > 0 && f.ask_cents >= f.bid_cents &&
-                    f.ask_cents <= 1000000 && f.quote_sequence > 0,
+                    f.price_cents <= maximum_price && f.bid_cents > 0 && f.ask_cents >= f.bid_cents &&
+                    f.ask_cents <= maximum_price && f.quote_sequence > 0 && f.fee_units >= 0 &&
+                    f.fee_units <= f.quantity * f.price_cents,
                 "invalid measured fill quantity or quote");
         require(f.source_seconds >= previous_source && f.receipt_seconds >= previous_receipt &&
                     f.receipt_seconds >= f.source_seconds && f.receipt_seconds <= o.horizon_seconds,
@@ -351,6 +357,7 @@ Json ExecutionQuality::measure(const ExecutionObservation &o) const {
                     "fill occurs beyond cancellation censoring endpoint");
         const auto midpoint2 = f.bid_cents + f.ask_cents;
         notional += f.quantity * f.price_cents;
+        fees += f.fee_units;
         spread2 += sign * f.quantity * (2 * f.price_cents - midpoint2);
         timing2 += sign * f.quantity * (midpoint2 - arrival2);
         if (filled == 0) {
@@ -381,7 +388,7 @@ Json ExecutionQuality::measure(const ExecutionObservation &o) const {
                                       : o.cancellation_source_seconds ? "terminal_cancellation"
                                                                       : "observation_horizon";
     const auto full_denominator = static_cast<double>(o.requested_quantity * arrival2);
-    return {
+    Json result{
         {"requested_quantity", o.requested_quantity},
         {"filled_quantity", filled},
         {"unfilled_quantity", unfilled},
@@ -393,12 +400,13 @@ Json ExecutionQuality::measure(const ExecutionObservation &o) const {
         {"spread_component_twice_cents", spread2},
         {"timing_component_twice_cents", timing2},
         {"unfilled_opportunity_twice_cents", opportunity2},
-        {"fees_twice_cents", 0},
-        {"total_shortfall_twice_cents", executed2 + opportunity2},
+        {"fees_twice_cents", 2 * fees},
+        {"total_shortfall_twice_cents", executed2 + opportunity2 + 2 * fees},
         {"executed_shortfall_bps",
          filled ? Json(10000.0 * static_cast<double>(executed2) / static_cast<double>(filled * arrival2))
                 : Json(nullptr)},
-        {"total_shortfall_bps", 10000.0 * static_cast<double>(executed2 + opportunity2) / full_denominator},
+        {"total_shortfall_bps",
+         10000.0 * static_cast<double>(executed2 + opportunity2 + 2 * fees) / full_denominator},
         {"decision_to_dispatch_seconds", o.dispatch_seconds - o.decision_seconds},
         {"acknowledgement_source_delay_seconds", o.acknowledgement_source_seconds - o.dispatch_seconds},
         {"acknowledgement_receipt_delay_seconds", o.acknowledgement_receipt_seconds - o.dispatch_seconds},
@@ -411,6 +419,15 @@ Json ExecutionQuality::measure(const ExecutionObservation &o) const {
         {"completion_source_observation_seconds", observed_source},
         {"completion_observation_seconds", observed_receipt},
         {"completion_horizon_seconds", o.horizon_seconds - o.dispatch_seconds}};
+    if (scale != 100) {
+        Json units = Json::object();
+        for (const auto &[key, value] : result.items()) {
+            units[key.ends_with("_cents") ? key.substr(0, key.size() - 6) + "_units" : key] = value;
+        }
+        units["usd_scale"] = scale;
+        return units;
+    }
+    return result;
 }
 
 std::vector<ExecutionWorkload> ExecutionMeasurementStudy::workloads() {

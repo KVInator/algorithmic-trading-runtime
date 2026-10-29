@@ -94,6 +94,7 @@ these checks are explicit local commands.
 | `cost_execution_check` | M6 constructed quote pagination, invalid-input and resumable-archive checks; no credentials |
 | `cost_quote_acquire` | M6 fixed 2017-2023 SIP quote sample; Windows historical-data credentials and accepted M2 masks |
 | `cost_delay_development` | M6 frozen-decision cost/delay evaluation; `--check` uses constructed observations, default uses the accepted pre-2024 panel |
+| `cost_execution_study` | M6 registered 680-case synthetic broker/client execution study; no credentials or market dataset |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
 | `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
 | `reversion_validation` | Thirteen seeded finite-sample/noise controls; full interval experiment |
@@ -588,3 +589,34 @@ evaluation. Keep the existing Command and Working Directory settings.
 claiming source or aggregate-path authentication. No cost or delay is selected
 as a replacement primary strategy. Synthetic matching, continuous daily-risk
 accounts and shared-capital economic evaluation remain separate work.
+
+## Synthetic execution study (M6)
+
+Build **Release | x64** with the existing solution, or select the single target:
+
+```powershell
+py -3 -B build.py --configuration Release --target cost_execution_study
+```
+
+Run the full fixed synthetic matrix and its independent verifier:
+
+```powershell
+& .\scratch\native\Release\cost_execution_study.exe
+py -3 -B research/verify_cost_execution.py scratch/runs/cost_execution_0 --self-check
+```
+
+Use the actual printed suffix. Expect 680 account cases, 510 matched comparisons,
+680 reconciled terminal accounts and zero requests. The progress counter prints
+every forty cases. The report has ten instrument/side heatmaps, filled/unfilled
+outcomes, explicit fees and separate source/receipt timing. All plotted cells
+are embedded; scripts only select the visible panel.
+
+The verifier writes a self-contained `review.zip` containing `summary.json`,
+`report.html` and `execution_cases.jsonl`. Share that ZIP and the console result.
+No quote acquisition, credentials, historical archive, network, child broker
+process or reserved-year strategy data is used. Separate-process recovery is
+the existing M5 diagnostic, not a claim of this measurement run.
+
+For the retained-console Visual Studio setup, keep the existing Command and
+Working Directory and use arguments
+`/d /s /k ""$(OutDir)cost_execution_study.exe""`.

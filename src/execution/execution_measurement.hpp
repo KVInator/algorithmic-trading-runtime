@@ -11,6 +11,7 @@ struct ExecutionFillObservation {
     std::uint64_t quote_sequence;
     std::int64_t source_seconds;
     std::int64_t receipt_seconds;
+    MoneyUnits fee_units{};
 };
 struct ExecutionObservation {
     Side side;
@@ -29,12 +30,15 @@ struct ExecutionObservation {
     std::optional<std::int64_t> cancellation_source_seconds{};
     std::optional<std::int64_t> cancellation_receipt_seconds{};
 };
-// Economic costs use signed half-cent integers; ratios are display/statistical
-// values. Arrival means the client dispatch quote. Unfilled shares are marked
-// at the common terminal midpoint, with the assumption stated in the report.
+// Economic costs use doubled integer monetary units; default units are cents.
+// Ratios are display/statistical values. Arrival means the client dispatch quote.
+// Unfilled shares are marked at the common terminal midpoint.
 class ExecutionQuality {
   public:
-    [[nodiscard]] nlohmann::json measure(const ExecutionObservation &observation) const;
+    // Default preserves the v1 cent keys and zero-fee fixtures. Portfolio
+    // callers pass 1e9 explicitly and receive monetary *_units keys.
+    [[nodiscard]] nlohmann::json measure(const ExecutionObservation &observation,
+                                         MoneyUnits price_units_per_usd = 100) const;
 };
 struct ExecutionWorkload {
     std::string id;
@@ -52,6 +56,10 @@ struct ExecutionPolicy {
     std::int64_t cancel_after_seconds;
     bool operator==(const ExecutionPolicy &) const = default;
 };
+struct SyntheticMidpointStep {
+    std::int64_t at_seconds, move_cents;
+};
+[[nodiscard]] std::vector<SyntheticMidpointStep> synthetic_execution_midpoint_path(std::string_view path);
 struct ExecutionMeasurementResult {
     nlohmann::json cases = nlohmann::json::array();
     nlohmann::json comparisons = nlohmann::json::array();
