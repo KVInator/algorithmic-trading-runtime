@@ -13,9 +13,11 @@ Detailed methods and executable commands are in the [runbook](docs/running.md).
 and executable freeze are accepted with calibration and coverage limitations.
 All five instruments, 77 primary series, 345 secondary/matched series and fourteen
 registered variants remain present. No strategy advances. Final retrospective
-evaluation in 2025 and consolidated publication remain M9-M10; 2025 strategy
-inputs remain unopened. [M9 requires the payment-date maintenance sequence](docs/running.md#cross-year-payment-date-maintenance);
-its results and acceptance remain pending. Prior research exposure is recorded in the
+evaluation in 2025 and consolidated publication remain M9-M10. The Windows log
+records completed 2025 execution after the payment-date correction and exact
+2024 financial parity; final verification and artifact review remain pending.
+The [M9 verifier recovery](docs/running.md#resume-a-completed-final-run-after-verifier-failure)
+reuses the completed output without another native run. Prior research exposure is recorded in the
 [roadmap](docs/extension_plan.md#research-exposure-and-evaluation-roles);
 the reserved panel is not claimed to be globally unseen.
 

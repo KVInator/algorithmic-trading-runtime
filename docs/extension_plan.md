@@ -564,3 +564,19 @@ market sessions. Existing constructed account records and the guarded 2024
 maintenance comparison provide regression evidence. The original accepted M8
 freeze is retained; a replacement must pass the [maintenance sequence](running.md#cross-year-payment-date-maintenance)
 before final scoring. The full controlled calibration is reused unchanged.
+
+### M9 verifier recovery checkpoint
+
+The Windows maintenance log records a verified corrected 2024 evaluation,
+26 byte-identical financial artifacts, four unchanged scientific summaries and
+a replacement freeze. The corrected native 2025 evaluation completed across
+250 dates. Its cost, account and secondary source checks completed before the
+integrated self-check stopped at `Cohort mutation accepted: last_input`.
+
+The failure came from a no-op test mutation: `2025-12-31` is the authorized M9
+cutoff, not an invalid change. Mutations now depend on the evaluation year and
+must actually alter the field. Contract mutations run before source verification;
+financial mathematics and frozen native outputs are unchanged. Focused checks
+cover both years and both provider/synthetic scopes. The [recovery command](running.md#resume-a-completed-final-run-after-verifier-failure)
+verifies the existing final directory without another build, calibration, replay
+or freeze. M9 acceptance remains pending the final receipt and review bundles.

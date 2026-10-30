@@ -939,6 +939,74 @@ after M8 evidence acceptance.
 
 ## Frozen final evaluation (M9)
 
+### Resume a completed final run after verifier failure
+
+If verification ends with `Cohort mutation accepted: last_input`, the native
+evaluation has already completed. The self-check used the fixed date
+`2025-12-31` as an invalid cutoff, although that is the correct M9 cutoff.
+It now tests a genuinely changed cutoff beyond the authorized year and runs
+access-contract mutations before the expensive source checks. The financial
+oracles, access rules, frozen executable and saved results are unchanged.
+
+For the completed `final_evaluation_2` run, execute only:
+
+```powershell
+& {
+    $ErrorActionPreference = "Stop"
+    git pull --ff-only
+    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
+    py -3 -B research/verify_panel_evaluation.py scratch/runs/final_evaluation_2 --self-check
+    if ($LASTEXITCODE -ne 0) { throw "Final verification failed" }
+    Write-Host "Share: scratch/runs/final_evaluation_2/review.zip"
+    Write-Host "Share: scratch/runs/validation_1/review.zip"
+}
+```
+
+Use the actual completed directory if its suffix differs. Do not rebuild, repeat
+calibration, repeat the 2024 maintenance replay, create another freeze or rerun
+the native final evaluation. Successful verification prints ten semantic checks,
+the integrated 2025 result for 250 dates, and the final review-bundle path.
+Updating the Python verifier does not modify either frozen executable.
+
+### Retained evidence and scratch storage
+
+The accepted original freeze and replacement freeze refer to their validation
+directories by path and hash. The maintenance receipt also refers to the original
+freeze. Keep those directories in place; a compact review ZIP cannot replace
+the detailed local records needed by independent verification.
+
+For the current original/replacement sequence:
+
+| Directory under `scratch/runs` | Retention |
+| --- | --- |
+| `inference_calibration_0` | Keep: original full calibration and independent receipt. |
+| `validation_0`, `evaluation_freeze_0` | Keep: original accepted evidence and maintenance lineage. |
+| `validation_1`, `evaluation_freeze_1` | Keep: corrected validation, exact financial parity and replacement executable. |
+| `final_evaluation_2` | Keep: completed 2025 result; rerun only its verifier. |
+| `final_evaluation_0`, `final_evaluation_1` | Superseded attempts. After final verification succeeds, retain their failure logs and remove their partial output trees if no retained manifest references them. |
+
+Keep `scratch/datasets` and its source/action archives: verification uses them,
+and deleting them would require reacquisition. Do not delete all of `scratch`.
+Build object directories under `scratch/native/<configuration>/objects` are
+rebuildable and can be removed while no build is running; the next build will
+recompile. Frozen runners inside `evaluation_freeze_*` are evidence, not build
+cache. Generated child `review.zip` files duplicate exports and can be regenerated
+by their verifiers; retain the requested top-level review bundles for sharing.
+Do not remove underlying JSON, JSONL or CSV records merely because a ZIP exists.
+
+Measure the immediate scratch directories before selecting additional cleanup:
+
+```powershell
+Get-ChildItem .\scratch -Directory | ForEach-Object {
+    $bytes = (Get-ChildItem -LiteralPath $_.FullName -File -Recurse -Force |
+        Measure-Object -Property Length -Sum).Sum
+    [pscustomobject]@{ Directory = $_.FullName; GiB = [math]::Round($bytes / 1GB, 3) }
+} | Sort-Object GiB -Descending | Format-Table -AutoSize
+```
+
+Use the measured sizes to select additional cleanup; retain datasets and accepted
+evidence even when they are the largest directories.
+
 ### Cross-year payment-date maintenance
 
 The original accepted M8 runner stopped during M9 ledger setup with
@@ -954,7 +1022,7 @@ liquidation does not fabricate early cash settlement. No strategy, threshold,
 bootstrap parameter, input registration or calibration kernel changes.
 
 A compiled frozen executable cannot be edited in place. Preserve the original
-freeze, its runner and the failed `final_evaluation_0` directory. The maintenance
+freeze, its runner and the original failure log. The maintenance
 sequence below builds the correction, reuses the original full calibration,
 verifies a replacement **2024-only** validation and requires exact identity of
 all prior financial artifacts before issuing a new freeze. It does not repeat

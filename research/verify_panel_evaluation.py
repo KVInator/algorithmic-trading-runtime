@@ -186,8 +186,58 @@ class EvaluationVerifier:
         )
         return runner
 
+    def self_check_contracts(self):
+        """Reject changed access claims before reading expensive source evidence."""
+        checks = 0
+        for key, value in [
+            ("rules_selected_from_validation", True),
+            ("parameters_changed", True),
+            ("strategy_advancement_authorized", True),
+            ("network_requests", 1),
+            (
+                "final_strategy_inputs_opened",
+                not self.summary["final_strategy_inputs_opened"],
+            ),
+            ("registered_variants", 13),
+        ]:
+            require(
+                value != self.summary[key], "Semantic mutation is unchanged: " + key
+            )
+            changed = deepcopy(self.summary)
+            changed[key] = value
+            try:
+                self.contract(changed)
+            except ValueError:
+                checks += 1
+            else:
+                raise ValueError("Semantic mutation accepted: " + key)
+        for key, value in [
+            ("unit_reference_first", f"{self.scope.year - 1}-01-01"),
+            ("last_input", f"{self.scope.year + 1}-12-31"),
+            ("first_scored", f"{self.scope.year - 1}-01-01"),
+        ]:
+            require(
+                value != self.scope.document[key],
+                "Cohort mutation is unchanged: " + key,
+            )
+            changed = deepcopy(self.scope.document)
+            changed[key] = value
+            try:
+                EvaluationScope(changed)
+            except ValueError:
+                checks += 1
+            else:
+                raise ValueError("Cohort mutation accepted: " + key)
+        return checks
+
     def run(self, self_check=False):
         self.contract(self.summary)
+        checks = self.self_check_contracts() if self_check else 0
+        if self_check:
+            print(
+                f"Evaluation access/cohort checks passed: {checks}; authenticating saved evidence.",
+                flush=True,
+            )
         if self.scope.year == 2025:
             freeze = Path(self.summary["final_freeze_directory"])
             verify_freeze(freeze)
@@ -290,37 +340,7 @@ class EvaluationVerifier:
             )
         for c in s["children"]:
             require(f'href="{c["path"]}/report.html"' in text, "Report link missing")
-        checks = 0
         if self_check:
-            for key, value in [
-                ("rules_selected_from_validation", True),
-                ("parameters_changed", True),
-                ("strategy_advancement_authorized", True),
-                ("network_requests", 1),
-                ("final_strategy_inputs_opened", not s["final_strategy_inputs_opened"]),
-                ("registered_variants", 13),
-            ]:
-                changed = deepcopy(s)
-                changed[key] = value
-                try:
-                    self.contract(changed)
-                except ValueError:
-                    checks += 1
-                else:
-                    raise ValueError("Semantic mutation accepted: " + key)
-            for key, value in [
-                ("unit_reference_first", "2024-01-01"),
-                ("last_input", "2025-12-31"),
-                ("first_scored", "2023-01-01"),
-            ]:
-                changed = deepcopy(self.scope.document)
-                changed[key] = value
-                try:
-                    EvaluationScope(changed)
-                except ValueError:
-                    checks += 1
-                else:
-                    raise ValueError("Cohort mutation accepted: " + key)
             original = primary.summary["inference"][3]["endpoints"][0]["estimate"]
             primary.summary["inference"][3]["endpoints"][0]["estimate"] = 1.0
             try:
