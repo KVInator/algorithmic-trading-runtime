@@ -448,3 +448,16 @@ matched evidence and no strategy advancement. The primary specifications and
 failed v1 screens retain their outcomes. M8 must validate inference under
 controlled sampling, perform the registered 2024 evaluation and record the final
 executable specification before M9 opens 2025. M10 consolidates the publication.
+
+
+## M8 controlled inference qualification
+
+The [controlled calibration](validation.md#controlled-calibration-acceptance-gnu-release)
+completed 20,000 complete-family synthetic experiments. Independent checks
+confirmed boundary exceedance of 7.0%-16.3%, with size excess detected in 19 of
+20 case/block cells at the predefined diagnostic cutoff. Original M7 point
+estimates, numerical bounds, denominators and failure outcomes remain unchanged.
+They do not acquire a calibrated nominal 95% simultaneous confidence interpretation.
+The procedure is retained, inference claims are withheld and separately
+registered descriptive 2024 evaluation may proceed. No replacement setting or
+2025 strategy price is used in this calibration.

@@ -56,6 +56,17 @@ benefit. M7 records sensitivity, exposure, concentration and uncertainty on
 the evidence actually available; completed engineering checks do not advance a
 failed strategy screen.
 
+## Controlled inference qualification
+
+The [M8 controlled calibration](docs/validation.md#controlled-calibration-acceptance-gnu-release)
+completed 20,000 joint-family experiments with independent verification of all
+outer moments and 40 complete reference bootstrap laws. Boundary exceedance was
+**7.0%-16.3%** against a 5% reference; **19 of 20** case/block cells detected size
+excess under the registered diagnostic. The original procedure is retained and
+supported inference claims are withheld. M7 bounds remain numerical diagnostics,
+not calibrated significance or evidence of a trading edge. The linked figure
+and full cell table retain the failure and Monte Carlo uncertainty.
+
 ## Published SPY study
 
 The [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)

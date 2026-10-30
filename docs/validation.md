@@ -86,3 +86,40 @@ A verified provider 2024 run must freeze the exact executable, source inventory,
 input registration, policy, calibration and validation identities before an
 explicit M9 final run. Constructed verification does not constitute private
 Windows historical acceptance. M9 final evaluation and M10 publication follow.
+
+
+## Controlled calibration acceptance: GNU Release
+
+The full constructed experiment completed on 30 October 2026 with GNU 13.3.0,
+Release. Independent verification passed all **20,000 outer-family moment/HAC/
+bound checks**, **40 complete reference bootstrap replays** and **six semantic
+corruption checks**. All 20,000 families were numerically available. No provider
+strategy prices were loaded.
+
+| Record | Identity / result |
+| --- | --- |
+| Native summary SHA-256 | `12562c1f33f5626b75944ff4e463881d220856c78442dd33dd736afc0656c66b` |
+| Compiled source-inventory SHA-256 | `d0bec50b856a850ea11c3e3bfdd9ecb9609f6e14191029b117fdb66e6701e9e8` |
+| Known-boundary family exceedance frequency | **7.0%-16.3%**, versus the 5% reference |
+| Size-excess cells at the registered `0.05/20` cutoff | **19 of 20** |
+| Undefined / unavailable families | **0** |
+| Consequence | Retain the procedure; withhold supported inference claims; allow descriptive 2024 evaluation under the registered rule |
+
+The [twenty-cell table](evidence/m8_inference_calibration.csv) retains every
+frequency, Wilson Monte Carlo interval, binomial p-value, diagnostic decision and
+source identity. The standalone figure packages **verified native coordinates**;
+its display labels do not alter the calculation. The independent verifier
+exports it as `calibration.svg` and records its hash in the verification receipt.
+
+![Controlled material-boundary family exceedance with 95% Wilson Monte Carlo intervals](figures/m8_calibration.svg)
+
+All twenty empirical frequencies exceed 5%, but one does not cross the predefined
+multiplicity-adjusted size-excess cutoff. No threshold is changed to relabel that
+cell. Shifted-effect detection rates cannot be interpreted as calibrated test
+power when size control fails. Existing M7 bounds remain numerical diagnostics;
+this evidence does not support a nominal 95% simultaneous confidence claim from
+the current procedure. No resampling setting is retuned after this result.
+
+This numerical acceptance does not establish Windows/MSVC execution, provider
+2024 validation or a provider executable freeze. Those remain M8 acceptance
+prerequisites; 2025 strategy prices remain reserved.
