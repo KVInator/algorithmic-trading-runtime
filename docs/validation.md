@@ -5,7 +5,8 @@ M8 follows the accepted M0-M7 work. The build pins
 `587ff9244737e15d61ab91c4dff4a19bfd9cbbe546788e742cc684388e251b54`.
 It retains the original extension protocol, strategies, fourteen secondary cases,
 material increments, costs and delays. Provider 2024 evaluation and its final
-executable freeze require independent verification; 2025 remains reserved for M9.
+executable freeze require independent verification before 2025 access at M9.
+Both Windows checkpoints are accepted below; M10 publication remains.
 
 ## Controlled inference calibration
 
@@ -319,3 +320,120 @@ ordinary evaluated Release executable and frozen copy. No rebuild or strategy
 replay is required for this acceptance. M9 must explicitly invoke the frozen
 runner for the registered 2025 retrospective evaluation; M10 follows with the
 consolidated publication and release.
+
+
+## Windows provider 2025 final acceptance
+
+M9 is accepted on 30 October 2026 as a completed final retrospective evaluation,
+with no strategy advancement. MSVC 19.51.36260 Release evaluated **250 exchange
+sessions, 2 January through 31 December 2025**, using 2,514 source-calendar dates
+from 2016 for causal initialization. Evaluation capital starts fresh; genuine
+prior unit references begin on 2 January 2024. All five instruments, 77 primary
+series, 345 secondary/matched series, fourteen variants, five costs and both
+delays are retained. No 2026 market session is authorized.
+
+### Correction and retained freeze lineage
+
+The original frozen runner stopped while parsing a payable date beyond 2025.
+The correction separates cash-payment metadata from the bounded price calendar;
+receivables retain their actual payment dates. Before issuing a replacement
+freeze, the corrected 2024 replay passed full local verification and exact parity
+of all **26 financial artifact identities and four scientific summaries** against
+the accepted original validation. The original freeze and validation remain
+retained. The full controlled calibration was reused without retuning.
+
+The corrected frozen copy completed 2025. A subsequent verifier self-check used
+an unchanged M9 cutoff as its negative control; the year-aware correction verified
+the existing result without another native replay or freeze. Local verification
+records independent raw-provider authentication, causal reconstruction, Decimal
+risk-account and integer shared-account arithmetic, and ten hash-independent
+semantic checks. The final receipt binds the updated verifier and maintenance
+receipt to the frozen output.
+
+Both uploaded bundles separately passed parent/child report and included-artifact
+hash checks. Replacement identities connect the original freeze, unchanged
+calibration, corrected 2024 receipt, final runner identity and 2025 authority.
+All 26 maintenance artifact identities and four scientific summaries were also
+compared against the original uploaded validation. The independent existing
+oracles recomputed primary and secondary attribution, all four joint block
+lengths, inference and static marks for both years; eighteen/seven respective
+numerical and semantic checks passed. The private raw archive, sixteen omitted
+detailed source artifacts per compact bundle and frozen Windows executable bytes
+were not supplied for remote review. Their local authentication is evidenced by
+the receipts, not repeated here.
+
+| Record | SHA-256 |
+| --- | --- |
+| Corrected 2024 summary | `4763d6dfbe43ce82c77bffdc326181bcd1616eb052ca9e1204c63da03857fd98` |
+| Corrected 2024 receipt | `2cf37e1f848afdee853ba40b2e711853f1ce9cf8d7c4eb70e78467c8b2468f33` |
+| Replacement provider freeze | `333bc93d039e8433334ce315f61663eb529deca3b40f9edf75c2e56c13de59e3` |
+| Frozen Windows runner | `4c50035b9c4c30dbe8b947908475d38fa4d68777972cbc2e884ee32de921ada9` |
+| Compiled source inventory | `e60abf780722954888a377f1718f47a86033192d9b6454c52ff12989762c068e` |
+| Final 2025 summary | `b56e7249f13da556a4d21888f5a1c4921043d18949b3c8274551ce712b819c9b` |
+| Final 2025 receipt | `e36cf84969b3c8c1317bf5b6177adf1778cd2379f5bcd2cd6e455475b16e5167` |
+| Maintenance parity receipt | `9be9140725d8f4011dbd628db70a8e11ef3eadc20e51d2d030db82d8384750be` |
+
+The 340-entry compiled inventory matches the evaluated correction at
+`4ad393f5648937ae470168ebf04f30d92ee931ac` after checkout newline normalization,
+except for the previously noted `Runtime.vcxproj` identity. Its Windows contents
+were not supplied. The frozen inventory retains that identity; no byte-identical
+Windows checkout or remotely executed Windows binary is claimed.
+
+### Findings at one basis point per side and one-minute delay
+
+Each intraday index below has **247 observed common dates out of 250**. Means
+are basis points per observed date. These equal-weight research indices are
+separate from continuously funded accounts. Winner-removal diagnostics set the
+specified index day to zero while retaining the original denominator; they do
+not refit the strategy or simulate a different funded account.
+
+| Research index | Net mean, bp/day | Mean after zeroing its largest winning day, bp/day |
+| --- | ---: | ---: |
+| Momentum | -0.768440 | -1.002592 |
+| Volume-conditioned continuation | +0.315695 | -0.702068 |
+| Reversion candidate | +0.104233 | -0.096064 |
+
+The two positive point means become negative after zeroing their largest winner.
+This is evidence of concentration under the registered diagnostic, not a general
+proof of no economic effect.
+
+| Primary paired endpoint | Paired dates / 250 | Estimate | Block-40 numerical lower | Material threshold |
+| --- | ---: | ---: | ---: | ---: |
+| Momentum minus same-window always-long, bp/day | 247 | +0.524618 | -1.021051 | +0.500000 |
+| Volume minus price continuation, bp/day | 247 | +0.311735 | -0.425446 | +0.500000 |
+| Reversion minus sign-only, bp/day | 247 | +0.512329 | -0.565705 | +0.500000 |
+| Reversion minus drift, bp/day | 247 | +0.447253 | -0.156212 | +0.500000 |
+| Intraday-risk minus daily-only annual CER, percentage points | 250 | +0.688908 | -1.558230 | +0.500000 |
+| Daily-only minus intraday-risk QLIKE loss | 238 | +0.036890 | +0.001861 | +0.010000 |
+
+All six primary endpoints meet the registered count and coverage requirement;
+QLIKE improves from 121/252 paired dates in 2024 to **238/250** in 2025. No
+primary numerical lower bound exceeds its material increment at any of blocks
+5, 10, 20 or 40. The block-40 QLIKE lower is positive but below its material
+threshold. Controlled calibration size excess in 19/20 case/block cells still
+prevents a validated nominal 95% simultaneous-confidence interpretation.
+
+The matched endpoint counts are **247, 247, 247, 0, 250 and 238** in the same
+order. Zero reversion-versus-drift pairs leave that endpoint unavailable. The
+complete matched family is retained and remains unavailable, rather than being
+reduced to its estimable members. Matched momentum's point increment is
++0.172538 bp/day, compared with +0.524618 before matching; the coverage and
+calibration qualifications prevent a supported claim of incremental skill.
+
+All **200 risk-account cases and 50 shared-capital cases complete 2025**. At the
+primary cost/delay, the shared candidate ends at **USD 99,763.25481382** from
+USD 100,000: a **-0.236745%** funded return, **USD 1,759.58798618** charged costs,
+23.9159% mean exposure and 1.0196% observed-path drawdown. All four shared control
+accounts also complete the year. The candidate at two-minute delay ends at
+USD 99,560.38443759; it does not replace the registered primary case. Complete
+2025 paths do not fill stopped development/2024 tails or reopen failed v1 screens.
+
+The [final endpoint table](evidence/m9_final_endpoints.csv) retains both families
+at all four block lengths, including unavailable values. The [final primary
+index table](evidence/m9_final_primary.csv) retains all twelve equal-weight
+indices and five shared primary accounts with exposure, turnover, costs and
+selected-observation drawdown. Every row binds the final summary hash.
+Prior GLD research and the other exposure qualifications remain in the
+[exposure inventory](extension_plan.md#research-exposure-and-evaluation-roles);
+2025 is a frozen retrospective evaluation, not a globally unseen market sample.
+M9 is complete with these limitations. M10 publication remains.

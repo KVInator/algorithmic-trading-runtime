@@ -939,6 +939,11 @@ after M8 evidence acceptance.
 
 ## Frozen final evaluation (M9)
 
+Windows execution, independent verification and uploaded-bundle review are
+[accepted](validation.md#windows-provider-2025-final-acceptance). No further
+native evaluation, build, calibration or freeze is required for that checkpoint.
+The commands below retain the maintenance and recovery procedures for reproduction.
+
 ### Resume a completed final run after verifier failure
 
 If verification ends with `Cohort mutation accepted: last_input`, the native
@@ -1100,5 +1105,5 @@ binary successfully evaluated 2025.
 If a native run completes and only verification fails, retain its printed
 `Manifest:` directory and rerun only the verifier after a concrete fix. Do not
 repeat completed strategy replay or calibration by default. Both validation and
-final output directories are unique and preserved locally. Windows acceptance
-of this correction and M9 completion remain pending the two review bundles.
+final output directories are unique and preserved locally. The corrected 2024
+and final 2025 bundles have passed [Windows acceptance and derived-artifact review](validation.md#windows-provider-2025-final-acceptance).

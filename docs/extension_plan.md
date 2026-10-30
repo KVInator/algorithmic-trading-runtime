@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 30 October 2026: **M0-M8 complete; M9 in progress; M10 not started.**
+Status recorded 30 October 2026: **M0-M9 complete; M10 not started.**
 This is the accepted scope and evidence record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -115,14 +115,14 @@ M0 performed no historical acquisition, model fitting or strategy scoring.
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Complete with coverage qualifications: quote-reference, historical cost/delay, 680 synthetic execution cases, 200 risk and 50 shared accounts accepted; stopped economic paths remain unavailable |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Complete with input-limited findings: primary diagnostics, fourteen secondary cases, 50 matched accounts and independent Windows/derived-bundle checks accepted; no supported risk-matched advancement |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Complete with limitations: Windows 2024 evaluation, independent verification and provider freeze accepted; no strategy advancement |
-| M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Frozen-run path ready; Windows 2025 execution and evidence acceptance pending |
+| M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Complete with limitations: Windows frozen 2025 execution, independent verification and derived-bundle review accepted; no strategy advancement |
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
 
 The initial planning range was 228-368 focused hours plus unattended work;
-it is not a measured completion-time forecast. Nine completed milestones count
+it is not a measured completion-time forecast. Ten completed milestones count
 work packages, not a fraction of engineering effort. M1 required no paid access;
 M2 registered full-panel coverage, gap masks and action reconciliation.
-The remaining scope is M9-M10. Build commands are in the [runbook](running.md).
+The remaining scope is M10 publication. Build commands are in the [runbook](running.md).
 
 ## M1 provider evidence and disposition
 
@@ -530,8 +530,8 @@ The integrated evaluator reuses existing strategies and ledgers with explicit
 references. Verified provider validation freezes the exact same executable
 before explicit M9 access to 2025. The [Windows 2024 evaluation and provider freeze](validation.md#windows-provider-2024-acceptance)
 are accepted on 30 October 2026, completing M8 with descriptive-only and
-input-limited findings. M0-M8 are nine accepted work packages. M9 final evaluation
-and M10 publication remain; the fixed primary rules and all fourteen variants
+input-limited findings. Those records complete M8; the subsequent M9 final
+acceptance is recorded below. The fixed primary rules and all fourteen variants
 are retained without selection. The [runbook](running.md#integrated-validation-and-freeze-m8)
 provides constructed and historical verification sequences.
 
@@ -549,8 +549,8 @@ rather than requiring the ordinary Release copy. Twelve focused path/scope
 checks cover altered/missing binaries, changed ordinary builds, directory escape,
 MSVC/GNU names and the 2025/2026 access boundary. Existing constructed freeze
 verification and publication identities/links pass. No 2025 provider price or
-strategy outcome was opened during preparation; native Windows final execution
-and full financial verification remain the next acceptance step.
+strategy outcome was opened during preparation. Subsequent native Windows
+execution and full financial verification are recorded in the acceptance below.
 
 
 ### M9 payment-date correction
@@ -579,4 +579,23 @@ must actually alter the field. Contract mutations run before source verification
 financial mathematics and frozen native outputs are unchanged. Focused checks
 cover both years and both provider/synthetic scopes. The [recovery command](running.md#resume-a-completed-final-run-after-verifier-failure)
 verifies the existing final directory without another build, calibration, replay
-or freeze. M9 acceptance remains pending the final receipt and review bundles.
+or freeze. The final receipt and both review bundles subsequently passed the
+acceptance review below.
+
+## M9 final acceptance
+
+The [Windows final acceptance](validation.md#windows-provider-2025-final-acceptance)
+records 250 evaluation dates and the corrected executable's replacement freeze.
+All 26 financial artifact identities and four scientific summaries retain exact
+2024 maintenance parity. Final local raw-source verification and the ten semantic
+checks pass. Uploaded primary/secondary derived mathematics, all four joint block
+lengths, static plots and eighteen/seven respective failure checks also pass.
+The private raw archive and Windows executable bytes were not supplied for remote
+review; local verification receipts retain that part of the evidence.
+
+All 200 risk and 50 shared-capital cases complete 2025. All primary endpoints
+meet the coverage requirement, but no numerical lower bound exceeds its material
+increment. The matched family remains unavailable, and the original calibration
+size excess still limits inference. No rule is selected or advanced. M9 is
+complete with these findings; M10 consolidates the publication, visual evidence,
+reproduction notes and release hygiene.

@@ -9,15 +9,14 @@ history, and 2017-2023 supplies development observations.
 The [offline demo](#build-and-reproduce) runs without credentials or private data.
 Detailed methods and executable commands are in the [runbook](docs/running.md).
 
-**M0-M8 are complete: 9 of 11 milestones.** The [Windows 2024 validation](docs/validation.md#windows-provider-2024-acceptance)
-and executable freeze are accepted with calibration and coverage limitations.
+**M0-M9 are complete: 10 of 11 milestones.** The [Windows 2024 validation](docs/validation.md#windows-provider-2024-acceptance)
+and [frozen 2025 evaluation](docs/validation.md#windows-provider-2025-final-acceptance)
+are accepted with calibration and coverage limitations.
 All five instruments, 77 primary series, 345 secondary/matched series and fourteen
-registered variants remain present. No strategy advances. Final retrospective
-evaluation in 2025 and consolidated publication remain M9-M10. The Windows log
-records completed 2025 execution after the payment-date correction and exact
-2024 financial parity; final verification and artifact review remain pending.
-The [M9 verifier recovery](docs/running.md#resume-a-completed-final-run-after-verifier-failure)
-reuses the completed output without another native run. Prior research exposure is recorded in the
+registered variants remain present. No strategy advances. **M10 consolidated
+publication remains.** The 2025 run uses a replacement frozen executable after
+the payment-date correction and exact 2024 financial parity. Prior research
+exposure is recorded in the
 [roadmap](docs/extension_plan.md#research-exposure-and-evaluation-roles);
 the reserved panel is not claimed to be globally unseen.
 
@@ -75,6 +74,27 @@ observed dates**; the two-minute-delay case completes all 252 dates. Different
 reference availability is retained rather than used to replace the primary case.
 The [acceptance record and source-bound tables](docs/validation.md#windows-provider-2024-acceptance)
 retain the findings, denominators and frozen identities.
+
+## 2025 final evaluation findings
+
+The frozen retrospective evaluation covers **250 dates**. At one basis point
+per side and one-minute delay, equal-weight eligible-date net means are
+**-0.7684 bp/day for momentum, +0.3157 for volume-conditioned continuation and
++0.1042 for reversion**, each with 247 observed common dates. These are research
+indices, not shared funded wealth. Removing each positive index's largest
+winning date makes its arithmetic mean negative.
+
+All six primary endpoints meet the registered coverage requirement, including
+238/250 QLIKE pairs. None of the numerical lower bounds clears its material
+threshold at any registered block length. The matched family remains unavailable
+because the reversion-versus-drift endpoint has zero paired dates. Controlled
+size excess still prevents a validated nominal simultaneous-confidence claim.
+
+All 200 risk-account and 50 shared-account cases complete the evaluation year.
+The primary shared candidate ends at **USD 99,763.25481382** from USD 100,000,
+with **USD 1,759.58798618** charged costs. Its **-0.2367%** funded return is
+distinct from the research-index results. The [final acceptance record](docs/validation.md#windows-provider-2025-final-acceptance)
+retains endpoint estimates, concentration, account coverage and source identities.
 
 ## Controlled inference qualification
 
