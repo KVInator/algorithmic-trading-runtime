@@ -20,14 +20,14 @@ struct OpeningAnchorResidual {
     std::chrono::sys_seconds decision_at;
     double anchor_price;
     // Fixed arithmetic volume-weighted minute closes, not transaction VWAP.
-    std::array<double, reversion_observations> values;
+    std::vector<double> values;
 };
 
 // The opening anchor ends at 10:00. Five-minute closing observations end at
 // 10:00, 10:05, ..., 12:00. Only the exact completed 150-minute prefix is accepted.
 class OpeningAnchorMeasurement {
 public:
-    explicit OpeningAnchorMeasurement(ResearchInputMode mode = ResearchInputMode::legacy_complete);
+    explicit OpeningAnchorMeasurement(ResearchInputMode mode = ResearchInputMode::legacy_complete, int observation_minutes = 5);
     [[nodiscard]] std::chrono::sys_seconds decision_time(const HistoricalBarRequest& session) const;
     [[nodiscard]] OpeningAnchorResidual measure(const HistoricalBarRequest& session,
         std::span<const MinuteBar> completed) const;
@@ -35,6 +35,7 @@ public:
         std::span<const MinuteBar> completed) const;
 private:
     ResearchInputMode mode_;
+    int observation_minutes_;
 };
 
 enum class ReversionFitStatus {
@@ -60,9 +61,12 @@ struct PooledReversionFit {
 // on an admissible positive sub-unit slope and nonzero innovation variance.
 class PooledReversionEstimator {
 public:
+    explicit PooledReversionEstimator(int observation_minutes = 5);
     [[nodiscard]] PooledReversionFit fit(std::span<const std::vector<double>> sequences) const;
     [[nodiscard]] double expected_log_move(const PooledReversionFit& fit, double current,
         double entry_delay_minutes, double holding_minutes) const;
+private:
+    int observation_minutes_;
 };
 
 } // namespace trading

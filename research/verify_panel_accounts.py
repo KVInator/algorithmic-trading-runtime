@@ -148,7 +148,7 @@ class RiskAudit:
             equity=liquid + receivable,
         )
 
-    def verify(self, row, market, actions, terminal):
+    def verify(self, row, market, actions, terminal, explicit_target=None):
         primary, bars, opening, minutes, previous_close = market
         prediction = primary["risk"]
         key = {
@@ -165,6 +165,8 @@ class RiskAudit:
             )
             else None
         )
+        if explicit_target is not None:
+            target = explicit_target[0]
         equal(row["target_weight"], target, "prior-only target")
         if self.stopped:
             require(

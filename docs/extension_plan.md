@@ -113,7 +113,7 @@ M0 performed no historical acquisition, model fitting or strategy scoring.
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Complete with coverage qualifications: quote-reference, historical cost/delay, 680 synthetic execution cases, 200 risk and 50 shared accounts accepted; stopped economic paths remain unavailable |
-| M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | In progress: Windows primary diagnostics and joint uncertainty accepted on 1,760 dates; fourteen secondary cases and risk-matched ledgers remain |
+| M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | In progress: Windows primary diagnostics and joint uncertainty accepted on 1,760 dates; secondary variants and risk-matched implementation require Windows historical acceptance |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
@@ -491,3 +491,21 @@ net mean remains negative; the risk endpoints remain coverage-limited. No model
 advancement is assessed. This checkpoint does not complete M7: fourteen secondary
 cases and funded risk-matched replays remain. Controlled inference calibration
 and reserved strategy periods stay behind their existing gates.
+
+## M7 secondary implementation checkpoint
+
+The remaining implementation reuses the existing causal strategies with explicit
+registered parameters and the existing risk cash ledger. Fourteen one-factor
+cases produce 240 secondary series. Forty-five genuine unit accounts feed
+strictly prior 252-slot volatility matching for 50 funded candidate/control
+accounts. Ten pooled matched views bring the derived matrix to 345 series.
+The method, initialization, missing-slot, stopping and exposure conventions are
+specified in [stability.md](stability.md#registered-sensitivity-cases).
+
+The original primary default outputs, six endpoint definitions, frozen protocols,
+source-data boundaries and v1 publication remain authoritative. The secondary
+family does not select replacement settings or reopen a failed original screen.
+This checkpoint requires Windows constructed/historical acceptance before M7 is
+closed. Controlled inference calibration is M8; 2024 and 2025 strategy inputs
+remain gated. The [runbook](running.md#secondary-stability-and-risk-matching-m7)
+contains one guarded build/run/verification sequence.

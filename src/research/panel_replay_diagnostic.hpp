@@ -14,7 +14,7 @@ class PanelReplayFixture {
     using Consumer =
         std::function<void(std::vector<PanelReplayDay>, std::vector<SessionDownload>, bool)>;
     using States = std::map<std::string, PanelReplayState>;
-    PanelReplayFixture();
+    explicit PanelReplayFixture(std::size_t sessions = date_count);
     [[nodiscard]] std::span<const CalendarSession> calendar() const noexcept;
     [[nodiscard]] static std::vector<MinuteBar>
     bars(const CalendarSession &day, const std::string &symbol, std::size_t index, bool faults = true);
@@ -23,6 +23,7 @@ class PanelReplayFixture {
 
   private:
     const std::vector<CalendarSession> calendar_;
+    const std::size_t sessions_;
 };
 
 class PanelReplayDiagnostic {

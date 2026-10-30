@@ -94,19 +94,27 @@ HoldingRiskMeasurement measure_holding_risk(const RiskSessionReferences& first, 
     if (!std::isfinite(squared)) { throw std::overflow_error("holding-risk outcome exceeds the finite range"); }
     return {endpoint * endpoint, squared};
 }
+LaggedRiskEstimator::LaggedRiskEstimator(std::size_t history_sessions, int observation_minutes)
+    : history_sessions_{history_sessions}, observation_minutes_{observation_minutes} {
+    if ((history_sessions != 10 && history_sessions != 20 && history_sessions != 40) ||
+        (observation_minutes != 1 && observation_minutes != 5 && observation_minutes != 15)) {
+        throw std::invalid_argument("unsupported lagged risk window or grid");
+    }
+}
 LaggedRiskEstimate LaggedRiskEstimator::estimate(std::span<const DailyRiskMeasurement> prior) const {
-    if (prior.size() != 20) { throw std::invalid_argument("primary risk estimate requires twenty earlier measurements"); }
+    if (prior.size() != history_sessions_) { throw std::invalid_argument("risk estimate requires its configured number of earlier measurements"); }
     long double daily = 0, intraday = 0;
     std::vector<std::string> missing;
     std::string previous;
     for (const auto& row : prior) {
+        const auto value = observation_minutes_ == 1 ? row.rv1 : observation_minutes_ == 5 ? row.rv5 : row.rv15;
         if ((!previous.empty() && row.date <= previous) || !std::isfinite(row.daily2) || row.daily2 < 0 ||
-            (row.rv5 && (!std::isfinite(*row.rv5) || *row.rv5 < 0))) { throw std::invalid_argument("invalid prior risk measurement"); }
+            (value && (!std::isfinite(*value) || *value < 0))) { throw std::invalid_argument("invalid prior risk measurement"); }
         previous = row.date;
         daily += row.daily2;
-        if (row.rv5) { intraday += *row.rv5; } else { missing.push_back(row.date); }
+        if (value) { intraday += *value; } else { missing.push_back(row.date); }
     }
-    return {static_cast<double>(daily / 20), missing.empty() ? std::optional<double>{static_cast<double>(intraday / 20)} : std::nullopt,
+    return {static_cast<double>(daily / history_sessions_), missing.empty() ? std::optional<double>{static_cast<double>(intraday / history_sessions_)} : std::nullopt,
         std::move(missing)};
 }
 double risk_budget_weight(double h) { return std::min(1.0, .10 / std::sqrt(252 * positive(h))); }

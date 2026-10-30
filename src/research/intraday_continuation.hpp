@@ -30,7 +30,7 @@ struct IntradayContinuationFeatures {
 // SPY windows and applies the registered dataset/exclusion policy.
 class IntradayContinuationHistory {
 public:
-    explicit IntradayContinuationHistory(ResearchInputMode mode = ResearchInputMode::legacy_complete);
+    explicit IntradayContinuationHistory(ResearchInputMode mode = ResearchInputMode::legacy_complete, std::size_t history_sessions = continuation_history_sessions);
     void append(const HistoricalBarRequest& session, std::span<const MinuteBar> bars);
     [[nodiscard]] bool ready() const noexcept;
     [[nodiscard]] std::size_t size() const noexcept;
@@ -48,6 +48,7 @@ private:
     };
     std::deque<SessionProfile> sessions_;
     ResearchInputMode mode_;
+    std::size_t history_sessions_;
     std::string symbol_;
 };
 

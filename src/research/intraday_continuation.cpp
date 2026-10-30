@@ -39,7 +39,13 @@ void multiply_wealth(double& wealth, double trade_return) {
 
 } // namespace
 
-IntradayContinuationHistory::IntradayContinuationHistory(ResearchInputMode mode) : mode_{mode} {}
+IntradayContinuationHistory::IntradayContinuationHistory(ResearchInputMode mode, std::size_t history_sessions)
+    : mode_{mode}, history_sessions_{history_sessions} {
+    if ((history_sessions != 10 && history_sessions != 20 && history_sessions != 40) ||
+        (mode == ResearchInputMode::legacy_complete && history_sessions != 20)) {
+        throw std::invalid_argument("unsupported continuation history");
+    }
+}
 
 void IntradayContinuationHistory::append(const HistoricalBarRequest& session,
                                          std::span<const MinuteBar> bars) {
@@ -62,13 +68,13 @@ void IntradayContinuationHistory::append(const HistoricalBarRequest& session,
     }
     symbol_ = session.symbol();
     sessions_.push_back(std::move(profile));
-    if (sessions_.size() > continuation_history_sessions) {
+    if (sessions_.size() > history_sessions_) {
         sessions_.pop_front();
     }
 }
 
 bool IntradayContinuationHistory::ready() const noexcept {
-    return sessions_.size() == continuation_history_sessions;
+    return sessions_.size() == history_sessions_;
 }
 
 std::size_t IntradayContinuationHistory::size() const noexcept { return sessions_.size(); }
@@ -80,7 +86,7 @@ IntradayContinuationFeatures IntradayContinuationHistory::measure(
     validate_session(current_session, mode_);
     if (symbol_ != current_session.symbol()) { throw std::invalid_argument("continuation history belongs to another instrument"); }
     if (!ready()) {
-        throw std::logic_error("intraday features require 20 complete earlier eligible sessions");
+        throw std::logic_error("intraday features require the configured complete earlier eligible sessions");
     }
     if (sessions_.back().end >= current_session.start()) {
         throw std::invalid_argument("feature history must precede the entire current session");
@@ -99,7 +105,7 @@ IntradayContinuationFeatures IntradayContinuationHistory::measure(
         at - current_session.start()).count();
     const auto index = static_cast<std::size_t>(elapsed - 1);
     double typical_move = 0.0;
-    std::array<double, continuation_history_sessions> volumes{};
+    std::vector<double> volumes(history_sessions_);
     for (std::size_t session_index = 0; session_index < sessions_.size(); ++session_index) {
         // Nonnegative online means avoid a potentially overflowing sum and
         // preserve exact equality when every historical move is identical.
@@ -111,7 +117,7 @@ IntradayContinuationFeatures IntradayContinuationHistory::measure(
         throw std::overflow_error("historical price-move mean exceeds the finite range");
     }
     std::sort(volumes.begin(), volumes.end());
-    constexpr auto middle = continuation_history_sessions / 2;
+    const auto middle = history_sessions_ / 2;
     const double median = volumes[middle - 1] + (volumes[middle] - volumes[middle - 1]) / 2.0;
     if (median <= 0.0) {
         throw std::domain_error("historical same-clock median volume is zero; relative volume is undefined");

@@ -67,7 +67,11 @@ struct LaggedRiskEstimate {
 };
 class LaggedRiskEstimator {
 public:
+    explicit LaggedRiskEstimator(std::size_t history_sessions = 20, int observation_minutes = 5);
     [[nodiscard]] LaggedRiskEstimate estimate(std::span<const DailyRiskMeasurement> prior) const;
+private:
+    std::size_t history_sessions_;
+    int observation_minutes_;
 };
 struct HoldingRiskMeasurement {
     double endpoint2;

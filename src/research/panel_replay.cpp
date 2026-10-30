@@ -48,12 +48,12 @@ private:
     double gross_{1}, net_{1};
 };
 PanelRiskPrediction predict(const std::deque<DailyRiskMeasurement>& history, const std::string& cutoff,
-    std::optional<double>& fixed) {
+    std::optional<double>& fixed, const PanelReplayParameters& parameters) {
     PanelRiskPrediction out{{}, {}, cutoff, "daily_history_unavailable", {}, {}, {}, fixed, history.size()};
     if (history.size() < 252) { return out; }
-    std::vector<DailyRiskMeasurement> prior(history.end() - 20, history.end());
+    std::vector<DailyRiskMeasurement> prior(history.end() - static_cast<std::ptrdiff_t>(parameters.risk_sessions), history.end());
     out.history_first = prior.front().date; out.history_last = prior.back().date;
-    const auto estimate = LaggedRiskEstimator{}.estimate(prior);
+    const auto estimate = LaggedRiskEstimator{parameters.risk_sessions, parameters.risk_grid_minutes}.estimate(prior);
     if (estimate.daily <= 0 || (estimate.intraday && *estimate.intraday <= 0)) { out.reason = "zero_risk_estimate"; return out; }
     out.estimate = estimate;
     out.daily_weight = risk_budget_weight(estimate.daily);
@@ -72,8 +72,23 @@ void require_equal(double a, double b) {
 }
 } // namespace
 
-PanelReplayState::PanelReplayState(std::string symbol, PanelInputPolicy policy)
-    : symbol_(std::move(symbol)), policy_(std::move(policy)) {}
+void PanelReplayParameters::validate() const {
+    if (family != "all" && family != "momentum" && family != "continuation" && family != "reversion" && family != "risk") {
+        throw std::invalid_argument("unknown replay family");
+    }
+    if (momentum_hold_minutes != 10 && momentum_hold_minutes != 20 && momentum_hold_minutes != 25) {
+        throw std::invalid_argument("unsupported momentum duration");
+    }
+    reversion.validate(ResearchInputMode::registered_panel);
+    static_cast<void>(LaggedRiskEstimator{risk_sessions, risk_grid_minutes});
+    static_cast<void>(IntradayContinuationHistory{ResearchInputMode::registered_panel, continuation_sessions});
+}
+PanelReplayState::PanelReplayState(std::string symbol, PanelInputPolicy policy, PanelReplayParameters parameters)
+    : parameters_(std::move(parameters)), symbol_(std::move(symbol)), policy_(std::move(policy)),
+      continuation_(ResearchInputMode::registered_panel, parameters_.continuation_sessions),
+      reversion_(ResearchInputMode::registered_panel, parameters_.reversion) {
+    parameters_.validate();
+}
 PanelReplayDay PanelReplayState::advance(const HistoricalBarRequest& request, std::span<const MinuteBar> bars, double dividend, const std::optional<MinuteBar>& recovered) {
     const auto date = format_utc_seconds(request.start()).substr(0, 10);
     if (date >= "2024-01-01" || request.symbol() != symbol_ || (!previous_date_.empty() && date <= previous_date_) ||
@@ -92,13 +107,13 @@ PanelReplayDay PanelReplayState::advance(const HistoricalBarRequest& request, st
     }
     const auto& calendar = dates.front();
     const auto audit = audit_session(request, bars);
-    const auto availability = policy_.evaluate(calendar, symbol_, audit.missing_minutes);
+    const auto availability = policy_.evaluate(calendar, symbol_, audit.missing_minutes, static_cast<std::size_t>(parameters_.reversion.observation_minutes));
     const bool diagnostic = symbol_ == "SPY" && date == "2023-01-03";
     PanelReplayDay out{symbol_, date, date > "2016-12-31", false, availability, {}, {}, {},
-        predict(risk_history_, previous_close_cutoff_, static_weight_), {}};
+        predict(risk_history_, previous_close_cutoff_, static_weight_, parameters_), {}};
     const ResearchSessionView observed{request, bars};
     if (calendar.regular()) {
-        const IntradayMomentumStrategy momentum{request, ResearchInputMode::registered_panel};
+        const IntradayMomentumStrategy momentum{request, ResearchInputMode::registered_panel, parameters_.momentum_hold_minutes};
         if (!diagnostic && availability.momentum_features) {
             out.momentum = momentum.decide(observed.before(momentum.entry_decision_time()), momentum.entry_decision_time());
         }
@@ -123,14 +138,14 @@ PanelReplayDay PanelReplayState::advance(const HistoricalBarRequest& request, st
             out.policies.push_back(path.finish());
         }
         if (!diagnostic && reversion_.ready()) {
-            out.reversion = ReversionStrategy{ResearchInputMode::registered_panel}.decide(request,
+            out.reversion = ReversionStrategy{ResearchInputMode::registered_panel, parameters_.reversion}.decide(request,
                 observed.before(request.start() + std::chrono::minutes{150}), reversion_);
         }
         for (std::size_t i = 0; i < 4; ++i) {
             PolicyPath path{"reversion_" + std::string{name(static_cast<ReversionPolicy>(i))}, request, bars};
             path.target(request.start() + std::chrono::minutes{150}, out.reversion && out.reversion->actions[i].enter,
                 out.reversion ? out.reversion->actions[i].reason : "history_or_feature_unavailable");
-            path.target(request.start() + std::chrono::minutes{180}, false, "scheduled_liquidation");
+            path.target(request.start() + std::chrono::minutes{150 + parameters_.reversion.hold_minutes}, false, "scheduled_liquidation");
             out.policies.push_back(path.finish());
         }
     }
@@ -154,6 +169,10 @@ PanelReplayDay PanelReplayState::advance(const HistoricalBarRequest& request, st
     if (calendar.regular()) {
         static_cast<void>(reversion_.complete(request, bars, request.end_exclusive(), !diagnostic));
         if (audit.complete() && !diagnostic) { continuation_.append(request, bars); }
+    }
+    if (parameters_.family != "all") {
+        const auto belongs = [&](const PanelPolicyReplay& path) { return path.policy.starts_with(parameters_.family + "_") || path.policy == parameters_.family; };
+        std::erase_if(out.policies, [&](const auto& path) { return !belongs(path); });
     }
     previous_date_ = date;
     return out;

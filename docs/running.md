@@ -108,6 +108,7 @@ these checks are explicit local commands.
 | `quote_reference_development` | M6 cached quote crossing-cost comparisons; `--check` uses synthetic quotes, otherwise requires a saved acquisition summary and its raw archive |
 | `cost_delay_development` | M6 frozen-decision cost/delay evaluation; `--check` uses constructed observations, default uses the accepted pre-2024 panel |
 | `cost_execution_study` | M6 registered 680-case synthetic broker/client execution study; no credentials or market dataset |
+| `stability_extension_development` | M7 fourteen one-factor variants and 50 funded risk-matched accounts; `--check` uses 600 analytic sessions, default replays the registered pre-2024 panel |
 | `stability_development` | M7 primary diagnostics and paired full-calendar uncertainty from saved M6 exports; `--check` constructs its own inputs |
 | `panel_account_development` | M6 continuously funded risk and shared-capital accounts; `--check` is constructed, default requires the registered pre-2024 panel |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
@@ -753,3 +754,58 @@ block length. It may take longer than the native analysis because it recomputes
 The [method note](stability.md) describes units, masks and limitations. Secondary
 variants, risk-matched replay and later controlled inference validation remain
 open; an adequate-looking primary bound alone is not an advancement decision.
+
+
+## Secondary stability and risk matching (M7)
+
+The target is `stability_extension_development`. The default run requires the
+existing registered `scratch/datasets/extension_panel_2016_2025` archive, actions
+and closing recovery. It performs no acquisition, needs no credentials, and does
+not read 2024–2025 strategy observations. The accepted primary saved-export report
+remains separate. Build, run the constructed check, then run historical analysis:
+
+```powershell
+& {
+    $ErrorActionPreference = "Stop"
+    git pull
+    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
+    py -3 -B build.py --configuration Release --target stability_extension_development
+    if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+
+    & .\scratch\native\Release\stability_extension_development.exe --check |
+        Tee-Object -Variable runLog
+    if ($LASTEXITCODE -ne 0) { throw "Constructed extension failed" }
+    $line = $runLog | Select-String '^Manifest: ' | Select-Object -Last 1
+    if (-not $line) { throw "Constructed manifest was not printed" }
+    $manifest = $line.Line -replace '^Manifest: ', ''
+    py -3 -B research/verify_stability_extension.py (Split-Path $manifest -Parent) --self-check
+    if ($LASTEXITCODE -ne 0) { throw "Constructed extension verification failed" }
+
+    & .\scratch\native\Release\stability_extension_development.exe |
+        Tee-Object -Variable runLog
+    if ($LASTEXITCODE -ne 0) { throw "Historical extension failed" }
+    $line = $runLog | Select-String '^Manifest: ' | Select-Object -Last 1
+    if (-not $line) { throw "Historical manifest was not printed" }
+    $manifest = $line.Line -replace '^Manifest: ', ''
+    py -3 -B research/verify_stability_extension.py (Split-Path $manifest -Parent) --self-check
+    if ($LASTEXITCODE -ne 0) { throw "Historical extension verification failed" }
+}
+```
+
+Directory names are discovered from the printed manifest, so existing output
+folders are retained. Expect native progress through 600 constructed sessions or
+2,012 historical sessions ending in December 2023, then four uncertainty blocks.
+The native summary reports 14 secondary cases, 240 secondary series, 50 funded
+matched accounts, 45 unit accounts, zero network requests and reserved inputs
+unopened. Independent verification is more expensive than primary saved-export
+analysis: it authenticates source bars and checks fifteen parameter paths for
+each instrument, then recomputes four sets of 10,000 joint draws. Progress is
+printed during each instrument and block. There is no prescribed runtime limit;
+no historical result should be inferred from the synthetic check.
+
+Open the printed `report.html`, which has static secondary and matched charts,
+calendar coverage and expandable period diagnostics. Share the verified
+`review.zip` from each run. Provider bundles omit detailed replay/source files.
+A downloaded bundle can be checked with `--review-only --self-check`; the terminal
+explicitly states that source ledgers and raw archives were not reauthenticated.
+M7 acceptance follows review of the historical output; M8 remains the next gate.

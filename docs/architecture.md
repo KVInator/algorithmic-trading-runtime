@@ -12,7 +12,9 @@ independent references and publication rendering.
 | Research | `DevelopmentStudy`, `IntradayContinuationStrategy`, `ReversionHistory`, `ReversionStudy`, `DailyRiskStudy`, `PanelReplayState` | Completed information, prior-only estimation, frozen rules and complete dated comparisons |
 | Fractional accounting | `LongCashAccount` | Cash, shares, dividend receivables/payments, splits and chronological equity |
 | Economic evaluation | `CostDelayStudy`, `PanelAccountStudy` | Frozen primary decisions, distinct fractional/shared accounts, observed-prefix comparisons and explicit stops |
-| Application composition | `CostDelayDevelopment`, `PanelAccountDevelopment` | Choose constructed or authenticated inputs, invoke existing engines and write result-bound reports |
+| Stability and sizing | `StabilityStudy`, `StabilityExtensionStudy`, `PriorMarketCondition`, `RiskMatchWindow` | One-factor parameter states, prior-only regimes, retained unit-return slots and full-calendar comparisons |
+| Funded matching | `IntradayAccountLedger`, `PanelRiskLedger` | Entry/risk sizing replays through the existing fractional account; partial fills and stopped states persist |
+| Application composition | `CostDelayDevelopment`, `PanelAccountDevelopment`, `StabilityExtensionDevelopment` | Choose constructed or authenticated inputs, invoke existing engines and write result-bound reports |
 | Order accounting | `OrderRuntime`, `JournaledRuntime` | Whole shares, integer units, reservations, stable IDs and routing gates |
 | Shared capital | `SharedCapitalBook`, `JournaledSharedCapital`, `SharedStrategyAdapter` | One global balance, five inventories, fifteen owners, netting and schema-4 recovery |
 | Independent peer | `BrokerState`, `BrokerService`, `ProcessBrokerPeer`, `SharedBrokerSession` | Independent portfolio ledger, schema-5 broker history, framed child process and activity-first recovery |
@@ -50,6 +52,12 @@ decisions to `PanelReplayState`; it is not a second strategy implementation.
 `PanelReplayDiagnostic` exercises causality and failure contracts against that
 source. Native diagnostic executables retain bounded fault fixtures; independent
 Python oracles reconstruct their observations, numerical results and ledgers.
+`PanelReplayFixture` retains its original 300-session default and offers an
+explicit 600-session source for the two successive risk-history initializations.
+`verify_panel_replay.py` independently checks the same configurable strategy
+features. `verify_stability_extension.py` reuses that oracle and the Decimal risk
+ledger audit, adding funded intraday accounting, matching-window arithmetic and
+secondary report verification. It does not implement a competing strategy engine.
 Pure formulas and serialization helpers remain small functions rather than
 stateless classes with no domain responsibility.
 The two M6 run services are defined in

@@ -159,7 +159,7 @@ std::string band(const StabilityObservation &row) {
     }
     throw std::invalid_argument("holding duration exceeds a regular session");
 }
-Json describe(const StabilitySeries &series, const std::vector<std::size_t> &indices) {
+Json describe_selection(const StabilitySeries &series, const std::vector<std::size_t> &indices) {
     std::vector<double> values;
     double exposure = 0, turnover = 0, cost = 0, trades = 0;
     std::size_t active = 0, exposure_n = 0, turnover_n = 0, cost_n = 0, trade_n = 0;
@@ -252,6 +252,56 @@ Json removals(const StabilitySeries &series, const std::vector<std::size_t> &ind
 }
 } // namespace
 
+Json PriorMarketCondition::advance(const std::string &date, std::optional<double> current) {
+    std::optional<double> volatility, low, high;
+    std::string label = "unavailable";
+    if (returns_.size() == 60 &&
+        std::all_of(returns_.begin(), returns_.end(), [](auto v) { return v.has_value(); })) {
+        long double mean = 0, squared = 0;
+        for (auto v : returns_) {
+            mean += *v;
+        }
+        mean /= 60;
+        for (auto v : returns_) {
+            squared += (*v - mean) * (*v - mean);
+        }
+        volatility = static_cast<double>(std::sqrt(252 * squared / 59));
+    }
+    if (volatility && cutoffs_.size() == 252 &&
+        std::all_of(cutoffs_.begin(), cutoffs_.end(), [](auto v) { return v.has_value(); })) {
+        std::vector<double> sorted;
+        for (auto v : cutoffs_) {
+            sorted.push_back(*v);
+        }
+        std::sort(sorted.begin(), sorted.end());
+        const auto quantile = [&](double p) {
+            const double x = 251 * p;
+            const auto i = static_cast<std::size_t>(std::floor(x));
+            const auto j = static_cast<std::size_t>(std::ceil(x));
+            return sorted[i] + (x - static_cast<double>(i)) * (sorted[j] - sorted[i]);
+        };
+        low = quantile(1.0 / 3);
+        high = quantile(2.0 / 3);
+        label = *volatility <= *low ? "low" : *volatility > *high ? "high" : "middle";
+    }
+    Json result{{"date", date},
+                {"prior_volatility", volatility ? Json(*volatility) : Json(nullptr)},
+                {"lower_cutoff", low ? Json(*low) : Json(nullptr)},
+                {"upper_cutoff", high ? Json(*high) : Json(nullptr)},
+                {"cutoff_last_date", previous_.empty() ? Json(nullptr) : Json(previous_)},
+                {"label", label}};
+    // Current return and current volatility enter only after today's label.
+    returns_.push_back(current);
+    if (returns_.size() > 60) {
+        returns_.pop_front();
+    }
+    cutoffs_.push_back(volatility);
+    if (cutoffs_.size() > 252) {
+        cutoffs_.pop_front();
+    }
+    previous_ = date;
+    return result;
+}
 FullCalendarInference::FullCalendarInference(const ExtensionStudyContract &contract)
     : settings_(contract.document().at("inference")),
       definitions_(contract.document().at("primary_endpoints")) {}
@@ -400,29 +450,7 @@ Json StabilityStudy::plan() const {
 Json StabilityStudy::run(const StabilityInputs &inputs, const Progress &progress) const {
     require(!inputs.dates.empty() && inputs.series.size() == 77,
             "primary diagnostic matrix must contain 77 series");
-    Json groups = Json::array();
-    std::set<std::string> identities;
-    for (const auto &series : inputs.series) {
-        require(series.days.size() == inputs.dates.size() && identities.insert(series.id).second,
-                "diagnostic series calendar or identity differs");
-        std::map<std::pair<std::string, std::string>, std::vector<std::size_t>> selections;
-        for (std::size_t i = 0; i < inputs.dates.size(); ++i) {
-            selections[{"period", "all"}].push_back(i);
-            selections[{"year", inputs.dates[i].substr(0, 4)}].push_back(i);
-            selections[{"condition", series.days[i].condition}].push_back(i);
-            if (series.layer == "intraday") {
-                selections[{"holding", band(series.days[i])}].push_back(i);
-            }
-        }
-        for (const auto &[key, indices] : selections) {
-            auto row = describe(series, indices);
-            row.update({{"series", series.id},
-                        {"dimension", key.first},
-                        {"group", key.second},
-                        {"concentration", removals(series, indices, inputs.dates)}});
-            groups.push_back(std::move(row));
-        }
-    }
+    const auto groups = describe(inputs);
     Json inference = Json::array();
     for (std::size_t block : {5U, 10U, 20U, 40U}) {
         if (progress) {
@@ -439,6 +467,32 @@ Json StabilityStudy::run(const StabilityInputs &inputs, const Progress &progress
             {"secondary_variants_executed", false},
             {"risk_matching_executed", false},
             {"inference_calibration_validated", false}};
+}
+Json StabilityStudy::describe(const StabilityInputs &inputs) {
+    Json groups = Json::array();
+    std::set<std::string> identities;
+    for (const auto &series : inputs.series) {
+        require(series.days.size() == inputs.dates.size() && identities.insert(series.id).second,
+                "diagnostic series calendar or identity differs");
+        std::map<std::pair<std::string, std::string>, std::vector<std::size_t>> selections;
+        for (std::size_t i = 0; i < inputs.dates.size(); ++i) {
+            selections[{"period", "all"}].push_back(i);
+            selections[{"year", inputs.dates[i].substr(0, 4)}].push_back(i);
+            selections[{"condition", series.days[i].condition}].push_back(i);
+            if (series.layer == "intraday") {
+                selections[{"holding", band(series.days[i])}].push_back(i);
+            }
+        }
+        for (const auto &[key, indices] : selections) {
+            auto row = describe_selection(series, indices);
+            row.update({{"series", series.id},
+                        {"dimension", key.first},
+                        {"group", key.second},
+                        {"concentration", removals(series, indices, inputs.dates)}});
+            groups.push_back(std::move(row));
+        }
+    }
+    return groups;
 }
 Json StabilityStudy::numerical_checks() const {
     std::vector<StabilityEndpoint> endpoints;

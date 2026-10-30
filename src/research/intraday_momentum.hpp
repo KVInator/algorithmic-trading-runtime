@@ -22,7 +22,7 @@ struct MomentumDecision {
 class IntradayMomentumStrategy {
 public:
     explicit IntradayMomentumStrategy(HistoricalBarRequest session,
-        ResearchInputMode mode = ResearchInputMode::legacy_complete);
+        ResearchInputMode mode = ResearchInputMode::legacy_complete, int hold_minutes = 25);
 
     [[nodiscard]] MomentumDecision decide(std::span<const MinuteBar> completed_bars,
                                           std::chrono::sys_seconds at) const;
@@ -33,6 +33,7 @@ public:
 private:
     HistoricalBarRequest session_;
     ResearchInputMode mode_;
+    int hold_minutes_;
 };
 
 struct LongPriceReturn {

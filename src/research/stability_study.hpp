@@ -1,11 +1,20 @@
 #pragma once
 #include "extension_contract.hpp"
+#include <deque>
 #include <functional>
 #include <optional>
 #include <string>
 #include <vector>
 
 namespace trading {
+class PriorMarketCondition {
+  public:
+    [[nodiscard]] nlohmann::json advance(const std::string &date, std::optional<double> current);
+
+  private:
+    std::deque<std::optional<double>> returns_, cutoffs_;
+    std::string previous_;
+};
 struct StabilityObservation {
     std::optional<double> net, gross, exposure, turnover, cost, holding_minutes, trades;
     std::string condition{"unavailable"};
@@ -51,6 +60,7 @@ class StabilityStudy {
     [[nodiscard]] nlohmann::json plan() const;
     [[nodiscard]] nlohmann::json run(const StabilityInputs &inputs, const Progress &progress = {}) const;
     [[nodiscard]] nlohmann::json numerical_checks() const;
+    [[nodiscard]] static nlohmann::json describe(const StabilityInputs &inputs);
 
   private:
     ExtensionStudyContract contract_;

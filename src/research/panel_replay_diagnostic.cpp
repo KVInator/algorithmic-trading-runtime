@@ -6,9 +6,9 @@
 
 namespace trading {
 namespace {
-std::vector<CalendarSession> calendar_sessions() {
+std::vector<CalendarSession> calendar_sessions(std::size_t count) {
     std::vector<CalendarSession> calendar;
-    for (int year = 2016; year <= 2017; ++year) {
+    for (int year = 2016; year <= (count > 503 ? 2018 : 2017); ++year) {
         for (unsigned month = 1; month <= 12; ++month) {
             const auto last = std::chrono::year_month_day{std::chrono::year{year} /
                                                           std::chrono::month{month} / std::chrono::last};
@@ -50,7 +50,9 @@ std::vector<MinuteBar> PanelReplayFixture::bars(const CalendarSession &day, cons
     return out;
 }
 
-PanelReplayFixture::PanelReplayFixture() : calendar_(calendar_sessions()) {}
+PanelReplayFixture::PanelReplayFixture(std::size_t count) : calendar_(calendar_sessions(count)), sessions_(count) {
+    if (count != date_count && count != 600) { throw std::invalid_argument("unsupported analytic fixture horizon"); }
+}
 std::span<const CalendarSession> PanelReplayFixture::calendar() const noexcept { return calendar_; }
 PanelReplayFixture::States PanelReplayFixture::replay(const PanelInputPolicy &policy,
                                                       const std::vector<std::string> &symbols,
@@ -64,7 +66,7 @@ PanelReplayFixture::States PanelReplayFixture::replay(const PanelInputPolicy &po
             throw std::invalid_argument("analytic replay has a duplicate instrument");
         }
     }
-    for (std::size_t i = 0; i < date_count; ++i) {
+    for (std::size_t i = 0; i < sessions_; ++i) {
         std::vector<PanelReplayDay> rows;
         std::vector<SessionDownload> sessions;
         for (const auto &symbol : symbols) {
@@ -80,7 +82,7 @@ PanelReplayFixture::States PanelReplayFixture::replay(const PanelInputPolicy &po
         for (auto &row : rows) {
             row.common_operational = common;
         }
-        consume(std::move(rows), std::move(sessions), i + 1 == date_count);
+        consume(std::move(rows), std::move(sessions), i + 1 == sessions_);
     }
     return states;
 }

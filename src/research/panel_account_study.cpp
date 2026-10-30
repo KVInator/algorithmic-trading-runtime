@@ -82,7 +82,7 @@ class RiskCase {
         }
     }
     Json run(const PanelReplayDay &day, const RiskSessionReferences &refs, const Json &actions,
-             bool terminal) {
+             bool terminal, const std::optional<double>* explicit_target = nullptr) {
         Json events = Json::array();
         const auto begin = account.ledger().size();
         const auto &cal = refs.calendar();
@@ -100,6 +100,7 @@ class RiskCase {
                      : name == "static_risk_budget" ? day.risk.static_weight
                                                     : std::optional<double>{1};
         }
+        if (explicit_target) { target = *explicit_target; }
         if (summary.stopped.empty() && (!summary.started.empty() || target)) {
             if (summary.started.empty()) {
                 summary.started = date;
@@ -452,6 +453,31 @@ class SharedCase {
     std::optional<SharedFlatCheckpoint> checkpoint;
 };
 } // namespace
+class PanelRiskLedger::State {
+  public:
+    State(std::string symbol, std::string policy, int delay, double cost)
+        : ledger(std::move(symbol), std::move(policy), delay, cost) {}
+    Json advance(const PanelReplayDay& day, const RiskSessionReferences& references,
+                 const Json& actions, bool terminal, const std::optional<double>* target) {
+        if (previous_close) { ledger.initialize_price(*previous_close); }
+        Json result = day.scored_period ? ledger.run(day, references, actions, terminal, target)
+            : Json{{"symbol",day.symbol},{"account",ledger.name},{"status","initialization"},
+                   {"stop_reason",""},{"target_weight",nullptr},{"net_return",nullptr},{"events",Json::array()}};
+        previous_close = references.observed_close();
+        return result;
+    }
+    RiskCase ledger;
+    std::optional<double> previous_close;
+};
+PanelRiskLedger::PanelRiskLedger(std::string symbol,std::string policy,int delay,double cost)
+    : state_(std::make_unique<State>(std::move(symbol),std::move(policy),delay,cost)) {}
+PanelRiskLedger::~PanelRiskLedger() = default;
+Json PanelRiskLedger::append(const PanelReplayDay& day,const RiskSessionReferences& refs,const Json& actions,bool terminal) {
+    return state_->advance(day,refs,actions,terminal,nullptr);
+}
+Json PanelRiskLedger::append_sized(const PanelReplayDay& day,const RiskSessionReferences& refs,const Json& actions,bool terminal,std::optional<double> target) {
+    return state_->advance(day,refs,actions,terminal,&target);
+}
 class PanelAccountStudy::State {
   public:
     explicit State(const ExtensionStudyContract &contract, Json cash)

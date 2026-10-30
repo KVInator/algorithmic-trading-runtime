@@ -103,63 +103,6 @@ std::optional<double> number(const Json &value) {
     require(std::isfinite(result), "nonfinite saved observation");
     return result;
 }
-class PriorCondition {
-  public:
-    Json advance(const std::string &date, std::optional<double> current) {
-        std::optional<double> volatility, low, high;
-        std::string label = "unavailable";
-        if (returns_.size() == 60 &&
-            std::all_of(returns_.begin(), returns_.end(), [](auto v) { return v.has_value(); })) {
-            long double mean = 0, squared = 0;
-            for (auto v : returns_) {
-                mean += *v;
-            }
-            mean /= 60;
-            for (auto v : returns_) {
-                squared += (*v - mean) * (*v - mean);
-            }
-            volatility = static_cast<double>(std::sqrt(252 * squared / 59));
-        }
-        if (volatility && cutoffs_.size() == 252 &&
-            std::all_of(cutoffs_.begin(), cutoffs_.end(), [](auto v) { return v.has_value(); })) {
-            std::vector<double> sorted;
-            for (auto v : cutoffs_) {
-                sorted.push_back(*v);
-            }
-            std::sort(sorted.begin(), sorted.end());
-            const auto quantile = [&](double p) {
-                const double x = 251 * p;
-                const auto i = static_cast<std::size_t>(std::floor(x));
-                const auto j = static_cast<std::size_t>(std::ceil(x));
-                return sorted[i] + (x - static_cast<double>(i)) * (sorted[j] - sorted[i]);
-            };
-            low = quantile(1.0 / 3);
-            high = quantile(2.0 / 3);
-            label = *volatility <= *low ? "low" : *volatility > *high ? "high" : "middle";
-        }
-        Json result{{"date", date},
-                    {"prior_volatility", volatility ? Json(*volatility) : Json(nullptr)},
-                    {"lower_cutoff", low ? Json(*low) : Json(nullptr)},
-                    {"upper_cutoff", high ? Json(*high) : Json(nullptr)},
-                    {"cutoff_last_date", previous_.empty() ? Json(nullptr) : Json(previous_)},
-                    {"label", label}};
-        // Current return and current volatility enter only after today's label.
-        returns_.push_back(current);
-        if (returns_.size() > 60) {
-            returns_.pop_front();
-        }
-        cutoffs_.push_back(volatility);
-        if (cutoffs_.size() > 252) {
-            cutoffs_.pop_front();
-        }
-        previous_ = date;
-        return result;
-    }
-
-  private:
-    std::deque<std::optional<double>> returns_, cutoffs_;
-    std::string previous_;
-};
 } // namespace
 StabilityDataset::StabilityDataset(std::filesystem::path cost_directory,
                                    std::filesystem::path account_directory,
@@ -473,7 +416,7 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
     }
     market_returns["equal_weight"] = pooled;
     for (const auto &[symbol, values] : market_returns) {
-        PriorCondition state;
+        PriorMarketCondition state;
         auto rows = Json::array();
         for (std::size_t i = 0; i < calendar.size(); ++i) {
             const auto condition = state.advance(calendar[i], values[i]);

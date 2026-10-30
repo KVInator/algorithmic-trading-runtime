@@ -40,16 +40,26 @@ struct PanelReplayDay {
 
 // One owner per instrument. All decisions precede the commit of the current
 // session to history. Execution prices never cross a feature boundary.
+struct PanelReplayParameters {
+    std::string family{"all"};
+    int momentum_hold_minutes{25};
+    std::size_t continuation_sessions{20};
+    ReversionParameters reversion{};
+    std::size_t risk_sessions{20};
+    int risk_grid_minutes{5};
+    void validate() const;
+};
 class PanelReplayState {
 public:
-    PanelReplayState(std::string symbol, PanelInputPolicy policy);
+    PanelReplayState(std::string symbol, PanelInputPolicy policy, PanelReplayParameters parameters = {});
     [[nodiscard]] PanelReplayDay advance(const HistoricalBarRequest& request, std::span<const MinuteBar> bars,
         double ex_dividend = 0, const std::optional<MinuteBar>& recovered_close = {});
 private:
+    PanelReplayParameters parameters_;
     std::string symbol_, previous_date_, previous_close_cutoff_;
     PanelInputPolicy policy_;
-    IntradayContinuationHistory continuation_{ResearchInputMode::registered_panel};
-    ReversionHistory reversion_{ResearchInputMode::registered_panel};
+    IntradayContinuationHistory continuation_;
+    ReversionHistory reversion_;
     std::deque<DailyRiskMeasurement> risk_history_;
     std::optional<double> previous_close_, static_weight_;
 };

@@ -24,8 +24,12 @@ double relative_return(double from, double to) {
 
 } // namespace
 
-IntradayMomentumStrategy::IntradayMomentumStrategy(HistoricalBarRequest session, ResearchInputMode mode)
-    : session_{std::move(session)}, mode_{mode} {
+IntradayMomentumStrategy::IntradayMomentumStrategy(HistoricalBarRequest session, ResearchInputMode mode, int hold_minutes)
+    : session_{std::move(session)}, mode_{mode}, hold_minutes_{hold_minutes} {
+    if ((hold_minutes != 10 && hold_minutes != 20 && hold_minutes != 25) ||
+        (mode == ResearchInputMode::legacy_complete && hold_minutes != 25)) {
+        throw std::invalid_argument("unsupported momentum holding duration");
+    }
     if (mode_ == ResearchInputMode::registered_panel) { require_panel_regular_session(session_); return; }
     const auto day = std::chrono::floor<std::chrono::days>(session_.start());
     const auto utc_open = session_.start() - day;
@@ -43,7 +47,7 @@ std::chrono::sys_seconds IntradayMomentumStrategy::entry_decision_time() const n
 }
 
 std::chrono::sys_seconds IntradayMomentumStrategy::exit_decision_time() const noexcept {
-    return session_.start() + std::chrono::minutes{385};
+    return session_.start() + std::chrono::minutes{360 + hold_minutes_};
 }
 
 MomentumDecision IntradayMomentumStrategy::decide(std::span<const MinuteBar> completed_bars,

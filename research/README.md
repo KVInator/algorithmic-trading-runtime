@@ -103,7 +103,13 @@ estimates remain distinct from candidate profitability and statistical
 superiority. The [quote-reference comparison](../docs/cost_execution.md#windows-quote-reference-acceptance)
 passed Windows raw-archive verification and separate uploaded-artifact review.
 Continuous/shared accounts have the separate accepted evaluator below;
-M7 primary stability diagnostics are implemented; secondary comparisons and risk-matched ledgers remain open. The v1 results retain their
+M7 primary diagnostics have Windows acceptance. `StabilityExtensionDevelopment`
+implements the fourteen registered one-factor variants and 50 funded risk-matched
+accounts, with 45 genuine unit accounts for prior volatility sizing. Its independent
+`verify_stability_extension.py` oracle authenticates source observations, configurable
+strategy decisions, Decimal cash/fee ledgers, 252-slot sizing, attribution, joint
+uncertainty and static plot marks. Constructed verification is separate from the
+required Windows historical acceptance. The v1 results retain their
 original sample and identities.
 
 `verify_cost_execution.py` independently rebuilds all 680 registered synthetic

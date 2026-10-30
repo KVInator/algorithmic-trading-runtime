@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 from collections import defaultdict, deque
+from contextlib import nullcontext
 from datetime import date, datetime, timezone
 from decimal import Decimal, localcontext
 import hashlib
@@ -55,18 +56,18 @@ def measurement(bars, previous, dividend, minutes):
     return result
 
 
-def residual(bars):
-    slots = set(range(30)) | set(range(29, 150, 5))
+def residual(bars, step=5):
+    slots = set(range(30)) | set(range(29, 150, step))
     if not slots <= bars.keys():
         return None
     volume = math.fsum(bars[i][2] for i in range(30))
     if volume <= 0:
         return None
     anchor = math.fsum(bars[i][1] * bars[i][2] for i in range(30)) / volume
-    return [math.log(bars[i][1]) - math.log(anchor) for i in range(29, 150, 5)]
+    return [math.log(bars[i][1]) - math.log(anchor) for i in range(29, 150, step)]
 
 
-def fit(sequences):
+def fit(sequences, step=5):
     pairs = [(a, b) for seq in sequences for a, b in zip(seq, seq[1:])]
     n = len(pairs)
     if n < 3:
@@ -84,11 +85,11 @@ def fit(sequences):
               else "nonstationary_slope" if slope > 1 else "zero_innovation_variance" if variance == 0 else "admissible")
     result = dict(status=status, pairs=n, slope=slope, intercept=intercept, innovation_variance=variance)
     if status == "admissible":
-        result.update(equilibrium=intercept / (1 - slope), speed_per_minute=-math.log(slope) / 5)
+        result.update(equilibrium=intercept / (1 - slope), speed_per_minute=-math.log(slope) / step)
     return result
 
 
-def verify_reversion_coefficients(actual, expected, context):
+def verify_reversion_coefficients(actual, expected, context, step=5):
     """Check independent OLS coefficients, then their rounded derived identities.
 
     The equilibrium a/(1-b) is ill-conditioned near b=1. Applying the primitive
@@ -117,7 +118,7 @@ def verify_reversion_coefficients(actual, expected, context):
     error = abs(math.fsum((product, -a)))
     require(math.isfinite(product) and math.isfinite(budget) and error <= budget,
             f"{context}: Reversion equilibrium identity differs; residual={error!r}, rounding_bound={budget!r}")
-    same(speed, -math.log(b) / 5, context + ": Reversion speed identity differs")
+    same(speed, -math.log(b) / step, context + ": Reversion speed identity differs")
     reference = expected["equilibrium"]
     return abs(mu - reference) > 1e-11 * max(1, abs(reference))
 
@@ -178,7 +179,9 @@ def verify_reversion_numerics():
 class InputSource:
     def __init__(self, summary):
         self.summary = summary
-        self.synthetic = summary["provenance"].get("fixture") == "analytic_panel_300"
+        fixture = summary["provenance"].get("fixture")
+        self.synthetic = fixture in {"analytic_panel_300", "analytic_panel_600"}
+        count = 600 if fixture == "analytic_panel_600" else 300
         if self.synthetic:
             require(summary["provenance"]["evidence_origin"] == "synthetic", "Analytic fixture cannot claim provider evidence")
         self.oracle = PanelVerifier(Path(summary["input_dataset"])) if not self.synthetic else None
@@ -186,7 +189,7 @@ class InputSource:
         self.checkpoints = {}
         self.recovered = {}
         if self.synthetic:
-            self.days = [d for year in (2016, 2017) for d in PanelVerifier(Path.cwd()).calendar(f"{year}-01-01", f"{year}-12-31")][:300]
+            self.days = [d for year in (2016, 2017, 2018) for d in PanelVerifier(Path.cwd()).calendar(f"{year}-01-01", f"{year}-12-31")][:count]
         else:
             p = self.oracle
             provenance = summary["provenance"]
@@ -262,10 +265,12 @@ class InputSource:
 
 
 class ReplayVerifier:
-    def __init__(self, directory):
+    def __init__(self, directory, parameters=None, source=None):
+        self.parameters = dict(family="all", momentum_hold_minutes=25, continuation_sessions=20, reversion_sessions=20, reversion_grid_minutes=5, reversion_hold_minutes=30, risk_sessions=20, risk_grid_minutes=5)
+        self.parameters.update(parameters or {})
         self.directory = directory
         self.summary = PanelVerifier.load(directory / "summary.json")
-        self.source = InputSource(self.summary)
+        self.source = source or InputSource(self.summary)
         self.common = defaultdict(list)
         self.samples = {}
         self.conditioned_fits = 0
@@ -309,17 +314,22 @@ class ReplayVerifier:
         same(actual["gross"], math.prod(1 + t[4] for t in trades) - 1 if valid else None, "Gross path differs")
         same(actual["net"], math.prod(1 + t[5] for t in trades) - 1 if valid else None, "Net path differs")
 
-    def instrument(self, symbol, path, record_member=None, observer=None):
-        continuation, reversion, risk = deque(maxlen=20), deque(maxlen=20), deque(maxlen=252)
+    def instrument(self, symbol, path=None, record_member=None, observer=None, records=None):
+        config = self.parameters
+        cn, rn, step, hold, risk_n, grid = (config[k] for k in ("continuation_sessions", "reversion_sessions", "reversion_grid_minutes", "reversion_hold_minutes", "risk_sessions", "risk_grid_minutes"))
+        continuation, reversion, risk = deque(maxlen=cn), deque(maxlen=rn), deque(maxlen=252)
         previous = None
         cutoff = ""
         static = None
         counts = dict(calendar_records=0, development_records=0, common_operational_records=0, risk_forecasts=0)
-        with path.open(encoding="utf-8") as stream:
+        with (nullcontext(records) if records is not None else path.open(encoding="utf-8")) as stream:
             for index, line in enumerate(stream):
-                require(len(line) <= 256 * 1024, "Replay record exceeds its bound")
-                envelope = json.loads(line)
-                row = envelope[record_member] if record_member else envelope
+                if isinstance(line, dict):
+                    envelope = line
+                else:
+                    require(len(line) <= 2 * 1024 * 1024, "Replay record exceeds its bound")
+                    envelope = json.loads(line)
+                row = record_member(envelope) if callable(record_member) else envelope[record_member] if record_member else envelope
                 day, opening, minutes, bars, dividend = self.source.load(symbol, index)
                 d = day["date"]
                 require(d < "2024" and row["date"] == d and row["symbol"] == symbol and row["session_open_utc"] == clock(opening), "Replay identity/access boundary differs")
@@ -331,28 +341,29 @@ class ReplayVerifier:
                 require(row["availability"]["operational"] == operational and row["scored_period"] == scored, "Operational/scored mask differs")
                 availability = row["availability"]
                 require(availability["momentum_features"] == ({0, 359} <= bars.keys())
-                        and availability["reversion_features"] == (set(range(30)) | set(range(29, 150, 5)) <= bars.keys())
+                        and availability["reversion_features"] == (set(range(30)) | set(range(29, 150, step)) <= bars.keys())
                         and availability["continuation_prefixes"] == [set(range(m)) <= bars.keys() for m in range(30, 361, 30)]
                         and availability["missing_execution_slots"] == sorted(executions - bars.keys()),
                         "Recorded feature/execution availability differs")
                 self.common[d].append((operational, row["common_operational"]))
                 if scored and row["common_operational"] and symbol not in self.samples:
                     self.samples[symbol] = row
-                current = residual(bars)
+                current = residual(bars, step)
                 expected_paths = {}
                 if regular:
                     signal = (bars[359][1] - bars[0][0]) / bars[0][0] if not diagnostic and {0,359} <= bars.keys() else None
                     same(row["momentum_signal"], signal, "Momentum signal differs")
                     for control in (False, True):
-                        expected_paths["momentum_always_long" if control else "momentum"] = [(360, signal is not None and (control or signal > 0), None), (385, False, None)]
-                    for volume in (False, True):
+                        expected_paths["momentum_always_long" if control else "momentum"] = [(360, signal is not None and (control or signal > 0), None), (360 + config["momentum_hold_minutes"], False, None)]
+                    # Other family records contain no continuation policy paths.
+                    for volume in ((False, True) if config["family"] in {"all", "continuation"} else ()):
                         targets = []
                         held = False
                         unknown = False
                         for minute in range(30, 361, 30):
                             f = None
-                            if len(continuation) == 20 and not diagnostic and set(range(minute)) <= bars.keys():
-                                scale = math.fsum(abs((h[1][minute - 1][1] - h[1][0][0]) / h[1][0][0]) for h in continuation) / 20
+                            if len(continuation) == cn and not diagnostic and set(range(minute)) <= bars.keys():
+                                scale = math.fsum(abs((h[1][minute - 1][1] - h[1][0][0]) / h[1][0][0]) for h in continuation) / cn
                                 median = statistics.median(math.fsum(h[1][i][2] for i in range(minute)) for h in continuation)
                                 if median > 0:
                                     v = math.fsum(bars[i][2] for i in range(minute))
@@ -368,31 +379,33 @@ class ReplayVerifier:
                         targets.append((385, False, None))
                         expected_paths["continuation_volume" if volume else "continuation_price"] = targets
                     actions = [False] * 4
-                    if len(reversion) == 20 and not diagnostic:
+                    if len(reversion) == rn and not diagnostic:
                         complete = all(h[1] is not None for h in reversion)
-                        fitted = fit([h[1] for h in reversion]) if complete else fit([])
+                        fitted = fit([h[1] for h in reversion], step) if complete else fit([], step)
                         actual = row["reversion"]
                         require(actual is not None and actual["complete"] == complete and actual["fit_status"] == fitted["status"] and actual["pairs"] == fitted["pairs"], "Reversion fit/status differs")
                         require(actual["history_first"] == clock(reversion[0][0]) and actual["history_last"] == clock(reversion[-1][0]), "Reversion history slots differ")
-                        self.conditioned_fits += verify_reversion_coefficients(actual, fitted, symbol + " " + d)
+                        self.conditioned_fits += verify_reversion_coefficients(actual, fitted, symbol + " " + d, step)
                         same(actual["current"], current[-1] if current else None, "Current residual differs")
                         expected_move = None
                         if complete and current is not None:
                             hurdle = math.log1p(.0001) - math.log1p(-.0001)
-                            drift = 6 * math.fsum(b-a for _, seq in reversion for a,b in zip(seq,seq[1:])) / 480
+                            drift = (hold / step) * math.fsum(b-a for _, seq in reversion for a,b in zip(seq,seq[1:])) / (rn * (120 / step))
                             actions[1:] = [current[-1] < 0, drift > hurdle, True]
                             if fitted["status"] == "admissible":
                                 b, a = fitted["slope"], fitted["intercept"]
-                                # Thirty minutes is six five-minute steps. This
-                                # equivalent polynomial avoids cancellation of
+                                # The finite geometric sum avoids cancellation of
                                 # the ill-conditioned equilibrium and speed.
-                                expected_move = (a - (1 - b) * current[-1]) * b ** .2 * math.fsum(b ** j for j in range(6))
+                                expected_move = (a - (1 - b) * current[-1]) * b ** (1 / step) * math.fsum(b ** j for j in range(hold // step))
                                 actions[0] = current[-1] < fitted["equilibrium"] and expected_move > hurdle
                         same(actual["expected_move"], expected_move, "Reversion forecast differs")
                     else:
                         require(row["reversion"] is None, "Reversion used uninitialized history")
                     for name, target in zip(("candidate","sign_only","drift","always_long"), actions):
-                        expected_paths["reversion_"+name] = [(150,target,None),(180,False,None)]
+                        expected_paths["reversion_"+name] = [(150,target,None),(150 + hold,False,None)]
+                if config["family"] != "all":
+                    prefix = config["family"] + "_"
+                    expected_paths = {k: v for k, v in expected_paths.items() if k == config["family"] or k.startswith(prefix)}
                 require(len(row["policies"]) == len(expected_paths)
                         and {p["policy"] for p in row["policies"]} == set(expected_paths), "Policy matrix differs")
                 for p in row["policies"]:
@@ -401,15 +414,15 @@ class ReplayVerifier:
                 require(prediction["prior_returns"] == len(risk) and prediction["cutoff_utc"] == cutoff, "Risk history/cutoff differs")
                 estimate = None
                 if len(risk) == 252:
-                    prior = list(risk)[-20:]
-                    hd = math.fsum(h[1]["daily2"] for h in prior) / 20
-                    hi = math.fsum(h[1]["rv5"] for h in prior) / 20 if all(h[1]["rv5"] is not None for h in prior) else None
+                    prior = list(risk)[-risk_n:]
+                    hd = math.fsum(h[1]["daily2"] for h in prior) / risk_n
+                    hi = math.fsum(h[1][f"rv{grid}"] for h in prior) / risk_n if all(h[1][f"rv{grid}"] is not None for h in prior) else None
                     if hd > 0 and (hi is None or hi > 0):
                         estimate = hd, hi
                         if static is None:
                             static = min(1, .1 / math.sqrt(252 * math.fsum(h[1]["daily2"] for h in risk) / 252))
                         require(prediction["history_first"] == prior[0][0] and prediction["history_last"] == prior[-1][0], "Risk estimator window differs")
-                        require(prediction["missing_rv5_dates"] == [d for d,m in prior if m["rv5"] is None], "Risk fallback dates differ")
+                        require(prediction["missing_rv5_dates"] == [d for d,m in prior if m[f"rv{grid}"] is None], "Risk fallback dates differ")
                 require(prediction["available"] == (estimate is not None), "Risk forecast availability differs")
                 same(prediction["passive_weight"], 1 if static is not None else None, "Passive risk target differs")
                 same(prediction["static_weight"], static, "Static risk initialization differs")

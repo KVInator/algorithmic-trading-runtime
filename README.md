@@ -20,7 +20,9 @@ The accepted [primary M7 analysis](docs/stability.md#windows-development-accepta
 covers 77 series and 1,760 development dates, with year, instrument, causal-condition
 and holding-time attribution, winner concentration and paired six-endpoint
 uncertainty plots.
-The fourteen secondary cases and risk-matched ledgers remain open. Development
+The [remaining M7 implementation](docs/stability.md#registered-sensitivity-cases)
+adds fourteen one-factor cases, 45 unit accounts and 50 funded risk-matched
+accounts; Windows historical acceptance remains pending. Development
 bounds do not authorize advancement, and stopped account tails remain unavailable.
 
 ## Current extension results
@@ -35,7 +37,7 @@ bounds do not authorize advancement, and stopped account tails remain unavailabl
 | [Quote references](docs/cost_execution.md#windows-quote-reference-acceptance) | 910 fixed windows; 232 eligible, all in 2022-2023 | Earlier sampled spread evidence remains unestimated; quotes do not calibrate all-in execution costs |
 | [Synthetic execution](docs/cost_execution.md#windows-synthetic-execution-acceptance) | 680 cases, 510 matched contrasts and exact terminal reconciliation | Model-based execution sensitivity, not empirical fill probabilities or latency |
 | [Continuous accounts](docs/cost_execution.md#windows-account-acceptance) | 200 risk and 50 shared accounts; 190 contrasts, with stops retained | 162,040 of 352,000 risk records and 2,750 of 88,000 shared days have observed returns |
-| [Primary stability](docs/stability.md#windows-development-acceptance) | 77 series, 1,106 descriptive groups and six endpoints; Windows and derived-bundle verification passed | Momentum clears a provisional relative material bound while its own net mean remains negative; the risk endpoints lack adequate coverage. Sensitivity and risk matching remain open |
+| [Primary stability](docs/stability.md#windows-development-acceptance) | 77 series, 1,106 descriptive groups and six endpoints; Windows and derived-bundle verification passed | Momentum clears a provisional relative material bound while its own net mean remains negative; the risk endpoints lack adequate coverage. Secondary and matched implementations require Windows historical acceptance |
 
 The continuous-account limitation is material. Shared paths stop after **65
 sessions at one-minute delay** or **45 at two minutes** when a required raw

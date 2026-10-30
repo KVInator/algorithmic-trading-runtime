@@ -1,10 +1,10 @@
-# Primary stability and uncertainty
+# Stability, concentration and risk matching
 
-M7 begins with diagnostics of the authenticated M6 development exports. This
-checkpoint implements the primary attribution, concentration and six-endpoint
-uncertainty analysis. The fourteen registered secondary cases and risk-matched
-ledger replays remain open. It does not select a strategy, modify the registered
-rules, advance a model or open 2024–2025 strategy inputs.
+M7 retains the accepted primary diagnostics of authenticated M6 development
+exports and adds fourteen registered one-factor sensitivity cases and funded
+risk-matched ledgers. The extension implementation requires its own Windows
+historical acceptance. It does not select replacement parameters, advance a
+model or open 2024–2025 strategy inputs.
 
 ## Inputs and interpretation
 
@@ -117,8 +117,8 @@ adequacy.
 
 These are development diagnostics. Controlled size/coverage validation is still
 a later gate; the numerical fixtures here do not claim nominal finite-sample
-coverage. Risk-matched economic comparisons also remain unexecuted, so the report
-makes no advancement decision.
+coverage. This primary export does not execute risk-matched economic comparisons;
+its report makes no advancement decision.
 
 Method references: [Newey and West (1986)](https://www.nber.org/papers/t0055) for
 positive semidefinite HAC estimation; [Romano and Wolf (2005)](https://doi.org/10.1111/j.1468-0262.2005.00615.x)
@@ -215,12 +215,136 @@ No 2024 or 2025 strategy inputs were opened. Fourteen secondary cases,
 risk-matched ledgers and later controlled inference calibration remain open.
 The primary diagnostic checkpoint is accepted; M7 is not complete.
 
-## Remaining M7 work
+## Registered sensitivity cases
 
-1. Execute the fourteen registered one-factor secondary cases at the primary
-   cost and delay, retaining every instrument/window and unavailable case.
-2. Replay the predefined risk-matched sizing, costs and ledgers using 252 prior
-   returns, without leverage or rescaling realized outcomes after the fact.
-3. Integrate those results with the primary diagnostics before M8's controlled
-   inference validation and 2024 evaluation. The 2025 final retrospective stage
-   remains M9; final publication remains M10.
+`stability_extension_development` loads each original pre-2024 panel session once
+and advances fourteen independent parameter states. It composes the existing
+strategy and accounting engines; the accepted primary defaults remain unchanged.
+Each case uses one-minute reference delay and one basis point per side, with no
+crossing of secondary parameters and no best-case selection.
+
+| Family | One-factor alternatives | Primary setting retained elsewhere |
+| --- | --- | --- |
+| Momentum | Hold 10 or 20 minutes | 25 minutes |
+| Continuation | 10 or 40 complete prior regular sessions | 20 sessions |
+| Reversion | History 10/40 regular slots, observation grid 1/15 minutes, hold 15/60 minutes | 20 slots, 5-minute grid, 30-minute hold |
+| Daily risk | History 10/40 daily measurements, realized-variance predictor grid 1/15 minutes | 20 measurements, 5-minute predictor |
+
+Reversion keeps its first-30-minute volume-weighted closing-price anchor and
+minute-150 decision. Residual closes occur at minute indices 29, 29+g, ..., 149.
+The sampled close is the closing value of the completed source interval; no
+interior OHLCV bar or missing endpoint is manufactured. The physical AR(1) speed
+is `-log(b)/g` per minute. The delayed expected change uses the variant's physical
+holding period. Its drift control has that same horizon and grid; controls do
+not retain a different holding window. A change in the daily-risk predictor grid
+does not replace the future RV5 target or the primary QLIKE diagnostic.
+
+All five instruments and every development calendar date remain represented,
+including initialization, unavailable histories, shortened sessions and stopped
+accounts. Intraday secondary outcome statistics retain the original all-five
+operational mask. Continuous risk accounts retain their own observed prefixes.
+There are 200 instrument/policy cases and 40 equal-weight views: 240 secondary
+series. Equal-weight views are research indices on all-five observed dates, not
+an additional globally funded portfolio.
+
+## Funded prior-risk matching
+
+The four primary intraday candidate/control pairs and the intraday-risk versus
+daily-only pair each have a genuine unit ledger for estimating prior volatility.
+Shared controls are reused: seven intraday and two risk policies across five
+instruments give 45 unit accounts. Each pair then has two independently funded
+accounts per instrument, giving 50 matched accounts and ten pooled views.
+
+For each pair and session t, retain the last 252 exchange-calendar slots of net
+unit-account returns. Let their annual sample volatilities be sigma_A,t and
+sigma_B,t. All 252 pair slots must be observed. The registered common target and
+multipliers are
+
+$$
+ v_t = \min(0.10,\sigma_{A,t},\sigma_{B,t}), \qquad
+ m_{j,t}=v_t/\sigma_{j,t}, \quad j\in\{A,B\}, \quad 0<m_{j,t}\le1.
+$$
+
+The sample variance uses denominator 251 and annualization factor 252. Only
+strictly earlier returns enter sizing. A zero or missing volatility makes the
+multiplier unavailable. Missing slots are retained; older observations do not
+replace them. Unit returns include the primary cost. They are not zero-filled
+forecast placeholders: momentum starts after its first observed feature,
+continuation after twenty complete prior regular sessions, reversion after twenty
+prior regular slots, and risk accounts after their first deployable forecast.
+Subsequent genuine flat model decisions are observed cash. A shortened session
+is known cash only for a started, proved-flat intraday account; its original
+primary intraday comparison outcome remains unavailable. Diagnostic exclusions
+retain a missing training slot.
+
+Intraday entry targets use m_j,t, with scheduled exits to zero. Risk targets use
+m_j,t times the original daily-risk weight. Both replay paid costs and the
+self-financing cash/share ledger. Multiplying an already realized return by the
+multiplier would miss fees, equity changes, action entitlements and stopped
+positions, and is not used. Intraday exposure is allocated fraction times holding
+minutes divided by 390; it is a time-allocation proxy, not a marked exposure
+integral. Risk exposure is closing liquid stock fraction. Costs and turnover are
+reported relative to initial account capital.
+
+If an execution endpoint is missing, completed fills and charges remain in the
+ledger and the account stops with its retained position. There is no invented
+liquidation, cash return, reset or restart. A required overlay missing after an
+intraday account starts likewise stops that account on a regular date. Before
+initialization the account waits. Risk accounts reuse the existing event,
+dividend-entitlement, payment, mark and terminal-liquidation rules.
+
+The combined derived matrix has 345 series: 240 secondary, 45 unit, 50 matched
+and ten matched pooled views. All have year, prior-only condition, concentration,
+exposure, turnover, drawdown and coverage diagnostics; intraday groups also retain
+holding-time attribution.
+
+## Matched uncertainty and acceptance boundary
+
+The matched family uses the six registered endpoint definitions and material
+increments, the same full-calendar joint block draws and the same coverage
+requirements. Intraday increments require both matched returns and the original
+common operational mask. Risk CER requires both observed funded returns. The
+sixth endpoint carries the unchanged primary variance forecasts and future RV5
+losses: changing a capital allocation does not change a variance forecast.
+This is a secondary diagnostic family and does not replace the accepted primary
+family or select different hypotheses. Its provisional bounds do not authorize
+advancement. Controlled inference calibration remains M8.
+
+The native constructed run uses 600 analytic exchange sessions, long enough to
+exercise both the original risk initialization and a later 252-return sizing
+window. It includes missing closes, residuals and executions, shortened sessions,
+and a dividend. This is synthetic evidence, not an expanded historical result.
+`verify_stability_extension.py` independently reconstructs raw-source features and
+every variant decision, checks funded cash arithmetic with Decimal, rebuilds
+prior sizing, attribution and all four inference blocks, and checks static SVG
+coordinates. Its corruption checks bypass artifact identities.
+
+Full verification reauthenticates only the pre-2024 registered archive. A
+provider review bundle includes derived observations and diagnostics, not raw
+market source or the detailed instrument replay files. `--review-only` verifies
+that derived mathematics and display; it does not authenticate the source
+ledgers or provider archive. Commands are in the [runbook](running.md#secondary-stability-and-risk-matching-m7).
+
+M7 remains in progress until the Windows constructed and historical runs and
+independent verification have been reviewed with the accepted primary outputs.
+M8 then performs controlled inference validation and 2024 evaluation; M9 performs
+the 2025 retrospective evaluation; M10 consolidates the publication. Reserved
+strategy observations remain closed at this checkpoint.
+
+
+## Constructed extension verification
+
+GNU 13.3.0 Release builds all 28 applications. The 600-session constructed
+extension has 348 development dates, 345 derived series and 3,148 descriptive
+groups. Fourteen native numerical/failure checks and fourteen independent
+numerical/semantic checks pass, including direct ledger corruptions without
+artifact-hash protection. Source observations are reconstructed analytically;
+this is not provider-archive authentication or historical economic evidence.
+The seven-page static report has been rendered and visually reviewed.
+
+The existing constructed M6 cost/delay artifacts (five files) and continuous
+account artifacts (seven files) retain their bytes. The accepted primary M7
+groups and joint inference also agree exactly. The existing project demo,
+reversion sampling validation, panel replay and their independent checks pass.
+MSVC execution and historical extension acceptance remain to be completed on
+Windows before closing M7.

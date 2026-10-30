@@ -26,7 +26,13 @@ void validate_session(const HistoricalBarRequest& session, ResearchInputMode mod
 }
 } // namespace
 
-OpeningAnchorMeasurement::OpeningAnchorMeasurement(ResearchInputMode mode) : mode_{mode} {}
+OpeningAnchorMeasurement::OpeningAnchorMeasurement(ResearchInputMode mode, int observation_minutes)
+    : mode_{mode}, observation_minutes_{observation_minutes} {
+    if ((observation_minutes != 1 && observation_minutes != 5 && observation_minutes != 15) ||
+        (mode == ResearchInputMode::legacy_complete && observation_minutes != 5)) {
+        throw std::invalid_argument("unsupported reversion observation grid");
+    }
+}
 
 std::chrono::sys_seconds OpeningAnchorMeasurement::decision_time(const HistoricalBarRequest& session) const {
     validate_session(session, mode_);
@@ -61,9 +67,9 @@ std::optional<OpeningAnchorResidual> OpeningAnchorMeasurement::observe(const His
     if (volume <= 0) { return {}; }
     const auto anchor = as_finite(weighted_close);
     if (anchor <= 0) { throw std::invalid_argument("opening reference is not positive"); }
-    OpeningAnchorResidual result{at, anchor, {}};
+    OpeningAnchorResidual result{at, anchor, std::vector<double>(static_cast<std::size_t>(120 / observation_minutes_ + 1))};
     for (std::size_t i = 0; i < result.values.size(); ++i) {
-        const auto* bar = observed.at(29 + 5 * i);
+        const auto* bar = observed.at(29 + static_cast<std::size_t>(observation_minutes_) * i);
         if (bar == nullptr) { return {}; }
         result.values[i] = std::log(bar->prices().close) - std::log(anchor);
     }
@@ -83,6 +89,11 @@ std::string_view name(ReversionFitStatus status) {
     throw std::invalid_argument("unknown reversion fit status");
 }
 
+PooledReversionEstimator::PooledReversionEstimator(int observation_minutes) : observation_minutes_{observation_minutes} {
+    if (observation_minutes != 1 && observation_minutes != 5 && observation_minutes != 15) {
+        throw std::invalid_argument("unsupported AR1 observation interval");
+    }
+}
 PooledReversionFit PooledReversionEstimator::fit(std::span<const std::vector<double>> sequences) const {
     PooledReversionFit result{ReversionFitStatus::insufficient_pairs, sequences.size(), 0,
         {}, {}, {}, {}, {}, {}};
@@ -124,7 +135,7 @@ PooledReversionFit PooledReversionEstimator::fit(std::span<const std::vector<dou
     if (std::abs(slope - 1) <= tolerance) { result.status = ReversionFitStatus::unit_root_boundary; return result; }
     if (slope > 1) { result.status = ReversionFitStatus::nonstationary_slope; return result; }
     if (*result.innovation_variance == 0) { result.status = ReversionFitStatus::zero_innovation_variance; return result; }
-    const auto speed = -std::log(slope) / 5;
+    const auto speed = -std::log(slope) / observation_minutes_;
     result.equilibrium = as_finite(intercept / (1 - slope));
     result.speed_per_minute = as_finite(speed);
     result.half_life_minutes = as_finite(std::log(2.L) / speed);
