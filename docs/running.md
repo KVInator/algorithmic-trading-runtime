@@ -701,8 +701,8 @@ Share each generated `review.zip` and the console result. Constructed bundles
 include generated paths and ledgers. Provider bundles contain only summary,
 HTML and executable plan; source prices and daily transcripts stay local.
 Complete provider verification requires that local evidence. M6 historical
-acceptance follows review of the completed output; M7 stability/risk matching
-and uncertainty remain separate work.
+acceptance and the separate [M7 stability and matching analysis](stability.md)
+are complete with their recorded coverage limitations.
 
 For the retained-console Visual Studio setup, keep the existing Command and
 Working Directory and use arguments
@@ -752,8 +752,9 @@ block length. It may take longer than the native analysis because it recomputes
 `--review-only`; that mode explicitly skips reopening original M6 records.
 
 The [method note](stability.md) describes units, masks and limitations. Secondary
-variants, risk-matched replay and later controlled inference validation remain
-open; an adequate-looking primary bound alone is not an advancement decision.
+variants and funded risk matching have separate accepted outputs below.
+Controlled inference validation remains M8; a primary numerical bound alone
+is not an advancement decision.
 
 
 ## Secondary stability and risk matching (M7)
@@ -808,4 +809,7 @@ calendar coverage and expandable period diagnostics. Share the verified
 `review.zip` from each run. Provider bundles omit detailed replay/source files.
 A downloaded bundle can be checked with `--review-only --self-check`; the terminal
 explicitly states that source ledgers and raw archives were not reauthenticated.
-M7 acceptance follows review of the historical output; M8 remains the next gate.
+The [Windows acceptance](stability.md#windows-secondary-and-risk-matching-acceptance)
+records completed execution and independent review on 30 October 2026. M7 is
+complete with coverage limitations; M8 remains the next gate. The commands above
+reproduce accepted evidence and do not open reserved strategy observations.

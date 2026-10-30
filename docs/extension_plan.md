@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 29 October 2026: **M0-M6 complete; M7 in progress; M8-M10 not started.**
+Status recorded 30 October 2026: **M0-M7 complete; M8-M10 not started.**
 This is the accepted scope and evidence record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -113,16 +113,16 @@ M0 performed no historical acquisition, model fitting or strategy scoring.
 | M4 | Shared-capital runtime | Exact global/owner accounting, netting, limits and recovery | Complete: Windows Release passed 182 checks in 15 cases; 163 durable transitions independently verified |
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Complete with coverage qualifications: quote-reference, historical cost/delay, 680 synthetic execution cases, 200 risk and 50 shared accounts accepted; stopped economic paths remain unavailable |
-| M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | In progress: Windows primary diagnostics and joint uncertainty accepted on 1,760 dates; secondary variants and risk-matched implementation require Windows historical acceptance |
+| M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Complete with input-limited findings: primary diagnostics, fourteen secondary cases, 50 matched accounts and independent Windows/derived-bundle checks accepted; no supported risk-matched advancement |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
 
 The initial planning range was 228-368 focused hours plus unattended work;
-it is not a measured completion-time forecast. Seven completed milestones count
+it is not a measured completion-time forecast. Eight completed milestones count
 work packages, not a fraction of engineering effort. M1 required no paid access;
 M2 registered full-panel coverage, gap masks and action reconciliation.
-The remaining scope is M7-M10. Build commands are in the [runbook](running.md).
+The remaining scope is M8-M10. Build commands are in the [runbook](running.md).
 
 ## M1 provider evidence and disposition
 
@@ -389,7 +389,8 @@ review remains tied to the same unchanged acquisition-manifest identity.
 The source inventory is a build identity, not an independently established Git
 commit. M2 is complete. M3 subsequently verified prior-only replay and original-reference
 parity; M4-M6 completed shared capital, the synthetic peer and cost/execution
-evaluation. Stability, reserved periods and publication remain M7-M10. Milestone counts
+evaluation. M7 completed stability and risk-matching assessment with input
+limitations. Reserved periods and publication remain M8-M10. Milestone counts
 describe accepted work packages, not the fraction of engineering effort spent.
 
 ## M3 Windows acceptance completed
@@ -476,8 +477,8 @@ stop; only passive QQQ/TLT reach December 2023. Stopped accounts do not restart;
 forecast-history recovery does not restore capital paths. These are material
 economic coverage limits, not a seven-year shared-capital result.
 
-M6 is complete with those qualifications. M7 must retain each comparison's
-actual coverage and unavailable outcomes while assessing concentration,
+M6 is complete with those qualifications. The accepted M7 analysis retains each
+comparison's actual coverage and unavailable outcomes while assessing concentration,
 stability, risk matching and uncertainty. M8-M10 remain gated as specified above.
 
 ## M7 primary diagnostics checkpoint
@@ -488,13 +489,13 @@ family. The [Windows development acceptance](stability.md#windows-development-ac
 records 77 series, 1,760 dates and the independently reviewed derived bundle.
 Momentum's relative numerical bound clears the material threshold, while its own
 net mean remains negative; the risk endpoints remain coverage-limited. No model
-advancement is assessed. This checkpoint does not complete M7: fourteen secondary
-cases and funded risk-matched replays remain. Controlled inference calibration
-and reserved strategy periods stay behind their existing gates.
+advancement is assessed. The secondary cases and funded risk-matched replays are
+accepted below. Controlled inference calibration and reserved strategy periods
+stay behind their existing gates.
 
-## M7 secondary implementation checkpoint
+## M7 secondary and matched acceptance
 
-The remaining implementation reuses the existing causal strategies with explicit
+The secondary implementation reuses the existing causal strategies with explicit
 registered parameters and the existing risk cash ledger. Fourteen one-factor
 cases produce 240 secondary series. Forty-five genuine unit accounts feed
 strictly prior 252-slot volatility matching for 50 funded candidate/control
@@ -505,7 +506,11 @@ specified in [stability.md](stability.md#registered-sensitivity-cases).
 The original primary default outputs, six endpoint definitions, frozen protocols,
 source-data boundaries and v1 publication remain authoritative. The secondary
 family does not select replacement settings or reopen a failed original screen.
-This checkpoint requires Windows constructed/historical acceptance before M7 is
-closed. Controlled inference calibration is M8; 2024 and 2025 strategy inputs
-remain gated. The [runbook](running.md#secondary-stability-and-risk-matching-m7)
-contains one guarded build/run/verification sequence.
+Windows MSVC Release execution and independent review completed on 30 October
+2026. The historical analysis has 1,760 development dates and 5,077 groups.
+Pooled matched endpoint counts are 0, 97, 0, 173, 402 and 479 in registered order;
+none meets 80% calendar coverage. The complete family and missing outcomes remain
+retained, so simultaneous matched bounds are unavailable. M7 is complete with
+input-limited findings and no strategy advancement. Controlled inference
+calibration is M8; 2024 and 2025 strategy inputs remain gated.
+The [runbook](running.md#secondary-stability-and-risk-matching-m7) contains one guarded build/run/verification sequence.

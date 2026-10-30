@@ -102,6 +102,7 @@ are retained.
 
 The subsequent [M4 shared ledger](shared_capital.md), [M5 independent broker](process_broker.md)
 and [M6 cost/account comparisons](cost_execution.md) are accepted under their
-separate contracts and coverage limits. Stability variants, risk matching and
-uncertainty remain M7. This primary replay does not perform a simultaneous
+separate contracts and coverage limits. The [accepted M7 analysis](stability.md)
+reports stability variants, risk matching and uncertainty. This primary replay
+does not perform a simultaneous
 advancement assessment or reserved-period evaluation.

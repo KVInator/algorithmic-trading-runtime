@@ -9,9 +9,10 @@ history, and 2017-2023 supplies development observations.
 The [offline demo](#build-and-reproduce) runs without credentials or private data.
 Detailed methods and executable commands are in the [runbook](docs/running.md).
 
-**M0-M6 are complete: 7 of 11 milestones.** M7 is in progress: stability, concentration,
-predefined risk matching and uncertainty. Validation in 2024, final retrospective
-evaluation in 2025 and consolidated publication remain M8-M10. Those later
+**M0-M7 are complete: 8 of 11 milestones.** Stability, concentration, predefined
+risk matching and uncertainty are accepted with explicit coverage limitations.
+Validation in 2024, final retrospective evaluation in 2025 and consolidated
+publication remain M8-M10. Those later
 strategy inputs remain unopened. Prior research exposure is recorded in the
 [roadmap](docs/extension_plan.md#research-exposure-and-evaluation-roles);
 the reserved panel is not claimed to be globally unseen.
@@ -20,10 +21,11 @@ The accepted [primary M7 analysis](docs/stability.md#windows-development-accepta
 covers 77 series and 1,760 development dates, with year, instrument, causal-condition
 and holding-time attribution, winner concentration and paired six-endpoint
 uncertainty plots.
-The [remaining M7 implementation](docs/stability.md#registered-sensitivity-cases)
-adds fourteen one-factor cases, 45 unit accounts and 50 funded risk-matched
-accounts; Windows historical acceptance remains pending. Development
-bounds do not authorize advancement, and stopped account tails remain unavailable.
+The accepted [secondary and matched M7 analysis](docs/stability.md#windows-secondary-and-risk-matching-acceptance)
+covers fourteen one-factor cases, 45 unit accounts, 50 funded matched accounts
+and 345 derived series. None of the pooled matched endpoints meets the registered
+calendar-coverage requirement. Development bounds do not authorize advancement,
+and stopped account tails remain unavailable.
 
 ## Current extension results
 
@@ -37,7 +39,8 @@ bounds do not authorize advancement, and stopped account tails remain unavailabl
 | [Quote references](docs/cost_execution.md#windows-quote-reference-acceptance) | 910 fixed windows; 232 eligible, all in 2022-2023 | Earlier sampled spread evidence remains unestimated; quotes do not calibrate all-in execution costs |
 | [Synthetic execution](docs/cost_execution.md#windows-synthetic-execution-acceptance) | 680 cases, 510 matched contrasts and exact terminal reconciliation | Model-based execution sensitivity, not empirical fill probabilities or latency |
 | [Continuous accounts](docs/cost_execution.md#windows-account-acceptance) | 200 risk and 50 shared accounts; 190 contrasts, with stops retained | 162,040 of 352,000 risk records and 2,750 of 88,000 shared days have observed returns |
-| [Primary stability](docs/stability.md#windows-development-acceptance) | 77 series, 1,106 descriptive groups and six endpoints; Windows and derived-bundle verification passed | Momentum clears a provisional relative material bound while its own net mean remains negative; the risk endpoints lack adequate coverage. Secondary and matched implementations require Windows historical acceptance |
+| [Primary stability](docs/stability.md#windows-development-acceptance) | 77 series, 1,106 descriptive groups and six endpoints; Windows and derived-bundle verification passed | Momentum clears a provisional relative material bound while its own net mean remains negative; the risk endpoints lack adequate coverage. The pooled matched momentum comparison is unavailable, so its relative benefit is not confirmed after risk matching |
+| [Secondary stability and risk matching](docs/stability.md#windows-secondary-and-risk-matching-acceptance) | Fourteen cases, 345 series and 5,077 descriptive groups; Windows execution and independent review completed | Both momentum duration alternatives and all six reversion candidate variants have negative pooled net means; the matched family is input-limited, with no simultaneous bounds |
 
 The continuous-account limitation is material. Shared paths stop after **65
 sessions at one-minute delay** or **45 at two minutes** when a required raw
@@ -49,7 +52,7 @@ All case summaries, denominators and primary results are retained in the linked
 acceptance records and curated CSV tables.
 
 The runtime's accounting and recovery conclusions are separate from economic
-benefit. M7 assesses sensitivity, exposure, concentration and uncertainty on
+benefit. M7 records sensitivity, exposure, concentration and uncertainty on
 the evidence actually available; completed engineering checks do not advance a
 failed strategy screen.
 
@@ -125,7 +128,8 @@ $w_d=\min(1,0.10/\sqrt{252h_d})$. Fractional accounts retain cash, shares,
 dividend receivables/payments and split identities. Forecast loss and allocation
 value are separate questions. The v1 inference uses paired whole-calendar
 resampling: five-/ten-session outcome blocks for intraday studies and
-twenty/forty for risk. Extension-wide inference remains M7. Fixed
+twenty/forty for risk. Extension-wide inference is reported in M7; controlled
+statistical calibration remains M8. Fixed
 screens and prior research exposure remain explicit in the
 [registered protocols](research/README.md).
 

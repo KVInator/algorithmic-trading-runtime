@@ -2,8 +2,8 @@
 
 M7 retains the accepted primary diagnostics of authenticated M6 development
 exports and adds fourteen registered one-factor sensitivity cases and funded
-risk-matched ledgers. The extension implementation requires its own Windows
-historical acceptance. It does not select replacement parameters, advance a
+risk-matched ledgers. Windows execution and independent review are complete
+with input-limited matched findings. It does not select replacement parameters, advance a
 model or open 2024–2025 strategy inputs.
 
 ## Inputs and interpretation
@@ -185,7 +185,8 @@ before comparing these tables.
 The primary simultaneous block is 40; block 20 is the registered sensitivity.
 Both numerical families are available, with no undefined resamples, but the
 complete family's calendar coverage is inadequate. The following are provisional
-development bounds, pending controlled calibration and risk matching:
+development bounds. Controlled calibration remains pending; the separate
+risk-matched assessment below does not confirm these relative claims:
 
 | Endpoint | Valid dates / 1,760 | Observed increment | Block-40 simultaneous lower bound | Material increment |
 | --- | --- | --- | --- | --- |
@@ -200,7 +201,8 @@ Only momentum's numerical lower bound clears its material increment for both
 simultaneous blocks. This is a relative comparison: the momentum research index's
 own mean is **-1.062061 bp/day**, versus **-2.430781 bp/day** for its always-long
 control. Its mean is negative in every development year. Mean session-time
-exposure also differs, so the pending risk-matched replay remains necessary.
+exposure also differs. The completed pooled risk-matched momentum comparison
+is unavailable, so that assessment cannot confirm an exposure-adjusted benefit.
 These results do not establish profitable performance or authorize advancement.
 
 The volume-continuation research index has a positive mean of +0.277001 bp/day,
@@ -211,9 +213,9 @@ not supply a seven-year portfolio outcome. The risk CER and QLIKE endpoints have
 37.22% and 27.22% calendar coverage, respectively, below the registered 80%
 requirement. Stopped tails remain unavailable.
 
-No 2024 or 2025 strategy inputs were opened. Fourteen secondary cases,
-risk-matched ledgers and later controlled inference calibration remain open.
-The primary diagnostic checkpoint is accepted; M7 is not complete.
+No 2024 or 2025 strategy inputs were opened. The accepted primary export is
+retained alongside the completed secondary and matched assessment below.
+Controlled inference calibration remains M8.
 
 ## Registered sensitivity cases
 
@@ -325,9 +327,8 @@ market source or the detailed instrument replay files. `--review-only` verifies
 that derived mathematics and display; it does not authenticate the source
 ledgers or provider archive. Commands are in the [runbook](running.md#secondary-stability-and-risk-matching-m7).
 
-M7 remains in progress until the Windows constructed and historical runs and
-independent verification have been reviewed with the accepted primary outputs.
-M8 then performs controlled inference validation and 2024 evaluation; M9 performs
+M7 is complete with the Windows acceptance and coverage qualifications below.
+M8 performs controlled inference validation and 2024 evaluation; M9 performs
 the 2025 retrospective evaluation; M10 consolidates the publication. Reserved
 strategy observations remain closed at this checkpoint.
 
@@ -346,5 +347,104 @@ The existing constructed M6 cost/delay artifacts (five files) and continuous
 account artifacts (seven files) retain their bytes. The accepted primary M7
 groups and joint inference also agree exactly. The existing project demo,
 reversion sampling validation, panel replay and their independent checks pass.
-MSVC execution and historical extension acceptance remain to be completed on
-Windows before closing M7.
+The Windows constructed and historical acceptance below completes M7 with
+explicit economic-coverage limitations.
+
+
+## Windows secondary and risk-matching acceptance
+
+The 30 October 2026 MSVC 19.51.36260 x64 Release build and both native runs
+completed successfully. The constructed run has 600 source sessions, 348
+development dates and fourteen numerical/semantic oracle checks. It was
+independently reconstructed again during review; its groups and joint inference
+agree with the GNU constructed results within the existing numerical tolerances.
+
+The historical run covers 2,012 source sessions through 29 December 2023 and
+1,760 development dates from 3 January 2017. Its fourteen one-factor cases,
+240 secondary series, 45 unit accounts and 50 matched accounts produce 345
+derived series and 5,077 descriptive groups. Both seven-page reports have been
+rendered and visually reviewed. Network requests were zero and reserved strategy
+inputs remained unopened.
+
+The retained summary identities are:
+
+- Constructed: `59478e7ead7f722ff3ff99f49aa8945593ab1c185aa5cffa9eba3fe07ee6ae5b`.
+- Historical: `b9fa60c155a0d22970cb4e0f1d219adf55edf99cf45f358fbff074dbca8d7a8d`.
+
+The reported Windows historical verifier authenticated the pre-2024 provider
+archive, causal variant decisions, Decimal funded ledgers and prior sizing,
+then passed fourteen numerical/semantic checks. The uploaded historical bundle
+contains derived evidence rather than raw source or detailed instrument ledgers.
+Review independently recomputed all groups, conditions, pooling, endpoint inputs,
+four joint block analyses and displayed marks, with seven applicable derived
+numerical/semantic checks. That review does not reauthenticate the absent raw
+provider archive or detailed source ledgers.
+
+The [345-row period table](evidence/m7_extension_period.csv) retains every series,
+including unavailable outcomes, exposure, reached costs/turnover, concentration,
+drawdown and first/last observed development dates. The [24-row endpoint table](evidence/m7_extension_endpoints.csv)
+retains all six endpoints and four block lengths, including missing bounds and
+undefined-draw counts. Every row carries the historical summary identity. Empty
+CSV cells mean unavailable, never an assumed cash return. Period drawdowns and
+return products describe selected observed dates and do not repair stopped tails.
+
+### Sensitivity findings
+
+Both pooled momentum duration alternatives have negative own-net means:
+**-1.002291 bp/day** at ten minutes and **-1.167818 bp/day** at twenty minutes,
+each on 1,682 original-common-mask dates. These are candidate returns, not
+candidate-minus-control increments. Both remain negative after winner removals.
+All six pooled reversion candidate cases also have negative own-net means,
+ranging from **-0.512588 to -0.280173 bp/day** on the same date count.
+
+The pooled volume-continuation history alternatives have positive means of
+**+0.119291 bp/day** for ten sessions and **+0.369816 bp/day** for forty sessions.
+Zeroing their five largest winning-date contributions changes these to
+**-0.476565** and **-0.218823 bp/day**, respectively. The primary twenty-session
+case also changes sign under that diagnostic. These are concentration
+attributions, not re-executed counterfactual accounts or parameter-selection
+rules. No replacement history is selected.
+
+The daily-risk sensitivity series have 654 observed pooled account dates each.
+Their positive point means describe partial funded prefixes, with different
+availability from the saved primary comparison. They do not establish a
+full-period allocation improvement. The complete per-instrument, control and
+risk measurements remain in the period table.
+
+### Matched comparison findings
+
+| Endpoint | Valid / 1,760 | Calendar coverage | Observed paired increment |
+| --- | --- | --- | --- |
+| Momentum minus same-window always-long | 0 | 0.00% | Unavailable |
+| Volume continuation minus price-only | 97 | 5.51% | +0.800262 bp/day |
+| Reversion minus sign-only | 0 | 0.00% | Unavailable |
+| Reversion minus drift | 173 | 9.83% | -0.235784 bp/day |
+| Intraday-risk minus daily-only annual CER | 402 | 22.84% | +0.432321 percentage points/year |
+| Unchanged primary control-minus-candidate QLIKE | 479 | 27.22% | +0.023751 loss units |
+
+None meets the registered 200-date and 80%-calendar adequacy requirements.
+The complete six-endpoint matched family is unavailable at both simultaneous
+block lengths, 20 and 40; all simultaneous matched lower bounds remain
+unavailable. Zero-count endpoints are retained in the family. The positive continuation and risk point increments
+do not establish a supported material benefit; the CER point is also below its
+0.5-percentage-point/year material threshold.
+
+Zero pooled momentum and sign-control dates reflect unavailable constituents,
+not measured zero returns. The GLD always-long momentum unit control and TLT
+sign-only reversion unit control have no observed development returns. Other
+instrument accounts retain observed prefixes, but an all-five pooled comparison
+requires all five components. The full period table preserves those distinctions.
+A positive individual-instrument prefix is not substituted for the registered
+pooled endpoint.
+
+The matched account means displayed separately use each side's observed dates.
+The economic endpoints use their pair intersection and, for intraday outcomes,
+the original common operational mask. Subtracting separately masked account
+means therefore does not reproduce the paired increment. QLIKE carries the
+original forecast/target diagnostic and is not a return from scaled capital.
+
+M7 is complete as a research and implementation work package, with input-limited
+matched evidence and no strategy advancement. The primary specifications and
+failed v1 screens retain their outcomes. M8 must validate inference under
+controlled sampling, perform the registered 2024 evaluation and record the final
+executable specification before M9 opens 2025. M10 consolidates the publication.

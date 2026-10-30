@@ -754,8 +754,9 @@ Windows acceptance commands. Historical verification requires the retained
 registered panel; provider review bundles omit raw prices and daily transcripts.
 The v1 findings and accepted M2-M6 input/results identities remain unchanged.
 Windows historical verification and compact review are recorded below.
-Stability, concentration, predefined risk matching and uncertainty
-remain M7; validation, final evaluation and publication remain M8-M10.
+Stability, concentration, predefined risk matching and uncertainty are accepted
+in [M7](stability.md#windows-secondary-and-risk-matching-acceptance) with
+coverage limitations; validation, final evaluation and publication remain M8-M10.
 
 ### Windows account acceptance
 
@@ -869,4 +870,5 @@ distributed in these tables.
 The source inventory identifies producer-file bytes, not an independently
 established Git commit. The original uploads are preserved. M6 acceptance is
 complete with these coverage qualifications; v1 findings and frozen inputs are
-unchanged. M7-M10 remain open.
+unchanged. M7 is accepted with the [documented coverage limitations](stability.md);
+M8-M10 remain open.

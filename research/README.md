@@ -108,9 +108,12 @@ implements the fourteen registered one-factor variants and 50 funded risk-matche
 accounts, with 45 genuine unit accounts for prior volatility sizing. Its independent
 `verify_stability_extension.py` oracle authenticates source observations, configurable
 strategy decisions, Decimal cash/fee ledgers, 252-slot sizing, attribution, joint
-uncertainty and static plot marks. Constructed verification is separate from the
-required Windows historical acceptance. The v1 results retain their
-original sample and identities.
+uncertainty and static plot marks. Windows constructed/historical execution and
+independent uploaded-evidence review completed on 30 October 2026. M7 is complete
+with input-limited matched comparisons and no strategy advancement;
+[the acceptance record](../docs/stability.md#windows-secondary-and-risk-matching-acceptance)
+binds all 345 period summaries and 24 endpoint/block records to the historical
+summary. The v1 results retain their original sample and identities.
 
 `verify_cost_execution.py` independently rebuilds all 680 registered synthetic
 cases, broker matching, client receipt-time accounting and fee-inclusive
