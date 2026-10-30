@@ -110,10 +110,9 @@ The predefined exposure comparison uses 252 prior session slots. Candidate and
 control are scaled toward the smaller of their estimated annual volatilities
 and a fixed 10% target:
 
-$$
-\sigma_t^*=\min(0.10,\widehat\sigma_{c,t-1},\widehat\sigma_{b,t-1}),
-\qquad w_{j,t}=\sigma_t^*/\widehat\sigma_{j,t-1}.
-$$
+```math
+\sigma_{t}^{\ast} = \min\left(0.10,\; \widehat{\sigma}_{c,t-1},\; \widehat{\sigma}_{b,t-1}\right), \qquad w_{j,t} = \frac{\sigma_{t}^{\ast}}{\widehat{\sigma}_{j,t-1}}
+```
 
 Missing slots are retained and unsupported sizing stays unavailable. All fourteen
 one-factor history, observation-grid and holding-period variations remain in the
