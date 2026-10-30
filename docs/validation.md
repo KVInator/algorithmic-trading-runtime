@@ -121,8 +121,8 @@ this evidence does not support a nominal 95% simultaneous confidence claim from
 the current procedure. No resampling setting is retuned after this result.
 
 This numerical acceptance does not establish Windows/MSVC execution, provider
-2024 validation or a provider executable freeze. Those remain M8 acceptance
-prerequisites; 2025 strategy prices remain reserved.
+2024 validation or a provider executable freeze. Those are established by the
+separate Windows acceptance below; 2025 strategy prices remain reserved.
 
 ## Integrated evaluation cohorts
 
@@ -192,10 +192,10 @@ frozen executable. A constructed freeze cannot authorize provider 2025 access.
 M8 commands do not execute the final branch. These are workflow integrity guards,
 not a security claim against an operator editing the program and its receipts.
 
-M8 acceptance still requires reviewed Windows provider 2024 execution and the
-verified provider freeze. GNU constructed checks and controlled calibration do
-not substitute for that evidence. M9 performs the frozen 2025 retrospective
-evaluation; M10 consolidates publication, visual evidence, benchmarks and release.
+M8 provider acceptance is recorded separately below. GNU constructed checks do
+not substitute for the Windows provider evidence. M9 performs the frozen 2025
+retrospective evaluation; M10 consolidates publication, visual evidence,
+benchmarks and release.
 
 ## GNU constructed integration acceptance
 
@@ -227,3 +227,95 @@ checks passed. All fourteen frozen research input identities were preserved.
 Report PDFs were rendered and the integrated, calibration and primary figures
 were visually reviewed. None of these constructed results is a historical 2024
 performance result or a Windows/MSVC acceptance claim.
+
+
+## Windows provider 2024 acceptance
+
+M8 is accepted on 30 October 2026 as a completed validation and freeze work
+package, with no strategy advancement. MSVC 19.51.36260 Release evaluated all
+five instruments over **252 dates, 2 January through 31 December 2024**, using
+2,264 source-calendar dates from 2016. The existing primary rules, fourteen
+secondary cases, 77 primary and 345 secondary/matched series were retained.
+No 2025 strategy inputs were opened and no parameter or hypothesis was selected
+from validation.
+
+The local independent receipt records raw-provider authentication, causal
+strategy and ledger verification and ten hash-independent semantic checks.
+The uploaded bundles were separately checked for parent/child hashes, reports,
+all included artifacts and freeze bindings. All twenty calibration cells were
+recomputed from the 20,000 retained trial outputs, including Wilson intervals,
+size decisions and figure coordinates. Primary and secondary derived arithmetic,
+attribution, all four joint block lengths, plots and eighteen/seven respective
+numerical/semantic checks passed. The private raw archive, omitted detailed
+source ledgers and frozen executable bytes were not supplied for remote review;
+their local verification is evidenced by the retained receipts, not repeated here.
+
+| Frozen record | SHA-256 |
+| --- | --- |
+| Windows calibration summary | `92a7f392bd721900b1281638df03d70fa4fc593bf2572818264896fdaed505e5` |
+| Windows validation summary | `2c2a25d8b9968561e244bc9cd1444ab470d080f9af090be91b38509f234d8135` |
+| Windows source inventory | `557187ef9a19bb191c1031f4548f781fb222121b587a287fb5d67040ad90295f` |
+| Provider freeze | `3f38879460ebac1ca49366ddcf5a3c72f12a7df5e3e4bda666b401bd46bc73a7` |
+| Frozen Windows runner | `1e28139825e313f674c4abeeafd0f0e26cface126dcd898ca047e365a2173bc3` |
+
+The calibration and evaluation bind the same compiled inventory. Of 340 source
+entries, the numerical C++ and Python sources, builder and research inputs match
+the accepted implementation after accounting for checkout line endings. Only
+`Runtime.vcxproj` has a different local hash; its contents were not supplied.
+That IDE project identity is retained in the frozen inventory. This is not a
+claim that the Windows checkout was byte-identical to the repository.
+
+### Findings at the registered primary cost and delay
+
+The following intraday means are equal-weight eligible-date research indices,
+with 248 observed common dates, one basis point per side and one-minute delay.
+They are not pooled shared-capital wealth or independently funded portfolios.
+
+| Primary index | Mean net return, bp per observed date |
+| --- | ---: |
+| Momentum | -1.748439 |
+| Volume-conditioned continuation | -1.949447 |
+| Reversion candidate | -0.355184 |
+
+| Primary paired endpoint | Paired dates / 252 | Estimate | Block-40 numerical lower | Material threshold |
+| --- | ---: | ---: | ---: | ---: |
+| Momentum minus same-window always-long, bp/day | 248 | +0.351443 | -1.098850 | +0.5 |
+| Volume minus price continuation, bp/day | 248 | +0.293913 | -0.753924 | +0.5 |
+| Reversion minus sign-only, bp/day | 248 | +1.360572 | +0.237025 | +0.5 |
+| Reversion minus drift, bp/day | 248 | -0.263079 | -0.672058 | +0.5 |
+| Intraday-risk minus daily-only annual CER, percentage points | 252 | -0.421204 | -1.963410 | +0.5 |
+| Daily-only minus intraday-risk QLIKE loss | 121 | +0.000114588 | -0.028538760 | +0.01 |
+
+None of the block-40 numerical lower bounds exceeds its registered material
+increment. The primary family is numerically available but lacks complete-family
+coverage because QLIKE has only 121/252 observations. The controlled Windows
+calibration again detects size excess in 19/20 cells; these bounds do not carry
+a validated nominal 95% simultaneous-confidence interpretation.
+
+The matched paired-date counts are 245, 245, 245, 76, 252 and 121 in the same
+endpoint order. The matched family remains unavailable and coverage-limited.
+The matched momentum increment is -0.209010 bp/day; its positive unscaled
+relative point increment does not persist under this predefined comparison.
+This does not establish a general exposure explanation or validate the other
+matched effects.
+
+At the primary one-minute delay, the shared candidate ledger stops on
+25 April 2024 after 79 observed dates because a required execution quote is
+unavailable. Its observed terminal equity of USD 99,614.41577805 is a prefix,
+not a full-year outcome. At two-minute delay and the same charge, the shared
+candidate completes all 252 dates with USD 96,789.51632094. Different reference
+availability does not justify replacing the registered primary case. Stops,
+missing tails and cost/delay alternatives remain in the native reports.
+
+The [endpoint table](evidence/m8_validation_endpoints.csv) retains both families
+at all four block lengths. The [primary index table](evidence/m8_validation_primary.csv)
+retains all twelve equal-weight indices and five shared primary accounts,
+including exposure, turnover, costs and drawdown on their observed dates.
+Every table row records the source validation summary hash. These are descriptive
+2024 findings; no profitable or deployable method is established.
+
+The independently checked provider freeze completes M8. Preserve both the
+ordinary evaluated Release executable and frozen copy. No rebuild or strategy
+replay is required for this acceptance. M9 must explicitly invoke the frozen
+runner for the registered 2025 retrospective evaluation; M10 follows with the
+consolidated publication and release.

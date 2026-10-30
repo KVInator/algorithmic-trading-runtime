@@ -9,14 +9,12 @@ history, and 2017-2023 supplies development observations.
 The [offline demo](#build-and-reproduce) runs without credentials or private data.
 Detailed methods and executable commands are in the [runbook](docs/running.md).
 
-**M0-M7 are complete: 8 of 11 milestones.** [M8 integrated validation](docs/validation.md)
-is implemented for verification: controlled inference calibration, explicit 2024
-evaluation accounts and a frozen executable/specification. Provider validation
-and its evidence acceptance remain pending. Stability, concentration, predefined
-risk matching and uncertainty are accepted with explicit coverage limitations.
-Validation in 2024, final retrospective evaluation in 2025 and consolidated
-publication remain M8-M10. Those later
-strategy inputs remain unopened. Prior research exposure is recorded in the
+**M0-M8 are complete: 9 of 11 milestones.** The [Windows 2024 validation](docs/validation.md#windows-provider-2024-acceptance)
+and executable freeze are accepted with calibration and coverage limitations.
+All five instruments, 77 primary series, 345 secondary/matched series and fourteen
+registered variants remain present. No strategy advances. Final retrospective
+evaluation in 2025 and consolidated publication remain M9-M10; 2025 strategy
+inputs remain unopened. Prior research exposure is recorded in the
 [roadmap](docs/extension_plan.md#research-exposure-and-evaluation-roles);
 the reserved panel is not claimed to be globally unseen.
 
@@ -58,6 +56,22 @@ The runtime's accounting and recovery conclusions are separate from economic
 benefit. M7 records sensitivity, exposure, concentration and uncertainty on
 the evidence actually available; completed engineering checks do not advance a
 failed strategy screen.
+
+## 2024 validation findings
+
+The accepted Windows run covers 252 evaluation dates, with earlier features
+warmed from 2016 and fresh evaluation capital. At one basis point per side and
+one-minute delay, pooled eligible-date net means are **-1.7484 bp/day for momentum,
+-1.9494 for volume-conditioned continuation and -0.3552 for reversion**. These
+equal-weight research indices are distinct from shared funded wealth.
+
+No primary block-40 numerical lower bound clears its material threshold. Risk
+QLIKE has only **121/252** paired dates, and the matched family remains
+unavailable. The primary shared account stops on **25 April 2024 after 79
+observed dates**; the two-minute-delay case completes all 252 dates. Different
+reference availability is retained rather than used to replace the primary case.
+The [acceptance record and source-bound tables](docs/validation.md#windows-provider-2024-acceptance)
+retain the findings, denominators and frozen identities.
 
 ## Controlled inference qualification
 
