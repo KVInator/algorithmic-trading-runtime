@@ -40,6 +40,27 @@ struct StabilityInputs {
     bool synthetic{};
 };
 
+// Immutable sampling indices only; each trial still estimates its own moments.
+class InferenceDrawSchedule {
+  public:
+    InferenceDrawSchedule(std::size_t dates, std::size_t block, std::size_t replicates,
+                          std::uint64_t seed);
+    [[nodiscard]] std::size_t dates() const noexcept { return dates_; }
+    [[nodiscard]] std::size_t block() const noexcept { return block_; }
+    [[nodiscard]] std::size_t replicates() const noexcept { return draws_.size(); }
+    [[nodiscard]] std::uint64_t seed() const noexcept { return seed_; }
+    [[nodiscard]] const std::string &identity() const noexcept { return identity_; }
+    [[nodiscard]] const std::vector<std::pair<std::size_t, std::size_t>> &draw(std::size_t i) const {
+        return draws_.at(i);
+    }
+
+  private:
+    std::size_t dates_, block_;
+    std::uint64_t seed_;
+    std::string identity_;
+    std::vector<std::vector<std::pair<std::size_t, std::size_t>>> draws_;
+};
+
 // Fixed original-sample calendar-indexed influence functions studentize joint
 // non-circular block draws. Missing observations never become valid zero returns.
 class FullCalendarInference {
@@ -47,6 +68,9 @@ class FullCalendarInference {
     explicit FullCalendarInference(const ExtensionStudyContract &contract);
     [[nodiscard]] nlohmann::json run(const std::vector<StabilityEndpoint> &endpoints,
                                      std::size_t block_length) const;
+    [[nodiscard]] nlohmann::json run(const std::vector<StabilityEndpoint> &endpoints,
+                                     std::size_t block_length,
+                                     const InferenceDrawSchedule *schedule) const;
 
   private:
     nlohmann::json settings_;

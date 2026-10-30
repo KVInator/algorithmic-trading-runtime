@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 30 October 2026: **M0-M7 complete; M8-M10 not started.**
+Status recorded 30 October 2026: **M0-M7 complete; M8 in progress; M9-M10 not started.**
 This is the accepted scope and evidence record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -114,7 +114,7 @@ M0 performed no historical acquisition, model fitting or strategy scoring.
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Complete with coverage qualifications: quote-reference, historical cost/delay, 680 synthetic execution cases, 200 risk and 50 shared accounts accepted; stopped economic paths remain unavailable |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Complete with input-limited findings: primary diagnostics, fourteen secondary cases, 50 matched accounts and independent Windows/derived-bundle checks accepted; no supported risk-matched advancement |
-| M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Not started |
+| M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Controlled calibration implemented; integrated validation and freeze remain open |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
 

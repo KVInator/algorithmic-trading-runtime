@@ -813,3 +813,34 @@ The [Windows acceptance](stability.md#windows-secondary-and-risk-matching-accept
 records completed execution and independent review on 30 October 2026. M7 is
 complete with coverage limitations; M8 remains the next gate. The commands above
 reproduce accepted evidence and do not open reserved strategy observations.
+
+## Controlled inference calibration (M8)
+
+The calibration is offline and loads no market strategy observations. Build and
+run the short engineering check first, retaining the actual printed directory:
+
+```powershell
+& {
+    $ErrorActionPreference = "Stop"
+    git pull
+    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
+    py -3 -B build.py --configuration Release --target inference_calibration
+    if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+    & .\scratch\native\Release\inference_calibration.exe --check |
+        Tee-Object -Variable runLog
+    if ($LASTEXITCODE -ne 0) { throw "Calibration check failed" }
+    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
+    if (!$line) { throw "Manifest path was not printed" }
+    $directory = Split-Path ($line -replace '^Manifest: ', '') -Parent
+    py -3 -B research/verify_inference_calibration.py $directory --self-check
+    if ($LASTEXITCODE -ne 0) { throw "Calibration verification failed" }
+}
+```
+
+The full experiment uses the same executable without `--check`: ten cases,
+1,000 outer trials each and 10,000 joint resamples at both block lengths.
+Progress is printed. This substantial research workload is separate from routine
+editing checks. Verify its saved directory with the same Python command. The
+printed `review.zip` contains synthetic evidence; no private market archive is
+required. Short check receipts cannot authorize provider evaluation. The
+[validation note](validation.md) records the exact models and failure treatment.

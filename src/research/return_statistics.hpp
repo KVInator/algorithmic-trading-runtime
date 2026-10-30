@@ -11,6 +11,15 @@
 
 namespace trading {
 
+class ControlledNormalGenerator {
+  public:
+    explicit ControlledNormalGenerator(std::uint64_t seed) : engine_(seed) {}
+    [[nodiscard]] double next();
+
+  private:
+    std::mt19937_64 engine_;
+};
+
 // Complete paired day record for one declared cost/delay case. Strategy
 // returns equal the window return on active days and zero on cash days.
 struct DailyResearchReturn {
@@ -50,8 +59,8 @@ struct ReturnConcentration {
     std::optional<double> largest_five_share_of_positive_returns;
 };
 
-[[nodiscard]] ReturnConcentration describe_return_concentration(
-    std::span<const WinningContribution> days);
+[[nodiscard]] ReturnConcentration
+describe_return_concentration(std::span<const WinningContribution> days);
 
 struct PeriodStatistics {
     std::size_t sessions;
@@ -84,11 +93,12 @@ struct PercentileInterval {
 // A stream of complete paired-day indices. Each sample concatenates uniformly
 // selected non-circular blocks, truncating the final block to the sample size.
 class MovingBlockIndexSampler {
-public:
+  public:
     MovingBlockIndexSampler(std::size_t sample_size, std::size_t block_length, std::uint64_t seed);
     [[nodiscard]] std::vector<std::size_t> next();
     [[nodiscard]] std::vector<std::pair<std::size_t, std::size_t>> next_blocks();
-private:
+
+  private:
     std::size_t sample_size_;
     std::size_t block_length_;
     std::mt19937_64 engine_;
@@ -106,10 +116,11 @@ struct BootstrapStatistics {
 // Non-circular moving blocks; starts uniform on [0, N-L]. Each invocation
 // resets mt19937_64 to the protocol seed. All statistics share sampled days.
 class MovingBlockBootstrap {
-public:
+  public:
     explicit MovingBlockBootstrap(std::size_t block_length);
     [[nodiscard]] BootstrapStatistics run(std::span<const DailyResearchReturn> days) const;
-private:
+
+  private:
     std::size_t block_length_;
 };
 

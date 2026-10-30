@@ -1,4 +1,5 @@
 #pragma once
+#include "return_statistics.hpp"
 
 #include "reversion_uncertainty.hpp"
 
@@ -24,14 +25,15 @@ inline constexpr double simulation_current = -0.004;
 // Known latent AR(1), additive independent observation error, session-common
 // anchor error and optional dependence across matching shocks in adjacent days.
 class ReversionSimulator {
-public:
+  public:
     ReversionSimulator(ReversionSimulationCase specification, std::uint64_t seed);
     [[nodiscard]] std::vector<std::vector<double>> next();
     [[nodiscard]] std::optional<double> population_observed_slope() const;
-private:
+
+  private:
     [[nodiscard]] double normal();
     ReversionSimulationCase specification_;
-    std::mt19937_64 engine_;
+    ControlledNormalGenerator engine_;
 };
 
 struct ReversionValidationSettings {
@@ -64,7 +66,8 @@ struct ReversionCaseValidation {
     ReversionSimulationCase specification;
     std::uint64_t seed;
     std::optional<double> population_observed_slope;
-    std::vector<std::vector<double>> reference_sessions; // First trial, retained for independent OLS verification.
+    std::vector<std::vector<double>>
+        reference_sessions; // First trial, retained for independent OLS verification.
     std::vector<ReversionValidationTrial> trials;
     std::array<std::size_t, 7> status_counts{};
     std::optional<double> slope_bias;
@@ -77,12 +80,14 @@ struct ReversionValidationResult {
 };
 
 class ReversionValidationStudy {
-public:
+  public:
     explicit ReversionValidationStudy(ReversionValidationSettings settings = {});
     [[nodiscard]] static std::vector<ReversionSimulationCase> prescribed_cases();
-    [[nodiscard]] ReversionValidationResult run(std::span<const ReversionSimulationCase> cases,
-        const std::function<void(const std::string&)>& progress = {}) const;
-private:
+    [[nodiscard]] ReversionValidationResult
+    run(std::span<const ReversionSimulationCase> cases,
+        const std::function<void(const std::string &)> &progress = {}) const;
+
+  private:
     ReversionValidationSettings settings_;
     PooledReversionEstimator estimator_{};
 };

@@ -9,7 +9,7 @@ history, and 2017-2023 supplies development observations.
 The [offline demo](#build-and-reproduce) runs without credentials or private data.
 Detailed methods and executable commands are in the [runbook](docs/running.md).
 
-**M0-M7 are complete: 8 of 11 milestones.** Stability, concentration, predefined
+**M0-M7 are complete: 8 of 11 milestones.** M8 is in progress. The [controlled inference calibration](docs/validation.md) reuses the registered six-endpoint procedure; provider validation and its executable freeze remain pending. Stability, concentration, predefined
 risk matching and uncertainty are accepted with explicit coverage limitations.
 Validation in 2024, final retrospective evaluation in 2025 and consolidated
 publication remain M8-M10. Those later

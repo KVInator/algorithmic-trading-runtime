@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "kind": "registered_panel_validation",
+  "parent_protocol_sha256": "269d6e677a3e62a21ede6e88659edb2f7a998bfe0137e62b13458e411f0c55ee",
+  "calibration": {
+    "sessions": 252,
+    "outer_trials": 1000,
+    "check_trials": 4,
+    "generation_seed": 460026,
+    "case_seed_stride": 1000003,
+    "trial_seed_stride": 104729,
+    "daily_noise_basis_points": [
+      5,
+      10,
+      20
+    ],
+    "ar1": [
+      0,
+      0.3,
+      0.7
+    ],
+    "cross_endpoint_correlation": 0.5,
+    "control_sigma_multiplier": 0.5,
+    "qlike_sigma_multiplier": 20,
+    "additional_mask_case": {
+      "daily_noise_basis_points": 10,
+      "ar1": 0.3,
+      "missing_indices": [
+        4,
+        14,
+        24,
+        34,
+        44,
+        54,
+        64,
+        74,
+        84,
+        94,
+        104,
+        114,
+        124,
+        134,
+        144,
+        154,
+        164,
+        174,
+        184,
+        194,
+        204,
+        214,
+        224,
+        234,
+        244
+      ]
+    },
+    "normal_generator": "mt19937_64_high_52_bit_midpoint_box_muller_cos_without_cached_variates",
+    "initialization": "stationary_independent_unit_gaussians_then_ar1_innovations_scaled_sqrt_1_minus_phi_squared",
+    "boundary": "all_six_true_effects_equal_registered_material_increments_CER_population_variance_adjusted",
+    "resamples": 10000,
+    "bootstrap_seed": 290026,
+    "blocks": [
+      20,
+      40
+    ],
+    "planning_critical": 2.3939797998185104,
+    "planning_power_quantile": 0.8416212335729144,
+    "alternative": "location_shift_by_Bonferroni_80_percent_power_reference_mean_effect_CER_shift_times_252_QLIKE_shift_times_20",
+    "mc_interval": "wilson_two_sided_95_percent",
+    "mc_z": 1.9599639845400536,
+    "size_excess_test": "one_sided_binomial_upper_tail_at_0.05_bonferroni_across_twenty_case_block_cells",
+    "diagnostic_alpha": 0.05,
+    "reference_trials": [
+      "first",
+      "last"
+    ],
+    "missingness": "fixed_exogenous_common_mask_retained_on_calendar",
+    "claim_scope": "stationary_gaussian_AR1_and_declared_mask_only_not_market_wide_coverage_certification"
+  },
+  "evaluation": {
+    "validation_year": 2024,
+    "final_year": 2025,
+    "provider_first_input": "2016-01-01",
+    "constructed_first_input": "2022-01-01",
+    "rules": "retain_primary_and_all_fourteen_registered_variants_without_selection",
+    "capital": "fresh_100000_USD_per_evaluation_account_no_restart_of_development_ledgers",
+    "unit_reference": "fresh_unit_accounts_start_exactly_252_exchange_sessions_before_first_evaluation_date_then_continue_without_restart",
+    "strategy_history": "warm_existing_features_and_forecasts_from_earlier_inputs_no_parameter_or_history_reset_at_evaluation_boundary",
+    "cost_delay_cases": "same_registered_five_costs_and_two_delays_primary_one_bp_and_one_minute",
+    "last_forecast": "unavailable_if_next_exchange_session_is_outside_evaluation_access_no_later_year_open",
+    "failed_calibration": "allow_descriptive_validation_withhold_supported_inference_claims_keep_full_family_and_provisional_results",
+    "final_selection": "unchanged_primary_rules_no_best_variant_selection_from_2024",
+    "freeze": "bind_specification_input_registration_calibration_validation_core_inventory_and_same_runner_executable",
+    "2025_access": "explicit_final_mode_requires_verified_2024_freeze_no_final_prices_in_validation_mode"
+  }
+}

@@ -302,11 +302,31 @@ Json PriorMarketCondition::advance(const std::string &date, std::optional<double
     previous_ = date;
     return result;
 }
+InferenceDrawSchedule::InferenceDrawSchedule(std::size_t dates, std::size_t block,
+                                             std::size_t replicates, std::uint64_t seed)
+    : dates_(dates), block_(block), seed_(seed) {
+    require(dates > 0 && dates <= 4096 && replicates > 0 && replicates <= 10000,
+            "bootstrap schedule exceeds registered resource bound");
+    MovingBlockIndexSampler sampler{dates, block, seed};
+    Sha256 mapping;
+    for (std::size_t i = 0; i < replicates; ++i) {
+        auto row = sampler.next_blocks();
+        for (const auto &[start, length] : row)
+            mapping.update(std::to_string(start) + ":" + std::to_string(length) + ";");
+        mapping.update("\n");
+        draws_.push_back(std::move(row));
+    }
+    identity_ = mapping.finish();
+}
 FullCalendarInference::FullCalendarInference(const ExtensionStudyContract &contract)
     : settings_(contract.document().at("inference")),
       definitions_(contract.document().at("primary_endpoints")) {}
 Json FullCalendarInference::run(const std::vector<StabilityEndpoint> &endpoints,
                                 std::size_t block) const {
+    return run(endpoints, block, nullptr);
+}
+Json FullCalendarInference::run(const std::vector<StabilityEndpoint> &endpoints, std::size_t block,
+                                const InferenceDrawSchedule *schedule) const {
     require(endpoints.size() == 6, "joint inference requires the complete six-endpoint family");
     const auto total = endpoints.front().days.size();
     require(total >= block && (block == 5 || block == 10 || block == 20 || block == 40),
@@ -325,6 +345,9 @@ Json FullCalendarInference::run(const std::vector<StabilityEndpoint> &endpoints,
     }
     const auto replicates = settings_.at("resamples").get<std::size_t>();
     const auto seed = settings_.at("seed").get<std::uint64_t>();
+    require(!schedule || (schedule->dates() == total && schedule->block() == block &&
+                          schedule->replicates() == replicates && schedule->seed() == seed),
+            "bootstrap schedule does not match registered inference");
     MovingBlockIndexSampler sampler{total, block, seed};
     Sha256 mapping;
     std::array<std::vector<double>, 6> draws;
@@ -339,8 +362,12 @@ Json FullCalendarInference::run(const std::vector<StabilityEndpoint> &endpoints,
     std::size_t undefined_family = 0;
     for (std::size_t replicate = 0; replicate < replicates; ++replicate) {
         std::array<Moment, 6> sums{};
-        for (const auto &[start, length] : sampler.next_blocks()) {
-            mapping.update(std::to_string(start) + ":" + std::to_string(length) + ";");
+        const auto fresh =
+            schedule ? std::vector<std::pair<std::size_t, std::size_t>>{} : sampler.next_blocks();
+        const auto &blocks = schedule ? schedule->draw(replicate) : fresh;
+        for (const auto &[start, length] : blocks) {
+            if (!schedule)
+                mapping.update(std::to_string(start) + ":" + std::to_string(length) + ";");
             for (std::size_t j = 0; j < 6; ++j) {
                 const auto v = moments[j].block(start, length);
                 for (std::size_t k = 0; k < 5; ++k) {
@@ -348,7 +375,8 @@ Json FullCalendarInference::run(const std::vector<StabilityEndpoint> &endpoints,
                 }
             }
         }
-        mapping.update("\n");
+        if (!schedule)
+            mapping.update("\n");
         bool complete = studentizers;
         double maximum = -std::numeric_limits<double>::infinity();
         for (std::size_t j = 0; j < 6; ++j) {
@@ -410,7 +438,7 @@ Json FullCalendarInference::run(const std::vector<StabilityEndpoint> &endpoints,
     return {{"block_length", block},
             {"replicates", replicates},
             {"seed", seed},
-            {"sampling_sha256", mapping.finish()},
+            {"sampling_sha256", schedule ? schedule->identity() : mapping.finish()},
             {"endpoints", rows},
             {"family_requested", simultaneous},
             {"family_available", available},
