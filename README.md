@@ -14,7 +14,8 @@ and executable freeze are accepted with calibration and coverage limitations.
 All five instruments, 77 primary series, 345 secondary/matched series and fourteen
 registered variants remain present. No strategy advances. Final retrospective
 evaluation in 2025 and consolidated publication remain M9-M10; 2025 strategy
-inputs remain unopened. Prior research exposure is recorded in the
+inputs remain unopened. [M9 is ready for the frozen Windows run](docs/running.md#frozen-final-evaluation-m9);
+its results and acceptance remain pending. Prior research exposure is recorded in the
 [roadmap](docs/extension_plan.md#research-exposure-and-evaluation-roles);
 the reserved panel is not claimed to be globally unseen.
 

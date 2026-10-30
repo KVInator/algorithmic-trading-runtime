@@ -159,6 +159,33 @@ class EvaluationVerifier:
         )
         return out
 
+    def verify_runner(self):
+        s = self.summary
+        if self.scope.year == 2025:
+            freeze = Path(s["final_freeze_directory"]).resolve()
+            record = decode((freeze / "freeze.json").read_bytes())
+            runner = freeze / record["runner"]
+            require(
+                runner.resolve().parent == freeze,
+                "Frozen runner escapes its directory",
+            )
+        else:
+            runner = (
+                ROOT
+                / "scratch/native"
+                / s["build_configuration"]
+                / (
+                    "panel_evaluation.exe"
+                    if s["compiler"].startswith("MSVC")
+                    else "panel_evaluation"
+                )
+            )
+        require(
+            runner.is_file() and digest(runner) == s["runner_sha256"],
+            "Evaluated runner is missing or changed",
+        )
+        return runner
+
     def run(self, self_check=False):
         self.contract(self.summary)
         if self.scope.year == 2025:
@@ -198,20 +225,7 @@ class EvaluationVerifier:
             digest(d / "source_inventory.txt") == s["source_sha256"],
             "Source inventory differs",
         )
-        runner = (
-            ROOT
-            / "scratch/native"
-            / s["build_configuration"]
-            / (
-                "panel_evaluation.exe"
-                if s["compiler"].startswith("MSVC")
-                else "panel_evaluation"
-            )
-        )
-        require(
-            runner.is_file() and digest(runner) == s["runner_sha256"],
-            "Runner differs; verification must precede rebuilding",
-        )
+        self.verify_runner()
         children = self.children()
         print("Authenticating all evaluation decisions and cost paths", flush=True)
         CostDelayVerifier(children["cost_delay_comparison"], scope=self.scope).run()
@@ -338,6 +352,9 @@ class EvaluationVerifier:
             calibration_size_excess_detected=s["calibration_size_excess_detected"],
             final_strategy_inputs_opened=s["final_strategy_inputs_opened"],
         )
+        if self.scope.year == 2025:
+            receipt["verifier_sha256"] = digest(Path(__file__))
+            receipt["runner_source"] = "verified_M8_frozen_copy"
         (d / "verification.json").write_text(json.dumps(receipt, indent=2) + "\n")
         with zipfile.ZipFile(d / "review.zip", "w", zipfile.ZIP_DEFLATED) as z:
             for name in [

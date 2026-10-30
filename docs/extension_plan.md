@@ -1,6 +1,6 @@
 # Multi-instrument research and execution extension
 
-Status recorded 30 October 2026: **M0-M8 complete; M9-M10 not started.**
+Status recorded 30 October 2026: **M0-M8 complete; M9 in progress; M10 not started.**
 This is the accepted scope and evidence record for the extension. The published
 [v1.0.0 release](https://github.com/KVInator/algorithmic-trading-runtime/releases/tag/v1.0.0)
 and its [technical report](report.pdf) retain their original scope and findings.
@@ -115,7 +115,7 @@ M0 performed no historical acquisition, model fitting or strategy scoring.
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Complete with coverage qualifications: quote-reference, historical cost/delay, 680 synthetic execution cases, 200 risk and 50 shared accounts accepted; stopped economic paths remain unavailable |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Complete with input-limited findings: primary diagnostics, fourteen secondary cases, 50 matched accounts and independent Windows/derived-bundle checks accepted; no supported risk-matched advancement |
 | M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Complete with limitations: Windows 2024 evaluation, independent verification and provider freeze accepted; no strategy advancement |
-| M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
+| M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Frozen-run path ready; Windows 2025 execution and evidence acceptance pending |
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
 
 The initial planning range was 228-368 focused hours plus unattended work;
@@ -534,3 +534,20 @@ input-limited findings. M0-M8 are nine accepted work packages. M9 final evaluati
 and M10 publication remain; the fixed primary rules and all fourteen variants
 are retained without selection. The [runbook](running.md#integrated-validation-and-freeze-m8)
 provides constructed and historical verification sequences.
+
+
+## M9 frozen-run preparation
+
+The [final-evaluation runbook](running.md#frozen-final-evaluation-m9) locates the
+exact accepted M8 provider freeze and runs its copied executable with explicit
+2025 access. It performs no build, acquisition, new calibration, selection or separate M8
+validation run. Earlier observations are replayed for warm histories and genuine
+unit references. The same binary already contains this registered final mode.
+
+A verifier file-location check now resolves the frozen runner for final outputs
+rather than requiring the ordinary Release copy. Twelve focused path/scope
+checks cover altered/missing binaries, changed ordinary builds, directory escape,
+MSVC/GNU names and the 2025/2026 access boundary. Existing constructed freeze
+verification and publication identities/links pass. No 2025 provider price or
+strategy outcome was opened during preparation; native Windows final execution
+and full financial verification remain the next acceptance step.
