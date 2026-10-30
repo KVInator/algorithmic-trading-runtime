@@ -871,4 +871,5 @@ The source inventory identifies producer-file bytes, not an independently
 established Git commit. The original uploads are preserved. M6 acceptance is
 complete with these coverage qualifications; v1 findings and frozen inputs are
 unchanged. M7 is accepted with the [documented coverage limitations](stability.md);
-M8-M10 remain open.
+The later [validation/final evaluation](validation.md) and consolidated
+[publication](report.pdf) retain these development coverage limits.

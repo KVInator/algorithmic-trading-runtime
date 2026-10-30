@@ -6,7 +6,8 @@ M8 follows the accepted M0-M7 work. The build pins
 It retains the original extension protocol, strategies, fourteen secondary cases,
 material increments, costs and delays. Provider 2024 evaluation and its final
 executable freeze require independent verification before 2025 access at M9.
-Both Windows checkpoints are accepted below; M10 publication remains.
+Both Windows checkpoints are accepted below. The [consolidated publication](report.pdf)
+includes their results alongside the original SPY reference and execution studies.
 
 ## Controlled inference calibration
 
@@ -436,4 +437,5 @@ selected-observation drawdown. Every row binds the final summary hash.
 Prior GLD research and the other exposure qualifications remain in the
 [exposure inventory](extension_plan.md#research-exposure-and-evaluation-roles);
 2025 is a frozen retrospective evaluation, not a globally unseen market sample.
-M9 is complete with these limitations. M10 publication remains.
+The final evaluation is complete with these limitations; the consolidated
+[publication](report.pdf) retains them alongside the complete study results.

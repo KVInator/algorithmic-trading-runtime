@@ -117,3 +117,27 @@ indices and their identity; moments, HAC and max-T laws are recomputed per outer
 trial. Independent Python verification states its full-bootstrap reference subset
 and checks all outer arithmetic. The final executable freeze binds the same
 runner, source inventory and observed calibration limitations before M9.
+
+## Final publication and verification
+
+`Evidence` authenticates the curated manifest and reads the original and extended
+result tables. `Figures` performs declared display transformations; `Publication`
+renders one content model into HTML and PDF. The final report includes three
+cross-period/final figures, all retained source-table identities, both saved
+synthetic views and the original single-symbol benchmark scope. Original release
+artifacts remain available at their immutable tag.
+
+The final GNU 13.3.0 Release build compiles 149 units and links thirty supported
+applications. Fresh independent acceptance covers the 259-check demo, the
+190-check shared-capital diagnostic and the 313-check process peer. Thirty-eight
+simulated build-driver discovery checks pass; they do not execute MSVC. Earlier
+Windows research and frozen-run acceptance retain their own source identities.
+Native financial, broker and application sources are unchanged by publication
+cleanup. Frozen protocols and the independent financial oracles remain intact.
+
+The publication uses Matplotlib 3.10.8 and ReportLab 4.4.9. Repeated rendering
+produces identical manifest hashes, including the binary PDF. All nineteen PDF
+pages were rendered for layout review. The publication verifier checks all
+curated file hashes, stage identities, local links, static assets and saved-view
+boundaries. These display checks complement the numerical verifiers; they do not
+replace raw-provider or ledger authentication.

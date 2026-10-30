@@ -1,7 +1,7 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "curation_source_commit": "5b6c1c1de9fdb198f3feae94cf3c02308e819e69",
-  "method": "Selected recorded summary statistics and synthetic saved-state fields; no historical strategy recalculation. CSV timing rows are copied verbatim. Broker nanodollars are divided by 1e9 only for display. Original study daily paths are not redistributed or reconstructed.",
+  "method": "Recorded original-SPY summaries plus source-bound five-instrument development, validation and final tables. Timing CSV rows are copied verbatim. Figures use display-unit conversions and declared descriptive grouping; no strategy, funded account or inference is recalculated by publication.",
   "historical_sources": [
     {
       "path": "research/README.md",
@@ -53,8 +53,80 @@
   ],
   "curated_artifacts": [
     {
+      "path": "m1_capability.csv",
+      "sha256": "84a41b853a3dc09bf5a68e7eb0b3d768951c24543dc215408ffe650015b8abdc"
+    },
+    {
+      "path": "m2_coverage.csv",
+      "sha256": "10378dcca03a994db6c31e8de0bf0fd9b474d93d8200ca1e59073ed6d717b031"
+    },
+    {
+      "path": "m2_policy_coverage.csv",
+      "sha256": "1ae006196b7074a1737c172fcf06850a4f292bee6bd433d936e96781ab3798b0"
+    },
+    {
+      "path": "m2_precision.csv",
+      "sha256": "7d03400e3881021db2218ababd85704424b120830a65b6c7d6c1f61c11273389"
+    },
+    {
+      "path": "m6_cost_delay_paired.csv",
+      "sha256": "b48cd9003349c527cdfd873520194ca2371030b0ee2d769501bb1ff7ffc4bbd9"
+    },
+    {
+      "path": "m6_cost_delay_series.csv",
+      "sha256": "addfd23038cd7c494090fbcdbfda5104cf41871cabb63ffb3d3f29b86a26bdab"
+    },
+    {
+      "path": "m6_panel_accounts_paired.csv",
+      "sha256": "4b1c1d3341fe7ffe7ff298b8b61630f7e4acc712d00bb9178ef76f15656a849a"
+    },
+    {
+      "path": "m6_panel_accounts_series.csv",
+      "sha256": "e944dfcaa87dc0970fe76551b24329a783bca9a388eedad42a07c6d928feb1b3"
+    },
+    {
+      "path": "m6_quote_coverage.csv",
+      "sha256": "f995234b9fd9399acb863880fe8f1cd7b26e594716c17c5dac0e97bc657e2aa4"
+    },
+    {
+      "path": "m7_extension_endpoints.csv",
+      "sha256": "ed139e800405401098a05a264f14b06f1505183a90a3807d2098928dbb5b1915"
+    },
+    {
+      "path": "m7_extension_period.csv",
+      "sha256": "3444ba7e7b8d2c088f2534c23e38484339b604e07b1188f873acf53ae74007cb"
+    },
+    {
+      "path": "m7_stability_endpoints.csv",
+      "sha256": "e1de4de2c135039ae1d872bd1712f001aab02a3378c808bd8df941346e9fc1b9"
+    },
+    {
+      "path": "m7_stability_primary.csv",
+      "sha256": "ead04ab784ab8520579470c6eb05a59678b07b9efef9ff2480dd65bce19f8cc2"
+    },
+    {
+      "path": "m8_inference_calibration.csv",
+      "sha256": "bacf1b2919733f2300366739ab54c33b2fb3fa140945874315005ad9f366fd5a"
+    },
+    {
+      "path": "m8_validation_endpoints.csv",
+      "sha256": "6cb91c73f7beb8a17fef9183eb92155308a80cea410f5dc4903f3d5306e981a7"
+    },
+    {
+      "path": "m8_validation_primary.csv",
+      "sha256": "7336dcf014ff59b8a92a50db6d9e765b6bd1a765a4a9ae656684d7cb7dd9b827"
+    },
+    {
+      "path": "m9_final_endpoints.csv",
+      "sha256": "abe195972f7bc1628f4ae8d3a126544d32c8dd10d69ea1eb5866ec333d1ec55a"
+    },
+    {
+      "path": "m9_final_primary.csv",
+      "sha256": "8b3c4e51d718372890db33266be7d655dc3bba415c72a17a77b3876e76f4618e"
+    },
+    {
       "path": "results.json",
-      "sha256": "48daaee9531eb948dd7a2707988874e34432ddca8058933914866c59ed9daba0"
+      "sha256": "d98bbe645fad2ff8f9060097d5cb2b5a894cb5a198004d49ea33aa18558f98c8"
     },
     {
       "path": "runtime_linux.csv",
@@ -65,5 +137,25 @@
       "sha256": "6497ab40316bf2dcccd74ce339099cf75571230aac0c25e1ee988a639752337c"
     }
   ],
-  "text_hash_encoding": "utf-8-lf"
+  "text_hash_encoding": "utf-8-lf",
+  "extension_sources": [
+    {
+      "purpose": "2024 corrected validation",
+      "summary_sha256": "4763d6dfbe43ce82c77bffdc326181bcd1616eb052ca9e1204c63da03857fd98",
+      "source_sha256": "e60abf780722954888a377f1718f47a86033192d9b6454c52ff12989762c068e"
+    },
+    {
+      "purpose": "2025 frozen evaluation",
+      "summary_sha256": "b56e7249f13da556a4d21888f5a1c4921043d18949b3c8274551ce712b819c9b",
+      "source_sha256": "e60abf780722954888a377f1718f47a86033192d9b6454c52ff12989762c068e"
+    },
+    {
+      "purpose": "2024 original validation",
+      "summary_sha256": "2c2a25d8b9968561e244bc9cd1444ab470d080f9af090be91b38509f234d8135"
+    },
+    {
+      "purpose": "replacement freeze",
+      "summary_sha256": "333bc93d039e8433334ce315f61663eb529deca3b40f9edf75c2e56c13de59e3"
+    }
+  ]
 }

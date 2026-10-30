@@ -1,9 +1,9 @@
 # Build and reproduction
 
-Paths are anchored to the source root. Runnable studies and demos create a new
-`scratch/runs/<name>_<suffix>/` directory and preserve earlier outputs. Initial
-builds acquire nlohmann/json 3.12.0 with a pinned archive SHA-256. Builds use C++20
-with project warnings as errors.
+The native financial implementation is C++20. Python builds the applications,
+checks exported evidence independently and renders the publication. CMake and
+CTest are not used. Source-relative datasets, native objects and generated runs
+remain under ignored `scratch/`.
 
 ## Windows
 
@@ -44,14 +44,8 @@ For a terminal build, the driver discovers the installed x64 MSVC toolchain:
 py -3 build.py --configuration Release --target project_demo --run
 ```
 
-Windows builds require the native Hostx64/x64 MSVC toolchain. The driver reuses
-an initialized x64 environment or loads the installed `vcvars64.bat` in a clean
-child environment when the current shell exposes x86 tools. The build banner
-includes `x64`. Compiler-path and environment fingerprints invalidate incompatible
-cached objects automatically; datasets and earlier reports do not need deletion.
-`py -3 -B research/verify_native_build.py` exercises discovery with simulated
-Windows environments, including inherited x86 tools and failed initialization;
-it does not execute MSVC.
+The driver selects x64 MSVC. Source/toolchain fingerprints invalidate incompatible
+objects; no dataset or earlier run needs deletion.
 
 ## Linux
 
@@ -82,1028 +76,217 @@ The default downloaded dependency remains under `scratch/dependencies/`.
 
 ## Scientific verification
 
-The final repository retains independent `research/verify_*.py` entry points
-for the published studies, saved ledgers, execution measurements, benchmarks
-and publication. They inspect exported results through separate arithmetic and
-replay references. Run the relevant verifier after changing its financial or
-persistence contract. There is no committed unit-test tree or hosted workflow;
-these checks are explicit local commands.
+Run independent verification against the directory printed by the application.
+A successful check writes a receipt or compact review bundle. Historical
+verification requires the local raw archive; a saved HTML view or review ZIP is
+not a substitute for raw-source authentication. No broker service is required.
+Most verifiers use the Python standard library. The original reversion-study
+oracle additionally requires NumPy and `tzdata` on systems without IANA time zones.
+
+```powershell
+py -3 -B research/verify_native_build.py
+py -3 -B research/verify_project_demo.py <demo-directory>
+py -3 -B research/verify_shared_capital.py <shared-capital-directory> --self-check
+py -3 -B research/verify_process_broker.py <process-broker-directory> --self-check
+py -3 -B research/verify_publication.py
+```
 
 ## Supported entry points
 
-| Target | Purpose / additional prerequisites |
-| --- | --- |
-| `project_demo` | Offline strategy decisions, account parity, broker lifecycle and recovery; no credentials/data |
-| `historical_capability_check` | Focused native wider-request/calendar and capability-evidence checks; synthetic, no credentials |
-| `historical_capability_probe` | Read-only five-instrument 2016-2025 capability samples; Windows historical data credentials |
-| `panel_check` | Constructed resumable panel, calendar/mask, action-reconciliation, vintage-bridge and access-control checks |
-| `panel_acquire` | Resumable 2016-2025 five-instrument archive; Windows historical-data credentials; long-running |
-| `panel_finalize` | Local issuer reconciliation and original-snapshot bridge; publishes the new study manifest only after prerequisites pass |
-| `panel_replay` | M3: original-SPY parity, prior-only five-instrument decisions and primary reference outcomes through 2023; requires the registered M2 archive |
-| `shared_capital_diagnostic` | M4: constructed global cash, ownership, netting, admission limits and durable recovery |
-| `process_broker_diagnostic` | M5: separate native broker process, independent ledgers, lifecycle and restart scenarios |
-| `synthetic_broker_peer` | Worker launched by the process diagnostic through framed pipes; not a standalone study |
-| `cost_execution_check` | M6 constructed quote pagination, invalid-input and resumable-archive checks; no credentials |
-| `cost_quote_acquire` | M6 fixed 2017-2023 SIP quote sample; Windows historical-data credentials and accepted M2 masks |
-| `quote_reference_development` | M6 cached quote crossing-cost comparisons; `--check` uses synthetic quotes, otherwise requires a saved acquisition summary and its raw archive |
-| `cost_delay_development` | M6 frozen-decision cost/delay evaluation; `--check` uses constructed observations, default uses the accepted pre-2024 panel |
-| `cost_execution_study` | M6 registered 680-case synthetic broker/client execution study; no credentials or market dataset |
-| `stability_extension_development` | M7 fourteen one-factor variants and 50 funded risk-matched accounts; `--check` uses 600 analytic sessions, default replays the registered pre-2024 panel |
-| `stability_development` | M7 primary diagnostics and paired full-calendar uncertainty from saved M6 exports; `--check` constructs its own inputs |
-| `inference_calibration` | M8 controlled simultaneous-inference calibration; `--check` is a short engineering run, default executes the full registered experiment |
-| `panel_evaluation` | M8 integrated 2024 evaluation and executable freeze; begin with `--check` and the independent verifier below |
-| `panel_account_development` | M6 continuously funded risk and shared-capital accounts; `--check` is constructed, default requires the registered pre-2024 panel |
-| `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
-| `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
-| `reversion_validation` | Thirteen seeded finite-sample/noise controls; full interval experiment |
-| `development_finalize` | Read-only authentication/finalization of the retained 2022-2023 acquisition tree |
-| `development_replay` | Registered SPY-IM-01 development comparison on the frozen snapshot |
-| `continuation_development` | Registered SPY-TOD-01 comparison and declared descriptive diagnostics |
-| `reversion_development` | Registered prior-only SPY-MR-01 comparison and controls |
-| `risk_development` | Registered SPY-RISK-01 comparison, calibration and corporate-action evidence |
-| `strategy_reference_replay` | First eligible scored-date adapter replay with explicit constructed bar-price quotes |
-| `risk_acquire` | Bounded daily-risk prerequisite acquisition; Windows credentials/HTTP |
-| `alpaca_development` | Historical 2022-2023 minute/calendar acquisition; Windows credentials/HTTP |
+Build a single application with `--target <name>`, or omit it to build all
+supported applications. Host-specific acquisition applications require Windows.
+Applications with `--check` produce declared analytic fixtures; they do not
+reproduce provider-market findings.
 
-Historical Alpaca credentials use Windows Credential Manager. The retained data
-policy, raw response pages, monthly manifests/checkpoints, gap evidence and study
-manifest define historical reproduction. `DevelopmentStudyDataset` validates the
-frozen 496-session tree under `scratch/datasets/SPY_1Min_SIP_development_2022-2023`; daily risk additionally verifies
-its registered calibration, warm-up, shortened-session and issuer-action inputs.
-Use the paths declared by those loaders and governing JSON records; a new provider
-snapshot cannot overwrite their identities. Missing prerequisites stop the runner.
-No broker account, real-time quote probe or paid subscription is required by the
-offline completion scope. The v1 entry points remain restricted to their
-registered inputs; no v1 2024-2025 strategy evaluation is authorized. The
-[extension plan](extension_plan.md) records a separate registration and access
-sequence for later periods. Current development runners stop at 2023; later
-strategy inputs remain reserved until M8 and M9.
-
-Historical exports have independent checks in `research/verify_*.py`; their
-methods and numerical conventions are recorded beside the governing protocols.
-The verification entry points use the Python standard library except
-`verify_reversion_study.py`, which additionally requires NumPy and an available
-IANA time-zone database. Install NumPy and `tzdata` before running that verifier,
-particularly on Windows:
-
-```sh
-python -m pip install numpy tzdata
-```
-
-These extras are not required for the offline demo, execution-measurement,
-benchmark or publication-integrity verifiers. Publication generation has its
-separate dependencies in `research/report_requirements.txt`.
-
-Historical final bars cannot reproduce original live receipt/revision timestamps.
-The report's curated result snapshot reproduces figures/tables, not unbundled raw
-prices or historical daily paths.
+| Application | Responsibility | Independent verifier |
+| --- | --- | --- |
+| `project_demo` | Original offline strategy, broker and recovery demonstration | `verify_project_demo.py` |
+| `shared_capital_diagnostic` | Global cash, ownership, netting and recovery | `verify_shared_capital.py` |
+| `process_broker_diagnostic` | Separate synthetic broker process and wire faults | `verify_process_broker.py` |
+| `synthetic_broker_peer` | Child worker launched by the process diagnostic | Verified through its parent |
+| `execution_measurement` | Original 144-case synthetic execution comparison | `verify_execution_measurement.py` |
+| `runtime_benchmark` | Bounded Release processing/storage/recovery workload | `verify_runtime_benchmark.py` |
+| `historical_capability_check`, `historical_capability_probe` | Constructed/free historical-access evidence | `verify_historical_capability.py` |
+| `panel_check`, `panel_acquire`, `panel_finalize` | Archive acquisition, masks, actions and registration | `verify_historical_panel.py` |
+| `panel_replay` | Causal five-instrument decisions and forecasts | `verify_panel_replay.py` |
+| `cost_execution_check`, `cost_quote_acquire` | Quote archive, immutable resume and cached diagnosis | `verify_cost_quotes.py` |
+| `quote_reference_development` | Historical quote crossing-cost references | `verify_quote_reference.py` |
+| `cost_delay_development` | Frozen-decision cost/delay grid | `verify_cost_delay.py` |
+| `cost_execution_study` | 680 synthetic execution cases | `verify_cost_execution.py` |
+| `panel_account_development` | Funded risk and shared-capital accounts | `verify_panel_accounts.py` |
+| `stability_development` | Primary attribution, concentration and uncertainty | `verify_stability.py` |
+| `stability_extension_development` | Fourteen sensitivities and funded risk matching | `verify_stability_extension.py` |
+| `inference_calibration` | Controlled full-family size experiment | `verify_inference_calibration.py` |
+| `panel_evaluation` | Authorized 2024 evaluation, freeze and final 2025 evaluation | `verify_panel_evaluation.py` |
+| `development_replay`, `continuation_development`, `reversion_development`, `risk_development` | Original registered SPY studies | Governing checks in `research/README.md` |
+| `strategy_reference_replay`, `reversion_validation` | Reference adapter and synthetic identification diagnostics | `verify_strategy_execution.py`, `verify_reversion_validation.py` |
+| `development_finalize`, `alpaca_development`, `risk_acquire` | Original SPY registration and retained prerequisite acquisition | Original policy and input checks |
 
 ## Extension data capability
 
-Build **Release | x64** in `Runtime.sln`. The default startup application remains
-`project_demo`. Select `scratch/native/Release/historical_capability_check.exe`
-as the project's **Debugging > Command**, then Ctrl+F5, for the constructed
-checks. Select `historical_capability_probe.exe` there for the provider run.
-Keep the repository root as the working directory.
-
-The provider runner uses the existing Windows Credential Manager entry. If it
-is absent, hidden console input accepts the same Alpaca API key and secret from
-the Alpaca dashboard's API Keys control. Credentials are never included in the
-report. No order, position, account-balance, latest-quote or stream endpoint is
-called. The existing calendar GET uses `paper-api.alpaca.markets`; historical
-prices and actions use `data.alpaca.markets`.
-
-The fixed plan covers SPY, QQQ, IWM, TLT and GLD for 2016-2025. January's first
-and December's last full session come from the returned calendar. Their complete
-minute grids are sampled without replacements for inconvenient gaps. One noon
-minute per symbol/year supplies a first-page quote/trade capability sample.
-Corporate actions are paginated over each process-date year. A nominal complete
-run uses about 570 HTTP attempts before pagination variation/retries, with a
-750-ms pause per attempt. This one-time capability run takes several minutes
-and is separate from routine editing checks.
-
-Every response is retained before interpretation, including failures and retry
-responses. HTTP 401 stops further calls; 400/403/404 block that endpoint/symbol
-for the run. HTTP 429 and 500/502/503/504 receive at most two retries. Persistent
-failure is recorded without further entitlement experiments. Exit 0 means the
-sampled bar route is ready for review, not that the dataset or actions are
-complete. Exit 2 means price access needs review. Both produce a report. Exit 1
-is an interrupted software/storage failure; captured evidence remains in the
-printed directory.
-
-Provider runs write to `scratch/runs/historical_capability_<suffix>/`:
-
-- `review/`: shareable report, capability CSV and summary with counts and hashes;
-- `responses/`, `sealed/`: local raw evidence, with 2024-2025 under `sealed/`;
-- `index/`: an append-only attempt index with request paths and status.
-
-Verify a completed provider run locally and create its price-free review ZIP:
-
-```sh
-py -3 -B research/verify_historical_capability.py scratch/runs/historical_capability_0
-```
-
-Use the actual printed suffix. The standard-library script independently checks
-raw hashes, pagination, grids, action fields, metadata, CSV values and the sealed
-boundary, without printing observed prices or financial summaries. On success
-it creates `review.zip` containing exactly `summary.json`, `capability.csv` and
-`report.html`. **Share only this ZIP or `review/`; keep the full run directory
-and raw responses local.** The same script accepts the printed
-`historical_capability_check_<suffix>` directory for offline constructed checks.
-
-The [M1 provider assessment](extension_plan.md#m1-provider-evidence-and-disposition)
-records the reviewed 26 October 2026 run. All 570 requests succeeded; four missing
-minute bars and incomplete early dividend fields require M2 treatment. The
-reported `provisional_common_price_start` is the earliest suffix of sampled
-years with no observed bar gap. Its value of 2025 is not an entitlement boundary
-or a recommendation to discard earlier history. Full coverage, action/issuer
-agreement, process-date tails and warm-up remain M2 requirements. Empty actions
-do not prove that no distribution or split occurred. A first quote/trade page
-establishes neither full-window coverage nor empirical execution quality.
-
-Endpoint conventions follow the official
-[historical bars](https://docs.alpaca.markets/us/reference/stockbars),
-[quotes](https://docs.alpaca.markets/us/reference/stockquotes-1),
-[trades](https://docs.alpaca.markets/us/reference/stocktradesingle-1) and
-[corporate actions](https://docs.alpaca.markets/us/reference/corporateactions-1)
-references, reviewed 26 October 2026. Documentation does not establish this
-account's entitlement.
+Historical market-data credentials use Windows Credential Manager. No broker
+account, subscription purchase, latest-quote probe or real order is required.
+The archive is `scratch/datasets/extension_panel_2016_2025`; original SPY datasets
+retain their own paths and identities. See the [input contract](extension_plan.md)
+for eligibility, prior exposure and source-resolution assumptions.
 
 ## Extension panel acquisition and registration
 
-The governing [study contract](../research/extension_protocol.md) and its pinned
-JSON precede acquisition/scoring. The completed Windows M2 registration and
-its artifact identities are recorded in the
-[roadmap](extension_plan.md#m2-windows-registration-completed). The commands
-below reproduce input preparation and registration; they do not score a
-later-period model or strategy.
+Existing accepted archives do not need reacquisition. A fresh reproduction uses
+the native capability/acquisition applications, retained raw HTTP envelopes,
+issuer evidence and source-resolution policy. Run the readiness verifier before
+registration; missing evidence stops the finalizer rather than silently changing
+inputs. The action preparer retains original cached files.
 
-1. Build **Release | x64** in `Runtime.sln` with **Build Solution**.
-2. Set **Runtime > Properties > Debugging > Command** to
-   `$(OutDir)panel_check.exe`, keep working directory `$(ProjectDir)`, and use
-   **Ctrl+F5**. This is the fast constructed check; no credentials or network.
-3. Set Command to `$(OutDir)panel_acquire.exe`, then **Ctrl+F5**. The default
-   output is `scratch/datasets/extension_panel_2016_2025/`. The first full run
-   takes hours: roughly 50,000 bar pages, with about 10.5 hours of pacing alone.
-   Rerunning resumes the same vintage and authenticates earlier pages without
-   downloading them again. Leave one writer running; do not run two copies.
-4. Wait for the final `Status: prices_acquired_action_reconciliation_required`
-   and `Visual report` lines. December 2025 price progress alone is not completion:
-   corporate-action collection follows, including a January-March 2026 process-date
-   tail for late-processed events. Completion writes `acquisition_manifest.json`
-   in the dataset root. If that file is absent, resume `panel_acquire.exe` and retain
-   all existing responses. If acquisition stops, retain its final error lines.
-   After completion, run the independent verifier from the repository root:
-
-```sh
+```powershell
+& .\scratch\native\Release\panel_acquire.exe
+py -3 -B research/prepare_panel_actions.py
+& .\scratch\native\Release\panel_finalize.exe
 py -3 -B research/verify_historical_panel.py scratch/datasets/extension_panel_2016_2025
 ```
 
-The script audits request/page identities, calendars, grids, masks and actions
-without printing prices. It creates `review/review.zip` with only a summary and
-coverage CSV. **Share that ZIP; keep raw/sealed inputs local.** The same verifier
-accepts the printed `scratch/runs/panel_check_<suffix>` directory for constructed
-evidence. Use actual suffixes.
-
-Prepare the resolved corporate-action reference from free sources:
-
-```sh
-py -3 -B research/prepare_panel_actions.py
-```
-
-It reuses existing issuer receipts, authenticates the GLD issuer income statement,
-and obtains five bounded 2016-2025 secondary event responses. It writes
-`issuer/reference_resolved.json`; the original `issuer/reference.json` and raw
-price archive remain intact. Each response has a retrieval timestamp and SHA-256.
-Issuer cash amounts and declared dates determine one event per symbol/ex-date.
-Provider conflicts are retained and duplicate announcements never double income.
-The split check requires complete 120-month coverage and zero returned split
-events from the secondary source, in agreement with the provider. This is a
-cross-provider coverage assumption, not a claim of complete issuer split records.
-No subscriptions, broker connections or orders are involved.
-
-After source preparation, select `$(OutDir)panel_finalize.exe` and run with
-**Ctrl+F5**. It uses saved responses without network requests. It writes `scratch/runs/panel_readiness_<suffix>/summary.json` and
-`report.html`, even when an issuer reference is absent or incomplete. These
-contain all coverage/daily-mark gates, contiguous pre-2024 missing intervals,
-source coverage declarations and pre-2024 cash discrepancies. A successful run
-also records the study-manifest and vintage-bridge identities in the review.
-They contain no bar prices or detailed reserved-year gaps. Missing-interval
-causes remain undetermined; no bars or payments are invented.
-The provider's [bar-construction rules](https://docs.alpaca.markets/us/docs/market-data-faq)
-allow an absent bar when there are no trades or no trades eligible to update
-prices. Coverage flags alone do not distinguish those cases from missing data.
-
-Verify the readiness coverage/gap calculations and create its review ZIP:
-
-```sh
-py -3 -B research/verify_historical_panel.py scratch/datasets/extension_panel_2016_2025 --readiness scratch/runs/panel_readiness_0
-```
-
-Use the actual printed readiness suffix. **Share the readiness directory's
-`review.zip`; raw responses and issuer source files stay local.** This ZIP has
-two files, `summary.json` and `report.html`. The independent oracle reproduces
-annual coverage, endpoint gates and exact missing intervals; it authenticates
-source receipts, secondary event coverage, canonical cash-event uniqueness and
-registration identities. It also checks that daily risk history never crosses
-an unavailable closing mark.
-
-`Status: input_limited` and exit 2 denote expected unresolved prerequisites.
-They are not a completed study registration. Exit 1 indicates invalid evidence
-or a software failure. If all input gates pass, the finalizer then authenticates
-the original SPY snapshot and writes the vintage bridge, masks and study
-manifest. Readiness assessment alone cannot publish those records. The
-acquisition manifest always retains `research_inputs_ready=false`.
-
-The [registered input amendment](../research/extension_input_policy.md) separates
-scheduled execution observability from feature completeness. Readiness reports
-retain the parent complete-grid failure and show the amended assessment separately.
-Feature availability does not imply an active trade or an admissible fit.
-
-The completed provider recovery returned zero bars for SPY/IWM/GLD on
-2019-08-12. **Do not rerun acquisition to search for these marks.** Their three
-existing immutable recovery receipts are sufficient. The separately pinned
-[source resolution](../research/extension_source_resolution.json) permits only
-these specific unavailable closes after authenticated recovery attempts. Missing
-opens or any other missing close still block registration. Daily outcomes remain
-NA and the consecutive 253-close history resets; there is no interpolation,
-forward-fill, price substitution or return across a gap. The original parent
-assessment and all missing flags are retained.
-
-The original `spy_distribution_reference.json` is also build-pinned. A Windows
-checkout may convert its LF newlines to CRLF without changing its JSON values;
-that still changes the SHA-256 stored by the original risk acquisition. The
-build restores only a newline conversion whose result matches the exact original
-digest. A changed financial field is rejected. No acquisition manifest or cached
-response is rewritten. The finalizer authenticates these legacy inputs before
-the full panel scan, and inventory failures identify the differing field paths.
-
-The full eligibility mask is approximately 13 MB. Finalization reads and hashes
-it with an explicit 16-MiB bound; the ordinary 4-MiB artifact bound is unchanged.
-If an earlier run wrote the masks and bridge before stopping at hashing, keep
-both files. The next run checks their contents and reuses them without rewriting.
-
-After pulling and rebuilding, run the preparation command above, then
-`panel_finalize.exe`, then verify its printed readiness directory with
-`--readiness`. Expected success is `Status: registered_inputs_ready`.
-Seven operational development years do not imply seven active strategy years.
-The 2024 validation and 2025 final-evaluation prices and strategy outcomes remain
-sealed until their registered milestones.
-
-The controlled precision design can be reproduced independently:
-
-```sh
-py -3 -B research/extension_precision.py
-```
-
-It uses synthetic Gaussian AR(1) trials only. Its planning table is not a market
-result or final validation of the registered block-bootstrap procedure.
-
-## Publication
-
-The PDF and standalone HTML are committed under `docs/`. The HTML embeds the
-C++ saved-event views and images and opens without a server, script or network.
-Install the pinned publication dependencies in an existing Python 3.10+ environment:
-
-```sh
-python -m pip install -r research/report_requirements.txt
-python -B research/build_report.py --demo <verified-project-demo-directory>
-python -B research/verify_publication.py
-```
-
-The builder reads `docs/report_source.json` and hash-checked `docs/evidence/`.
-It formats recorded data and descriptive summaries; it does not fit models,
-score strategies or change financial conventions. Review regenerated figures and
-PDF pages before publishing. The publication manifest records source/evidence and
-output hashes. Distributed publication text uses UTF-8 with LF-normalized
-checksums so Git newline conversion does not alter its logical identity; PDFs
-use raw-byte checksums. Registered protocols are restored to their exact
-registered LF bytes by the build only when their content is otherwise identical.
-Acquisition pages, run journals and original result identities retain raw-byte
-hashes. `research/verify_publication.py` checks these identities, local
-links, embedded-view controls and static asset boundaries without private data.
-
+The acquisition registration fixes 2016-2025. It does not authorize later-year
+strategy scoring. Do not overwrite a registered archive with a new provider
+vintage. Review exports and coverage metadata can be shared; raw pages and
+credentials remain local.
 
 ## Causal panel replay (M3)
 
-The M2 archive and its original SPY development/risk snapshots are required.
-No acquisition or source-preparation rerun is needed.
-
-1. Pull the current source and build **Release | x64**.
-2. Run `panel_check.exe` for constructed acquisition, engine, missing-data and
-   causal replay checks. It prints its evidence directory.
-3. Run `panel_replay.exe` with the existing console setup. For a retained `cmd /k`
-   console, change the executable in **Command Arguments**; keep Command as
-   `$(SystemRoot)\System32\cmd.exe` and Working Directory as `$(ProjectDir)`.
-4. Run the independent verification using the actual printed suffix:
-
-```sh
-py -3 -B research/verify_panel_replay.py scratch/runs/panel_replay_0
-```
-
-The native success status is `causal_panel_replay_completed`. It verifies
-original-reference parity before opening the expanded development streams.
-Progress reports every 25 dates. The report has an instrument selector for
-saved target traces; the five bounded JSONL files retain all records locally.
-The verifier creates `review.zip` containing the summary and HTML report.
-
-For the constructed run, both independent checks accept its printed directory:
-
-```sh
-py -3 -B research/verify_historical_panel.py scratch/runs/panel_check_0
-py -3 -B research/verify_panel_replay.py scratch/runs/panel_check_0
-```
-
-Use the actual native `panel_check` suffix. Detailed methods and subsequent
-work are in [causal panel replay](panel_replay.md).
-
-The independent numerical checks include near-unit-root conditioning of the
-reversion equilibrium. They can run without repeating a historical replay:
-
-```sh
-py -3 -B research/verify_panel_replay.py --self-check
-```
+`panel_replay` authenticates registered inputs and emits prior-only decisions.
+Its independent oracle checks source observations, history cutoffs, targets and
+numerical conditioning. A reversion equilibrium near a unit slope can be
+ill-conditioned even when primitive coefficients agree; the oracle retains its
+primitive tolerances and exact target checks.
 
 ## Shared-capital diagnostic (M4)
 
-Pull the current source and build **Release | x64**. Run
-`shared_capital_diagnostic.exe` with the existing retained-console setup. Change
-only the executable in Command Arguments to
-`/d /s /k ""$(OutDir)shared_capital_diagnostic.exe""`; keep Command as
-`$(SystemRoot)\System32\cmd.exe` and Working Directory as `$(ProjectDir)`.
-
-No private archive, credential, acquisition or historical replay is needed.
-Verify the actual printed directory:
-
-```sh
-py -3 -B research/verify_shared_capital.py scratch/runs/shared_capital_0 --self-check
-```
-
-Expected local evidence is 182 native checks, 15 cases and 163 audited durable
-transitions. The verifier creates a small synthetic `review.zip`. The
-[shared-capital contract](shared_capital.md) describes its ownership, budget,
-expiry and recovery conventions and records the completed Windows acceptance.
+Run `shared_capital_diagnostic`, then its verifier. The [contract](shared_capital.md)
+separates global cash from owner allocation and defines netting and restart.
 
 ## Independent broker process (M5)
 
-Build **Release | x64**, which builds both the diagnostic and its worker. Run
-`process_broker_diagnostic.exe` using the existing retained-console setup:
-Command remains `$(SystemRoot)\System32\cmd.exe`, Working Directory remains
-`$(ProjectDir)`, and Command Arguments becomes
-`/d /s /k ""$(OutDir)process_broker_diagnostic.exe""`.
-
-The diagnostic launches `synthetic_broker_peer.exe` automatically. Do not launch
-that worker manually. The two malformed-frame fixtures intentionally stop their
-children; the parent checks those failures and continues to its final totals.
-No private data, credential, subscription or historical replay is required.
-
-```sh
-py -3 -B research/verify_process_broker.py scratch/runs/process_broker_0 --self-check
-```
-
-Use the actual printed suffix. The verifier writes a compact synthetic
-`review.zip`. The [process contract](process_broker.md) describes the twelve
-scenario families, fee/cash conventions, bounded recovery and completed Windows
-acceptance.
-Expected evidence is 313 native checks, twelve scenario families and twenty-one
-child processes. The independent verifier checks 139 broker commits, 98 client
-inputs and 294 logical calls. The saved report has 28 broker/client ledger views.
+Run `process_broker_diagnostic`, which launches `synthetic_broker_peer`
+automatically. Two malformed-frame children intentionally stop; their parent
+checks those failures. All activity is synthetic and local. The [process note](process_broker.md)
+defines the durable independent peer and twelve scenario families.
 
 ## Cost and execution inputs (M6)
 
-Pull `main` and build **Release | x64**. From an existing PowerShell window at
-the repository root, run the constructed check and its independent verifier:
-
-```powershell
-& .\scratch\native\Release\cost_execution_check.exe
-py -3 -B research/verify_cost_quotes.py scratch/runs/cost_execution_check_0
-```
-
-Use the printed suffix. Expected evidence is seventeen constructed acquisition
-cases and 2,210 verified windows, with zero network requests. The native total
-is 355 checks when the accepted M2 masks are present, or 354 without them.
-The 680 synthetic execution cases are registered, not executed by this check.
-
-Then run the historical sampler using the existing Windows historical-data
-credentials and registered M2 archive:
-
-```powershell
-& .\scratch\native\Release\cost_quote_acquire.exe
-py -3 -B research/verify_cost_quotes.py scratch/runs/cost_quotes_0
-```
-
-The sampler prints its archive and report directories before requesting data.
-Use its actual report suffix for the verifier. It runs through **2023 only**,
-over exactly 910 fixed windows; it does not score a strategy or open reserved
-2024-2025 strategy inputs. Pagination means 910 windows can require more than
-910 requests. Progress is printed every 25 windows, with new HTTP requests paced
-at 750 ms plus HTTP and bounded retry time. It is not the full panel acquisition.
-
-Rerun the same executable after an interrupted transport to resume committed
-pages. Keep the default `scratch/datasets/cost_quote_sample_2017_2023` archive
-intact. A denied route is retained as unestimated coverage and is not repeatedly
-requested. Exit 0 means the audit completed, including an explicit denied,
-empty or incomplete disposition; inspect the status counts. Exit 1 means an
-invalid input or interrupted run, with completed response envelopes retained.
-Do not delete old evidence to force a new result.
-
-The independent verifier creates `review.zip` in each report directory. Share
-the constructed check's bundle, the provider sample's bundle and the verifier's
-console result. Raw quote envelopes, credentials and the full dataset stay local.
-The [M6 note](cost_execution.md) describes the accepted comparisons and the
-limits of the compact review bundle.
-
-To regenerate the plots from an existing acquisition summary, use the rendering
-mode after pulling and building the updated application:
-
-```powershell
-& .\scratch\native\Release\cost_quote_acquire.exe --render scratch/runs/cost_quotes_0/summary.json
-py -3 -B research/verify_cost_quotes.py scratch/runs/cost_quotes_view_0 --report-only
-```
-
-Open the printed `report.html` in a browser. This mode creates a new
-`cost_quotes_view_<suffix>` directory and preserves the original summary bytes.
-It performs zero requests and does not load credentials or the raw archive.
-Use the actual printed suffix. Static coverage/status plots and the initial
-spread detail remain visible when scripts are disabled. Enabled scripts allow
-switching between the pre-rendered instrument/year views; empty groups show
-an explicit unavailable message. `--report-only` verifies saved arithmetic and
-displayed marks; omit that flag for the full local raw-response verification.
-
-To inspect the retained source of condition failures and latest-timestamp
-conflicts, run the cached diagnostic and its full independent verifier:
-
-```powershell
-& .\scratch\native\Release\cost_quote_acquire.exe --inspect scratch/runs/cost_quotes_0/summary.json
-py -3 -B research/verify_cost_quotes.py scratch/runs/cost_quote_diagnostics_0
-```
-
-Use the actual printed suffix. This mode opens the existing quote archive and
-M2 selection masks, performs zero requests, loads no credentials and preserves
-the original sample. It creates `cost_quote_diagnostics_<suffix>` with a static
-HTML report and diagnostic manifest. The verifier writes `review.zip` after
-checking the original raw responses and every diagnostic observation. Share
-that compact ZIP and the console result; quote prices and raw bodies remain
-local. The existing `--render` mode is for presentation; `--inspect` additionally
-reads the retained raw pages. Neither mode acquires new data or changes the
-registered eligibility rule.
+`cost_execution_check` uses constructed pagination and quote-failure fixtures.
+`cost_quote_acquire` resumes its fixed pre-2024 sample without altering committed
+pages. A denied/empty disposition remains unestimated. Its `--render <summary>`
+mode produces plots from saved summaries; `--inspect <summary>` reauthenticates
+cached conditions and timestamp conflicts without acquisition. Both modes retain
+the registered filter. The [cost note](cost_execution.md) is the method authority.
 
 ## Cached quote-reference comparison (M6)
 
-This step reauthenticates the retained historical quote sample without making
-network requests. Run the constructed fixture first, then the existing sample:
-
-```powershell
-py -3 -B build.py --configuration Release --target quote_reference_development
-& .\scratch\native\Release\quote_reference_development.exe --check
-py -3 -B research/verify_quote_reference.py scratch/runs/quote_reference_0 --self-check
-& .\scratch\native\Release\quote_reference_development.exe scratch/runs/cost_quotes_0/summary.json
-py -3 -B research/verify_quote_reference.py scratch/runs/quote_reference_1 --self-check
-```
-
-Use the actual printed suffixes and the original acquisition summary. The
-provider route requires its retained raw archive and accepted M2 selection masks.
-The verifier checks raw evidence, native sample identity, Decimal crossing costs,
-delay pairs and plot coordinates. Only the compact `review.zip` is shareable;
-raw quotes stay local. Eligibility and the primary cost grid are unchanged.
+Run `quote_reference_development <quote-summary>` for the retained sample, or
+`--check` for constructed data. `verify_quote_reference.py` checks raw evidence,
+comparison identity, crossing costs, delay pairs and plotted marks.
 
 ## Historical cost and delay evaluation (M6)
 
-Build **Release | x64** in the existing solution, or build only this application:
-
-```powershell
-py -3 -B build.py --configuration Release --target cost_delay_development
-```
-
-Run the constructed numerical/missing-input checks first:
-
-```powershell
-& .\scratch\native\Release\cost_delay_development.exe --check
-py -3 -B research/verify_cost_delay.py scratch/runs/cost_delay_check_0 --self-check
-```
-
-Then evaluate the accepted historical panel. No new acquisition or credentials
-are used; the original panel and issuer/action evidence must remain in place.
-The reader authenticates the M2 registration and opens strategy prices only
-through 2023. The existing M3 replay need not be rerun separately.
-
-```powershell
-& .\scratch\native\Release\cost_delay_development.exe
-py -3 -B research/verify_cost_delay.py scratch/runs/cost_delay_0 --self-check
-```
-
-Use the actual directories printed by each run. Expect 400 instrument/policy
-series, 240 paired comparisons, primary-reference parity and zero requests.
-The historical independent verification authenticates source observations,
-reconstructs causal histories/decisions, verifies every charged reference path,
-then checks all summary denominators and static curves/tables. It is a deliberate
-checkpoint workload rather than an ordinary build check. Share each run's
-`review.zip` and its console result. Provider bundles contain summary/HTML only;
-raw provider pages and the five local path files stay local. The constructed
-bundle also includes its generated path files.
-
-If an earlier verifier stopped at `Cost curve lines differ from verified
-coordinates`, retain that run. Pull the corrected verifier and rerun only the
-Python command against the existing `cost_delay_<suffix>` directory. No C++
-rebuild, historical replay or report regeneration is required. The fix accounts
-for the SVG's six-decimal serialization; source, cash and return checks remain
-unchanged.
-
-For the existing retained-console Visual Studio setup, the application arguments
-are `/d /s /k ""$(OutDir)cost_delay_development.exe" --check"` for constructed
-checks and `/d /s /k ""$(OutDir)cost_delay_development.exe""` for historical
-evaluation. Keep the existing Command and Working Directory settings.
-
-`--report-only` on the Python verifier checks a compact saved report without
-claiming source or aggregate-path authentication. No cost or delay is selected
-as a replacement primary strategy. Synthetic matching and continuously funded
-accounts have separate entry points below.
+Run `cost_delay_development --check`, verify its printed directory with
+`verify_cost_delay.py --self-check`, then omit `--check` for registered historical
+inputs through 2023. A completed native run is retained if only verification
+fails; rerun the corrected verifier against that directory.
 
 ## Synthetic execution study (M6)
 
-Build **Release | x64** with the existing solution, or select the single target:
-
-```powershell
-py -3 -B build.py --configuration Release --target cost_execution_study
-```
-
-Run the full fixed synthetic matrix and its independent verifier:
-
-```powershell
-& .\scratch\native\Release\cost_execution_study.exe
-py -3 -B research/verify_cost_execution.py scratch/runs/cost_execution_0 --self-check
-```
-
-Use the actual printed suffix. Expect 680 account cases, 510 matched comparisons,
-680 reconciled terminal accounts and zero requests. The progress counter prints
-every forty cases. The report has ten instrument/side heatmaps, filled/unfilled
-outcomes, explicit fees and separate source/receipt timing. All plotted cells
-are embedded; scripts only select the visible panel.
-
-The verifier writes a self-contained `review.zip` containing `summary.json`,
-`report.html` and `execution_cases.jsonl`. Share that ZIP and the console result.
-No quote acquisition, credentials, historical archive, network, child broker
-process or reserved-year strategy data is used. Separate-process recovery is
-the existing M5 diagnostic, not a claim of this measurement run.
-
-For the retained-console Visual Studio setup, keep the existing Command and
-Working Directory and use arguments
-`/d /s /k ""$(OutDir)cost_execution_study.exe""`.
+Run `cost_execution_study`, then `verify_cost_execution.py <directory> --self-check`.
+The fixed study produces 680 account cases and 510 matched comparisons. It uses
+neither historical acquisition nor an external broker.
 
 ## Continuous risk and shared-capital evaluation (M6)
 
-This final M6 evaluator uses the existing registered panel. No acquisition,
-quote rerun, credential entry or reserved-year strategy data is needed. Build
-one target with the existing Python compiler driver:
-
-```powershell
-py -3 -B build.py --configuration Release --target panel_account_development
-```
-
-The executable is created by a successful build. Its `panel_accounts_<suffix>`
-run directory is created only when the executable runs; it is not an input folder
-supplied by Git. If the build fails, stop before running the executable or its
-verifier. Artifact hashing uses bounded chunks and a `uintmax_t` file-size limit,
-so the declared 8 GiB ledger cap is not narrowed to a 32-bit allocation size.
-
-First run the constructed calendar and the independent financial/report check:
-
-```powershell
-& .\scratch\native\Release\panel_account_development.exe --check
-py -3 -B research/verify_panel_accounts.py scratch/runs/panel_accounts_0 --self-check
-```
-
-Expect 200 risk cases, 50 shared-capital cases, zero network requests and
-`Reserved strategy inputs opened: false`. The constructed run covers 300 dates,
-including 48 development sessions. The verifier checks 9,600 risk records,
-2,400 shared account days and twelve deliberately altered records.
-
-Then run the historical evaluation and its verifier:
-
-```powershell
-& .\scratch\native\Release\panel_account_development.exe
-py -3 -B research/verify_panel_accounts.py scratch/runs/panel_accounts_1 --self-check
-```
-
-Use the actual directories printed by each native run. Historical replay loads
-2016 for initialization and stops at the final exchange session of December
-2023: 2,012 dates, including 1,760 development dates. Native progress prints
-every 25 dates; the verifier prints source progress per instrument and account
-progress every 250 dates. This is an explicit research checkpoint, not a
-routine build check. Daily account evidence is streamed locally with an 8 GiB
-bound; retain several GiB of free space alongside the existing panel.
-
-Open `report.html` for six equity plots, forecast coverage, primary matched
-contrasts and all case rows. Stopped curves end at the last observed close.
-Missing registered prices can produce unavailable economic outcomes while
-verification succeeds: success means the retained accounting, coverage and
-failure rules were followed, not that a strategy passed a benefit screen.
-
-Share each generated `review.zip` and the console result. Constructed bundles
-include generated paths and ledgers. Provider bundles contain only summary,
-HTML and executable plan; source prices and daily transcripts stay local.
-Complete provider verification requires that local evidence. M6 historical
-acceptance and the separate [M7 stability and matching analysis](stability.md)
-are complete with their recorded coverage limitations.
-
-For the retained-console Visual Studio setup, keep the existing Command and
-Working Directory and use arguments
-`/d /s /k ""$(OutDir)panel_account_development.exe" --check"` for constructed
-checks, or `/d /s /k ""$(OutDir)panel_account_development.exe""` for history.
+Run `panel_account_development --check` and verify with
+`verify_panel_accounts.py <directory> --self-check`. Omit `--check` for historical
+inputs. The 200 risk and fifty shared cases retain stopped outcomes; later
+forecast-history recovery cannot restart capital paths.
 
 ## Primary stability and uncertainty (M7)
 
-This stage reads saved M6 exports. It does not replay historical strategies,
-request market data, use credentials or open 2024–2025 strategy inputs. Build and
-check it first:
-
-```powershell
-& {
-    git pull
-    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
-    py -3 -B build.py --configuration Release --target stability_development
-    if ($LASTEXITCODE -ne 0) { throw "Build failed" }
-    & .\scratch\native\Release\stability_development.exe --check
-    if ($LASTEXITCODE -ne 0) { throw "Constructed analysis failed" }
-    py -3 -B research/verify_stability.py scratch/runs/stability_check_0 --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Constructed verification failed" }
-}
-```
-
-Use the directory actually printed by the application if `_0` already exists.
-The constructed run creates both source exports inside its own directory. Its
-short development window intentionally fails the historical coverage requirement;
-the separate numerical fixtures exercise longer joint inference.
-
-After the constructed check succeeds, use the accepted saved historical M6
-outputs. Substitute their actual directories if different:
-
-```powershell
-& {
-    & .\scratch\native\Release\stability_development.exe scratch/runs/cost_delay_0 scratch/runs/panel_accounts_1
-    if ($LASTEXITCODE -ne 0) { throw "Saved-export analysis failed" }
-    py -3 -B research/verify_stability.py scratch/runs/stability_0 --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Saved-export verification failed" }
-}
-```
-
-The independent verifier prints progress for source authentication and each joint
-block length. It may take longer than the native analysis because it recomputes
-10,000 draws with the standard library. Open the printed `report.html`; share
-`review.zip` after verification. A downloaded derived bundle can be checked with
-`--review-only`; that mode explicitly skips reopening original M6 records.
-
-The [method note](stability.md) describes units, masks and limitations. Secondary
-variants and funded risk matching have separate accepted outputs below.
-Controlled inference validation remains M8; a primary numerical bound alone
-is not an advancement decision.
-
+`stability_development <cost-delay-directory> <account-directory>` authenticates
+saved records. Its independent verifier checks full-date attribution and all
+four paired block lengths. `--check` produces analytic source records.
 
 ## Secondary stability and risk matching (M7)
 
-The target is `stability_extension_development`. The default run requires the
-existing registered `scratch/datasets/extension_panel_2016_2025` archive, actions
-and closing recovery. It performs no acquisition, needs no credentials, and does
-not read 2024–2025 strategy observations. The accepted primary saved-export report
-remains separate. Build, run the constructed check, then run historical analysis:
-
-```powershell
-& {
-    $ErrorActionPreference = "Stop"
-    git pull
-    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
-    py -3 -B build.py --configuration Release --target stability_extension_development
-    if ($LASTEXITCODE -ne 0) { throw "Build failed" }
-
-    & .\scratch\native\Release\stability_extension_development.exe --check |
-        Tee-Object -Variable runLog
-    if ($LASTEXITCODE -ne 0) { throw "Constructed extension failed" }
-    $line = $runLog | Select-String '^Manifest: ' | Select-Object -Last 1
-    if (-not $line) { throw "Constructed manifest was not printed" }
-    $manifest = $line.Line -replace '^Manifest: ', ''
-    py -3 -B research/verify_stability_extension.py (Split-Path $manifest -Parent) --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Constructed extension verification failed" }
-
-    & .\scratch\native\Release\stability_extension_development.exe |
-        Tee-Object -Variable runLog
-    if ($LASTEXITCODE -ne 0) { throw "Historical extension failed" }
-    $line = $runLog | Select-String '^Manifest: ' | Select-Object -Last 1
-    if (-not $line) { throw "Historical manifest was not printed" }
-    $manifest = $line.Line -replace '^Manifest: ', ''
-    py -3 -B research/verify_stability_extension.py (Split-Path $manifest -Parent) --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Historical extension verification failed" }
-}
-```
-
-Directory names are discovered from the printed manifest, so existing output
-folders are retained. Expect native progress through 600 constructed sessions or
-2,012 historical sessions ending in December 2023, then four uncertainty blocks.
-The native summary reports 14 secondary cases, 240 secondary series, 50 funded
-matched accounts, 45 unit accounts, zero network requests and reserved inputs
-unopened. Independent verification is more expensive than primary saved-export
-analysis: it authenticates source bars and checks fifteen parameter paths for
-each instrument, then recomputes four sets of 10,000 joint draws. Progress is
-printed during each instrument and block. There is no prescribed runtime limit;
-no historical result should be inferred from the synthetic check.
-
-Open the printed `report.html`, which has static secondary and matched charts,
-calendar coverage and expandable period diagnostics. Share the verified
-`review.zip` from each run. Provider bundles omit detailed replay/source files.
-A downloaded bundle can be checked with `--review-only --self-check`; the terminal
-explicitly states that source ledgers and raw archives were not reauthenticated.
-The [Windows acceptance](stability.md#windows-secondary-and-risk-matching-acceptance)
-records completed execution and independent review on 30 October 2026. M7 is
-complete with coverage limitations; M8 remains the next gate. The commands above
-reproduce accepted evidence and do not open reserved strategy observations.
+Run `stability_extension_development --check` and its verifier before a historical
+reproduction. Omitting `--check` retains all fourteen registered variations,
+45 unit accounts and fifty funded matched accounts. No variant is selected from
+its result.
 
 ## Controlled inference calibration (M8)
 
-The calibration is offline and loads no market strategy observations. Build and
-run the short engineering check first, retaining the actual printed directory:
-
-```powershell
-& {
-    $ErrorActionPreference = "Stop"
-    git pull
-    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
-    py -3 -B build.py --configuration Release --target inference_calibration
-    if ($LASTEXITCODE -ne 0) { throw "Build failed" }
-    & .\scratch\native\Release\inference_calibration.exe --check |
-        Tee-Object -Variable runLog
-    if ($LASTEXITCODE -ne 0) { throw "Calibration check failed" }
-    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Manifest path was not printed" }
-    $directory = Split-Path ($line -replace '^Manifest: ', '') -Parent
-    py -3 -B research/verify_inference_calibration.py $directory --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Calibration verification failed" }
-}
-```
-
-The full experiment uses the same executable without `--check`: ten cases,
-1,000 outer trials each and 10,000 joint resamples at both block lengths.
-Progress is printed. This substantial research workload is separate from routine
-editing checks. Verify its saved directory with the same Python command. The
-printed `review.zip` contains synthetic evidence; no private market archive is
-required. Short check receipts cannot authorize provider evaluation. The
-[validation note](validation.md) records the exact models and failure treatment.
+`inference_calibration --check` is a short engineering fixture. The full command,
+without arguments, runs 20,000 joint-family trials and is independently verified
+with `verify_inference_calibration.py <directory> --self-check`. The short fixture
+cannot authorize provider validation. Reuse the accepted full calibration when
+the registered statistical core is unchanged.
 
 ## Integrated validation and freeze (M8)
 
-Run these stages in an existing PowerShell window. They reuse the registered
-local M2 panel without acquisition, subscriptions or broker access. `Manifest:`
-selects the actual new directory, so numeric suffixes do not need guessing.
-Failures stop dependent work.
-
-First run the constructed integration, independent verifier and synthetic freeze:
+These are reproduction steps, not actions required after accepted evaluation.
+Use actual printed directories. Verify before freezing the exact executable.
 
 ```powershell
-& {
-    $ErrorActionPreference = "Stop"
-    git pull
-    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
-    py -3 -B build.py --configuration Release --target panel_evaluation
-    if ($LASTEXITCODE -ne 0) { throw "Build failed" }
-    & .\scratch\native\Release\panel_evaluation.exe --check |
-        Tee-Object -Variable runLog
-    if ($LASTEXITCODE -ne 0) { throw "Constructed evaluation failed" }
-    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Manifest path was not printed" }
-    $validationDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
-    py -3 -B research/verify_panel_evaluation.py $validationDir --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Constructed verification failed" }
-    & .\scratch\native\Release\panel_evaluation.exe --freeze $validationDir |
-        Tee-Object -Variable freezeLog
-    if ($LASTEXITCODE -ne 0) { throw "Constructed freeze failed" }
-    $line = ($freezeLog | Select-String '^Freeze: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Freeze path was not printed" }
-    $freezeDir = Split-Path ($line -replace '^Freeze: ', '') -Parent
-    py -3 -B research/verify_panel_evaluation.py $freezeDir --freeze
-    if ($LASTEXITCODE -ne 0) { throw "Constructed freeze verification failed" }
-}
+& .\scratch\native\Release\panel_evaluation.exe --validation <verified-calibration-directory>
+py -3 -B research/verify_panel_evaluation.py <validation-directory> --self-check
+& .\scratch\native\Release\panel_evaluation.exe --freeze <validation-directory>
+py -3 -B research/verify_panel_evaluation.py <freeze-directory> --freeze
 ```
-
-This generates a separate short calibration, which cannot authorize provider
-prices. Share the evaluation `review.zip` and freeze `freeze.json` and
-`verification.json`. The executable and raw datasets remain local.
-
-Then run full controlled calibration, registered 2024 validation and the provider
-freeze. The calibration performs 20,000 joint-family experiments, each with
-10,000 draws. Its oracle checks all outer moments and 40 full bootstrap references.
-This substantial research workload prints progress and is separate from routine
-editing checks. Historical replay warms earlier observations before scoring 2024.
-
-```powershell
-& {
-    $ErrorActionPreference = "Stop"
-    py -3 -B build.py --configuration Release --target inference_calibration
-    if ($LASTEXITCODE -ne 0) { throw "Calibration build failed" }
-    py -3 -B build.py --configuration Release --target panel_evaluation
-    if ($LASTEXITCODE -ne 0) { throw "Evaluation build failed" }
-    & .\scratch\native\Release\inference_calibration.exe |
-        Tee-Object -Variable runLog
-    if ($LASTEXITCODE -ne 0) { throw "Controlled calibration failed" }
-    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Calibration manifest was not printed" }
-    $calibrationDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
-    py -3 -B research/verify_inference_calibration.py $calibrationDir --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Calibration verification failed" }
-
-    & .\scratch\native\Release\panel_evaluation.exe --validation $calibrationDir |
-        Tee-Object -Variable runLog
-    if ($LASTEXITCODE -ne 0) { throw "2024 evaluation failed" }
-    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Validation manifest was not printed" }
-    $validationDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
-    py -3 -B research/verify_panel_evaluation.py $validationDir --self-check
-    if ($LASTEXITCODE -ne 0) { throw "2024 verification failed" }
-
-    & .\scratch\native\Release\panel_evaluation.exe --freeze $validationDir |
-        Tee-Object -Variable freezeLog
-    if ($LASTEXITCODE -ne 0) { throw "Provider freeze failed" }
-    $line = ($freezeLog | Select-String '^Freeze: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Freeze path was not printed" }
-    $freezeDir = Split-Path ($line -replace '^Freeze: ', '') -Parent
-    py -3 -B research/verify_panel_evaluation.py $freezeDir --freeze
-    if ($LASTEXITCODE -ne 0) { throw "Provider freeze verification failed" }
-}
-```
-
-Share the calibration and evaluation `review.zip` files and the provider freeze
-`freeze.json` and `verification.json`. Keep the frozen executable and original
-raw archive local. Do not rebuild between evaluation, verification and freeze.
-If only verification needs repeating, use its saved directory; acquisition and
-strategy replay do not need repeating unless their inputs or runner changed.
-**Do not run `--final` during M8.** M9 must explicitly use the frozen runner copy
-after M8 evidence acceptance.
-
 
 ## Frozen final evaluation (M9)
 
-Windows execution, independent verification and uploaded-bundle review are
-[accepted](validation.md#windows-provider-2025-final-acceptance). No further
-native evaluation, build, calibration or freeze is required for that checkpoint.
-The commands below retain the maintenance and recovery procedures for reproduction.
-
-### Resume a completed final run after verifier failure
-
-If verification ends with `Cohort mutation accepted: last_input`, the native
-evaluation has already completed. The self-check used the fixed date
-`2025-12-31` as an invalid cutoff, although that is the correct M9 cutoff.
-It now tests a genuinely changed cutoff beyond the authorized year and runs
-access-contract mutations before the expensive source checks. The financial
-oracles, access rules, frozen executable and saved results are unchanged.
-
-For the completed `final_evaluation_2` run, execute only:
+The accepted run is complete. Reproduction must use the retained copied runner
+and its verified replacement freeze, not a newly built executable. The corrected
+2024 output and original accepted freeze remain part of the maintenance lineage.
 
 ```powershell
-& {
-    $ErrorActionPreference = "Stop"
-    git pull --ff-only
-    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
-    py -3 -B research/verify_panel_evaluation.py scratch/runs/final_evaluation_2 --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Final verification failed" }
-    Write-Host "Share: scratch/runs/final_evaluation_2/review.zip"
-    Write-Host "Share: scratch/runs/validation_1/review.zip"
-}
+py -3 -B research/verify_panel_evaluation.py <freeze-directory> --freeze
+& <freeze-directory>\panel_evaluation.exe --final <freeze-directory>
+py -3 -B research/verify_panel_evaluation.py <final-directory> --self-check
 ```
-
-Use the actual completed directory if its suffix differs. Do not rebuild, repeat
-calibration, repeat the 2024 maintenance replay, create another freeze or rerun
-the native final evaluation. Successful verification prints ten semantic checks,
-the integrated 2025 result for 250 dates, and the final review-bundle path.
-Updating the Python verifier does not modify either frozen executable.
-
-### Retained evidence and scratch storage
-
-The accepted original freeze and replacement freeze refer to their validation
-directories by path and hash. The maintenance receipt also refers to the original
-freeze. Keep those directories in place; a compact review ZIP cannot replace
-the detailed local records needed by independent verification.
-
-For the current original/replacement sequence:
-
-| Directory under `scratch/runs` | Retention |
-| --- | --- |
-| `inference_calibration_0` | Keep: original full calibration and independent receipt. |
-| `validation_0`, `evaluation_freeze_0` | Keep: original accepted evidence and maintenance lineage. |
-| `validation_1`, `evaluation_freeze_1` | Keep: corrected validation, exact financial parity and replacement executable. |
-| `final_evaluation_2` | Keep: completed 2025 result; rerun only its verifier. |
-| `final_evaluation_0`, `final_evaluation_1` | Superseded attempts. After final verification succeeds, retain their failure logs and remove their partial output trees if no retained manifest references them. |
-
-Keep `scratch/datasets` and its source/action archives: verification uses them,
-and deleting them would require reacquisition. Do not delete all of `scratch`.
-Build object directories under `scratch/native/<configuration>/objects` are
-rebuildable and can be removed while no build is running; the next build will
-recompile. Frozen runners inside `evaluation_freeze_*` are evidence, not build
-cache. Generated child `review.zip` files duplicate exports and can be regenerated
-by their verifiers; retain the requested top-level review bundles for sharing.
-Do not remove underlying JSON, JSONL or CSV records merely because a ZIP exists.
-
-Measure the immediate scratch directories before selecting additional cleanup:
-
-```powershell
-Get-ChildItem .\scratch -Directory | ForEach-Object {
-    $bytes = (Get-ChildItem -LiteralPath $_.FullName -File -Recurse -Force |
-        Measure-Object -Property Length -Sum).Sum
-    [pscustomobject]@{ Directory = $_.FullName; GiB = [math]::Round($bytes / 1GB, 3) }
-} | Sort-Object GiB -Descending | Format-Table -AutoSize
-```
-
-Use the measured sizes to select additional cleanup; retain datasets and accepted
-evidence even when they are the largest directories.
 
 ### Cross-year payment-date maintenance
 
-The original accepted M8 runner stopped during M9 ledger setup with
-`historical calendar conversion is bounded to 2016 through 2025`. Its cash-event
-validation and accrual incorrectly used the price-session date parser for
-payable dates. A 2025 ex-date may legitimately have a 2026 payment date. Payment
-metadata does not authorize a 2026 price, session or forecast target.
+The original M8 runner used a bounded price-calendar parser for payment metadata.
+The accepted replacement separates civil payment dates, preserves receivables
+and rejects 2026 market sessions. Its 2024 output passed exact parity of all
+26 financial artifact identities and four scientific summaries before freezing.
+The [acceptance record](validation.md#windows-provider-2025-final-acceptance)
+retains both freeze identities. No replacement is needed after acceptance.
 
-The correction uses the existing strict civil UTC date parser for payment dates
-at both sites. Ex-dates and market sessions retain their original access limits;
-receivables remain outstanding until their actual payment date. Terminal stock
-liquidation does not fabricate early cash settlement. No strategy, threshold,
-bootstrap parameter, input registration or calibration kernel changes.
+### Resume a completed final run after verifier failure
 
-A compiled frozen executable cannot be edited in place. Preserve the original
-freeze, its runner and the original failure log. The maintenance
-sequence below builds the correction, reuses the original full calibration,
-verifies a replacement **2024-only** validation and requires exact identity of
-all prior financial artifacts before issuing a new freeze. It does not repeat
-the 20,000-trial calibration. Scientific summaries are compared with the existing
-numerical verifier; source/report identities and source-location metadata may
-change. A parity failure stops the sequence before 2025 access.
+Run only `verify_panel_evaluation.py <completed-directory> --self-check` after a
+verifier correction. Do not repeat completed native replays, calibration or
+freeze construction. The final receipt binds the actual copied runner and
+verifier; the full source/ledger checks precede receipt creation.
 
-Run this replacement sequence once in an existing PowerShell window at the
-repository root. Do not repeat the previous original-frozen-run command:
+### Retained evidence and scratch storage
+
+Keep registered datasets, calibration, original/replacement validation, copied
+runners and accepted final output. Their paths and hashes establish reproduction.
+Generated object files are rebuildable; old CMake output under `scratch/build`
+is not used. Compact review bundles omit detailed raw records and cannot replace
+local evidence. No blanket deletion of JSON/JSONL/CSV files is valid.
+
+## Publication
+
+The committed PDF and standalone HTML contain the full study. The HTML embeds
+saved event views and images and opens without a server or script. Install the
+pinned display dependencies in an existing environment:
 
 ```powershell
-& {
-    $ErrorActionPreference = "Stop"
-    git pull --ff-only
-    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
-    $expected = "3f38879460ebac1ca49366ddcf5a3c72f12a7df5e3e4bda666b401bd46bc73a7"
-    $originals = @(
-        Get-ChildItem .\scratch\runs -Directory -Filter "evaluation_freeze_*" |
-        Where-Object { Test-Path (Join-Path $_.FullName "freeze.json") } |
-        Where-Object { (Get-FileHash (Join-Path $_.FullName "freeze.json") -Algorithm SHA256).Hash.ToLowerInvariant() -eq $expected }
-    )
-    if ($originals.Count -ne 1) { throw "Expected one original accepted freeze" }
-    $originalDir = $originals[0].FullName
-    py -3 -B research/verify_panel_evaluation.py $originalDir --freeze
-    if ($LASTEXITCODE -ne 0) { throw "Original freeze verification failed" }
-    $original = Get-Content (Join-Path $originalDir "freeze.json") -Raw | ConvertFrom-Json
-
-    py -3 -B build.py --configuration Release --target panel_evaluation
-    if ($LASTEXITCODE -ne 0) { throw "Corrected build failed" }
-    $runner = ".\scratch\native\Release\panel_evaluation.exe"
-    & $runner --validation $original.calibration_directory | Tee-Object -Variable runLog
-    if ($LASTEXITCODE -ne 0) { throw "Corrected 2024 validation failed" }
-    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Validation manifest missing" }
-    $validationDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
-    py -3 -B research/verify_panel_evaluation.py $validationDir --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Corrected validation verification failed" }
-    py -3 -B research/verify_panel_evaluation.py $validationDir --compare-validation $originalDir
-    if ($LASTEXITCODE -ne 0) { throw "2024 parity failed; do not proceed to 2025" }
-
-    & $runner --freeze $validationDir | Tee-Object -Variable freezeLog
-    if ($LASTEXITCODE -ne 0) { throw "Replacement freeze failed" }
-    $line = ($freezeLog | Select-String '^Freeze: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Replacement freeze path missing" }
-    $freezeDir = Split-Path ($line -replace '^Freeze: ', '') -Parent
-    Copy-Item (Join-Path $validationDir "maintenance_verification.json") $freezeDir
-    py -3 -B research/verify_panel_evaluation.py $freezeDir --freeze
-    if ($LASTEXITCODE -ne 0) { throw "Replacement freeze verification failed" }
-    $record = Get-Content (Join-Path $freezeDir "freeze.json") -Raw | ConvertFrom-Json
-    $frozenRunner = Join-Path $freezeDir $record.runner
-    & $frozenRunner --final $freezeDir | Tee-Object -Variable runLog
-    if ($LASTEXITCODE -ne 0) { throw "Corrected 2025 evaluation failed" }
-    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Final manifest missing" }
-    $finalDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
-    py -3 -B research/verify_panel_evaluation.py $finalDir --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Final verification failed" }
-    Write-Host "Share corrected validation: $validationDir\review.zip"
-    Write-Host "Share final evaluation: $finalDir\review.zip"
-}
+py -3 -m pip install -r research/report_requirements.txt
+py -3 -B research/build_report.py --demo <verified-demo-directory>
+py -3 -B research/verify_publication.py
 ```
 
-Native progress warms earlier dates before scoring the named evaluation year.
-The corrected validation scores 2024; the final run scores **2025 only, through
-31 December 2025**. Genuine final unit references begin on 2 January 2024. No
-2026 price is opened. All primary rules, fourteen variants, five costs and two
-delays remain fixed, with prior-exposure and calibration qualifications retained.
-
-The new final review bundle includes `frozen_record.json` and the maintenance
-parity receipt; the final verification receipt records their relevant identities.
-The original freeze and M8 findings remain retained. This is an implementation
-correction with a documented replacement freeze, not a claim that the original
-binary successfully evaluated 2025.
-
-If a native run completes and only verification fails, retain its printed
-`Manifest:` directory and rerun only the verifier after a concrete fix. Do not
-repeat completed strategy replay or calibration by default. Both validation and
-final output directories are unique and preserved locally. The corrected 2024
-and final 2025 bundles have passed [Windows acceptance and derived-artifact review](validation.md#windows-provider-2025-final-acceptance).
+One content model in `docs/report_source.json` feeds both formats. The evidence
+manifest binds all curated tables; the publication manifest binds renderer,
+content and outputs. Text uses UTF-8/LF hashes; original records and binary PDFs
+retain raw-byte identities. Publication formatting does not rerun research.

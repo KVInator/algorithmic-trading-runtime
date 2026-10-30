@@ -1,7 +1,7 @@
 {
-  "title": "From Intraday Signals to Durable Execution",
-  "subtitle": "A C++20 SPY development study with synthetic broker protocols and measured implementation costs",
-  "abstract": "This study evaluates three specified intraday strategy families and a separate daily-risk allocation design, then connects causal decisions to a durable single-symbol execution runtime. Historical experiments use inspected 2022-2023 SPY minute data with frozen exclusions, prior-only estimation, matched controls, hypothetical costs and paired uncertainty. None advances under its registered screens. Positive continuation point returns coexist with tail dependence and unconfirmed volume increments; reversion demonstrates the distinction between numerical OU admissibility and latent-model identification. A deterministic broker peer exercises partial fills, cancellations, duplicate delivery, uncertain submission and exact restart reconciliation. Matched synthetic execution measurements cover 144 account cases. Release benchmarks compare processing, extra copying, volatile/synchronized journals and warm recovery across 120 rows per host. Independent numerical references, raw evidence identities and portable offline checks support reproducibility. The results establish a bounded research-to-execution workflow and its measured limitations, without converting synthetic fills or development estimates into a live-trading claim.",
+  "title": "Algorithmic Trading Research and Execution",
+  "subtitle": "Causal strategy research across five instruments, shared capital and synthetic execution",
+  "abstract": "This C++20 study evaluates fixed intraday momentum, continuation and opening-anchor reversion rules, with a separate daily-risk allocation experiment. A registered five-instrument archive spans 2016-2025: 2016 initializes histories, 2017-2023 supplies development observations, 2024 is validation and 2025 is a frozen final retrospective evaluation. C++ owns signals, accounts, matching and durable recovery; Python independently verifies arithmetic and formats recorded evidence. The final evaluation retains 77 primary and 345 secondary/matched series, fourteen variants, 200 risk-account and 50 shared-capital cases. Some index point means are positive, but concentration, unavailable matched outcomes and controlled bootstrap size excess prevent a supported advancement claim. Separate synthetic process-broker and execution studies establish tested accounting/recovery invariants, not observed broker fills. Archived Release benchmarks measure bounded local workloads. Financial results, source coverage, numerical uncertainty and software correctness remain separate conclusions.",
   "chapters": [
     {
       "id": "question",
@@ -9,49 +9,15 @@
       "blocks": [
         {
           "type": "paragraph",
-          "text": "Can a specified intraday signal survive chronological evaluation and explicit costs, and can the same decision be translated into an auditable order/account process under uncertain execution? These are related but distinct questions. A correct runtime cannot create a predictive edge, and a favorable research return does not demonstrate executable fills."
+          "text": "The research question is whether fixed, prior-only intraday methods provide an economically material improvement over explicit controls after declared costs, delays and exposure conventions. A separate question is whether their targets can be translated into an exact order/account process with deterministic recovery. The source and report distinguish hypothetical historical references, synthetic execution and measured local processing costs."
         },
         {
           "type": "paragraph",
-          "text": "The project implements three strategy families: late-session momentum, time-of-day continuation and opening-anchor reversion. Price-only and volume-conditioned continuation are variants of one family. A separate daily-risk experiment tests whether intraday variation improves next-session allocation and forecasting over daily-only and static controls."
+          "text": "The original registered SPY study uses inspected 2022-2023 observations and is retained as a reference. The extension fixes SPY, QQQ, IWM, TLT and GLD before replay. Three equity ETFs are correlated, and prior GLD research means the later panel is not globally unseen. The frozen sequence prevents selection using this extension's final outcomes; it cannot undo prior research exposure."
         },
         {
           "type": "paragraph",
-          "text": "The contribution is the combination of causal C++ engines, registered development comparisons, independent numerical references, exact order accounting, a deterministic protocol peer, durable replay, execution-quality measurements and measured software costs. It is a bounded empirical and systems study rather than a new asset-pricing theory."
-        },
-        {
-          "type": "table",
-          "columns": [
-            "Evidence layer",
-            "Question",
-            "Accepted evidence"
-          ],
-          "rows": [
-            [
-              "Historical development",
-              "Does the fixed design advance?",
-              "SPY-IM-01, SPY-TOD-01, SPY-MR-01 and SPY-RISK-01 retain negative or unconfirmed advancement findings."
-            ],
-            [
-              "Synthetic execution",
-              "Do stated transitions conserve resources?",
-              "Three strategy adapters, partial/cancel paths, stable identities and paired restart/reconciliation."
-            ],
-            [
-              "Execution measurement",
-              "What changes under declared assumptions?",
-              "144 account cases, 108 paired policy contrasts and 120 one-factor contrasts."
-            ],
-            [
-              "Implementation benchmark",
-              "What does correctness/durability cost?",
-              "120 Release rows per host, repeated trials, raw quantiles, timed-call rates and resource observations."
-            ]
-          ]
-        },
-        {
-          "type": "paragraph",
-          "text": "Numerical validity, model adequacy, economic value, robustness and operational feasibility are assessed separately. Registered screens remain fixed after seeing results. No strategy was modified to reverse a failed assessment."
+          "text": "The contribution is an inspectable chain from validated observations to causal decisions, funded ledgers, matched controls, uncertainty and independently reconstructed recovery. A failed economic screen or unavailable account tail remains a result, rather than being replaced by another cost, instrument or parameter setting."
         }
       ]
     },
@@ -59,6 +25,10 @@
       "id": "data",
       "title": "2. Data, information sets and account conventions",
       "blocks": [
+        {
+          "type": "paragraph",
+          "text": "This chapter describes the original SPY reference conventions. The separate five-instrument archive contains 2,514 exchange sessions and retained raw acquisition/action evidence for 2016-2025. The multi-instrument chapter specifies its operational masks, canonical corporate actions, source amendments and later-period scope. Original SPY results retain their own snapshot and prior-use exclusions."
+        },
         {
           "type": "paragraph",
           "text": "Historical inputs are Alpaca SIP SPY one-minute raw-price bars in USD. A bar timestamp is its interval start; its close, range and volume become available only when that minute completes. Exchange calendars determine each session and its New York daylight-saving conversion. Historical final bars are not a record of original live receipt and revision times."
@@ -201,10 +171,6 @@
           "type": "figure",
           "name": "reversion_validation",
           "caption": "Figure 2. Selected pre-scoring synthetic controls. A latent unit root is numerically OU-admissible in 61.8% of clean trials and 100% with observation noise. Slope intervals substantially under-cover, especially under measurement misspecification."
-        },
-        {
-          "type": "paragraph",
-          "text": "Parameter ranges remain descriptive: they neither establish stationarity nor filter historical entries. Longer histories do not repair a misspecified observation model."
         }
       ]
     },
@@ -382,9 +348,100 @@
       ]
     },
     {
-      "id": "execution",
-      "title": "8. Exact accounting, broker protocol and durable recovery",
+      "id": "panel",
+      "title": "8. Multi-instrument development and frozen evaluation",
       "blocks": [
+        {
+          "type": "paragraph",
+          "text": "The extension retains five instruments and three directional strategy families. Each model uses completed information and strictly earlier estimation histories. Fresh validation/final capital is independent of warmed features. The daily-risk experiment remains separate from the fifteen symbol/family owners in the whole-share shared account."
+        },
+        {
+          "type": "paragraph",
+          "text": "The original complete-minute intersection qualifies only four development years under a five-year gate. A separately registered amendment uses 33 required operational execution slots and reports feature availability separately. The parent assessment remains failed under its own definition. Three missing closes on 2019-08-12 remain unavailable after empty recovery responses; daily history resets instead of bridging those returns. Canonical issuer cash events, secondary split cross-checks and GLD cash-absence evidence retain their completeness assumptions."
+        },
+        {
+          "type": "table",
+          "columns": [
+            "Period",
+            "Role",
+            "Primary evaluation dates"
+          ],
+          "rows": [
+            [
+              "2016",
+              "Initialize past-only histories",
+              "Not scored"
+            ],
+            [
+              "2017-2023",
+              "Retrospective development",
+              "1,760"
+            ],
+            [
+              "2024",
+              "Registered validation",
+              "252"
+            ],
+            [
+              "2025",
+              "Frozen final retrospective evaluation",
+              "250"
+            ]
+          ]
+        },
+        {
+          "type": "figure",
+          "name": "panel_results",
+          "caption": "Figure 4. Five-instrument research indices at one basis point per side and one-minute delayed minute-open references. Mean net returns use each retained common-date mask; they are not shared funded wealth. Right: 2025 primary paired coverage. All six exceed the registered minimum of 200 dates and 80% of 250 sessions."
+        },
+        {
+          "type": "paragraph",
+          "text": "The 2025 pooled net index means are -0.7684 bp/day for momentum, +0.3157 for volume-conditioned continuation and +0.1042 for reversion, with 247 observed common dates. Zeroing each positive index's largest winning date changes its mean to -0.7021 and -0.0961 bp/day respectively, keeping the denominator fixed. This concentration diagnostic neither refits the strategy nor simulates a replacement funded ledger."
+        },
+        {
+          "type": "paragraph",
+          "text": "Fourteen one-factor sensitivity cases vary histories, observation grids and holding periods without selecting a replacement. Forty-five unit accounts support fifty funded risk-matched accounts. The sizing window retains 252 prior session slots; missing observations remain missing. Candidate and control exposure scale toward the smaller of their past annual volatility and the fixed 10% target, without leverage."
+        },
+        {
+          "type": "equation",
+          "latex": "\\sigma_t^*=\\min(0.10,\\widehat\\sigma_{c,t-1},\\widehat\\sigma_{b,t-1}),\\qquad w_{j,t}=\\sigma_t^*/\\widehat\\sigma_{j,t-1}"
+        },
+        {
+          "type": "paragraph",
+          "text": "Dependence-aware inference resamples a common full calendar for the six-endpoint family, retaining unavailable slots. The reported lower bound is estimate minus a joint max-T critical value times its HAC standard error. Blocks 5, 10, 20 and 40, seed 290026 and 10,000 resamples remain fixed. The controlled calibration runs 20,000 outer families and detects nominal size excess in 19/20 case/block cells. Numerical bounds therefore do not support a validated nominal 95% simultaneous-confidence interpretation."
+        },
+        {
+          "type": "figure",
+          "name": "panel_bounds",
+          "caption": "Figure 5. Final primary point estimates and block-40 numerical lower bounds. Dots are estimates, left ticks are lower bounds, and dashed gold lines are registered material increments. These are not two-sided intervals. The panels use distinct return, CER and QLIKE units. Size control failed; no endpoint lower clears its material increment."
+        },
+        {
+          "type": "paragraph",
+          "text": "Primary QLIKE coverage rises from 121/252 dates in 2024 to 238/250 in 2025. The final matched counts are 247, 247, 247, 0, 250 and 238 in registered endpoint order. The reversion-versus-drift endpoint is unavailable; the complete matched family remains unavailable rather than dropping that comparison. Positive relative point estimates do not establish incremental skill."
+        },
+        {
+          "type": "figure",
+          "name": "panel_accounts",
+          "caption": "Figure 6. Five 2025 whole-share shared-capital accounts at the primary cost and delay, each starting from USD 100,000 and completing 250 dates. The right panel retains their different market exposure; return differences are not risk-matched alpha estimates."
+        },
+        {
+          "type": "paragraph",
+          "text": "All 200 risk-account and fifty shared-capital cases complete 2025. The primary shared candidate ends at USD 99,763.25481382, with USD 1,759.58798618 charged costs, 23.9159% mean exposure and 1.0196% drawdown. Earlier development paths and the primary 2024 shared path stop on missing required inputs; the 2024 primary completes only 79 dates. Complete 2025 paths do not fill those earlier tails."
+        },
+        {
+          "type": "paragraph",
+          "text": "The original M8 executable could not parse a legitimate 2026 payable date attached to a 2025 distribution. A corrected runner reproduced all 26 financial artifact identities and four 2024 scientific summaries before a separate replacement freeze authorized the final run. Original records remain retained. Only payment metadata crosses 2025; no 2026 price, session or forecast target is admitted."
+        }
+      ]
+    },
+    {
+      "id": "execution",
+      "title": "9. Exact accounting, broker protocol and durable recovery",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "The five-instrument shared-capital book has one global cash balance, five inventories and fifteen strategy owners. Target netting and aggregate limits do not transfer ownership implicitly. A separate native child process owns the broker ledger and its durable history; the client recovers activity before trusting a snapshot. DAY, IOC and GTC limit policies, cancel/new replacement, fees and transport faults are tested through the shared matching core. Windows acceptance covers 313 checks in twelve families across 21 child processes. All events are synthetic; anonymous pipes demonstrate process separation, not external-broker connectivity."
+        },
         {
           "type": "paragraph",
           "text": "The execution core owns one symbol, whole-share inventory, integer money, order and execution identities, reservations and a sequential trace. Legacy journals retain cents; the paper bridge uses USD 1e-9 units and an explicit zero-fee paper convention. Scope excludes shorts, leverage, fractional executions, corporate actions inside this execution account, exchange queue reconstruction and execution busts."
@@ -434,7 +491,7 @@
         {
           "type": "figure",
           "name": "broker_lifecycle",
-          "caption": "Figure 4. Saved checkpoints of the partial-fill/cancellation case. Cash and remaining reservations change for distinct reasons. The terminal account holds four shares with USD 1,600 cash after confirmation; it is not incorrectly flattened."
+          "caption": "Figure 7. Saved checkpoints of the partial-fill/cancellation case. Cash and remaining reservations change for distinct reasons. The terminal account holds four shares with USD 1,600 cash after confirmation; it is not incorrectly flattened."
         },
         {
           "type": "table",
@@ -483,8 +540,12 @@
     },
     {
       "id": "measurement",
-      "title": "9. Synthetic execution measurements and censoring",
+      "title": "10. Synthetic execution measurements and censoring",
       "blocks": [
+        {
+          "type": "paragraph",
+          "text": "The extension separately evaluates 680 registered synthetic execution cases and 510 matched contrasts, with exact reconciliation of every terminal account. The historical cost/delay study retains 400 instrument/policy/cost/delay series and 240 paired contrasts. A fixed pre-2024 SIP quote sample retains 910 windows; 232 are eligible under the registered condition and timestamp rules. Sparse earlier-year eligibility is reported, not repaired by dropping the condition filter or fitting costs from final results. These studies have different evidence origins: sampled quote crossing references do not calibrate the synthetic fill/queue model. The following 144-case measurement is the original narrower reference."
+        },
         {
           "type": "paragraph",
           "text": "The measurement grid contains 36 declared synthetic workloads: buy/sell directions, steady/favorable/adverse paths, and one-factor spread, displayed size, outbound/delivery or cancellation-processing changes. Four fixed policies combine crossing or same-side limits with five- or eleven-second cancellation deadlines. Matching reuses quote sequence budgets; advancing the clock does not replenish liquidity."
@@ -518,12 +579,12 @@
         {
           "type": "figure",
           "name": "execution_policies",
-          "caption": "Figure 5. Equal-weight deterministic workload aggregates. Fill coverage and executed/unfilled costs are displayed together. These shares are constructed scenario frequencies, not empirical fill probabilities or a universal policy ranking."
+          "caption": "Figure 8. Equal-weight deterministic workload aggregates. Fill coverage and executed/unfilled costs are displayed together. These shares are constructed scenario frequencies, not empirical fill probabilities or a universal policy ranking."
         },
         {
           "type": "figure",
           "name": "quote_and_fills",
-          "caption": "Figure 6. One adverse buy workload with crossing limit and five-second cancellation policy. Quote/fill source times are constructed. Fill marker area reflects shares. Quotes establish only the declared top-of-book budget."
+          "caption": "Figure 9. One adverse buy workload with crossing limit and five-second cancellation policy. Quote/fill source times are constructed. Fill marker area reflects shares. Quotes establish only the declared top-of-book budget."
         },
         {
           "type": "table",
@@ -564,7 +625,7 @@
     },
     {
       "id": "performance",
-      "title": "10. Implementation performance and resource limits",
+      "title": "11. Implementation performance and resource limits",
       "blocks": [
         {
           "type": "paragraph",
@@ -598,7 +659,7 @@
         {
           "type": "figure",
           "name": "runtime_costs",
-          "caption": "Figure 7. Native MSVC Release processing costs. Curves are medians of five trial p50 values with observed min/max bands; bands are not confidence intervals. Right: median per-trial timed-call rate at 128 round trips."
+          "caption": "Figure 10. Native MSVC Release processing costs. Curves are medians of five trial p50 values with observed min/max bands; bands are not confidence intervals. Right: median per-trial timed-call rate at 128 round trips."
         },
         {
           "type": "paragraph",
@@ -607,7 +668,7 @@
         {
           "type": "figure",
           "name": "restart_recovery",
-          "caption": "Figure 8. Warm replay costs on two different hosts/toolchains. Native paper recovery median is 982.58 ms; typed recovery 72.76 ms at 128 round trips. Cross-host differences cannot isolate an operating-system or compiler effect."
+          "caption": "Figure 11. Warm replay costs on two different hosts/toolchains. Native paper recovery median is 982.58 ms; typed recovery 72.76 ms at 128 round trips. Cross-host differences cannot isolate an operating-system or compiler effect."
         },
         {
           "type": "table",
@@ -676,61 +737,61 @@
     },
     {
       "id": "reproduction",
-      "title": "11. Reproduction, verification and evidence access",
+      "title": "12. Reproduction, verification and evidence access",
       "blocks": [
         {
           "type": "paragraph",
-          "text": "The authoritative financial implementation is C++20 under src/. Thin apps compose models and owners. The final project_demo composes the shared strategy and broker diagnostics; its reports bind saved results and the event buttons select recorded states. Python scripts independently verify accounting, strategy directions, statistical summaries or publication evidence. This publication builder only formats recorded values and draws descriptive figures; it does not score strategies."
+          "text": "C++20 is authoritative under src/. Thin application entry points compose strategy, account, broker and report owners. Python performs build orchestration, independent numerical verification and publication transforms. One source list is discovered by build.py; Runtime.sln delegates to it. CMake and CTest are not used."
         },
         {
           "type": "code",
-          "text": "python -B build.py --configuration Release\nscratch/native/Release/project_demo\npython -B research/verify_project_demo.py scratch/runs/project_demo_0"
+          "text": "python -B build.py --configuration Release --target project_demo\nscratch/native/Release/project_demo\npython -B research/verify_project_demo.py <printed-directory>\npython -B research/verify_publication.py"
         },
         {
           "type": "paragraph",
-          "text": "In Visual Studio 2022 or 2026 with Desktop development with C++ and Python 3.10+, open Runtime.sln, select Release | x64 and Build Solution. Ctrl+F5 runs project_demo. Debug | x64 supports stepping through code. The solution delegates to build.py; outputs are under scratch/native/<configuration>. The 120-row benchmark is a separate workload."
+          "text": "On Windows, install Desktop development with C++, a Windows SDK and Python 3.10+, open Runtime.sln, choose Release | x64 and build. Ctrl+F5 runs the default demo. The equivalent terminal commands use py -3 -B and executables have the .exe suffix. Linux requires a C++20 compiler, ar and OpenSSL development headers. Build warnings are errors. Debug and sanitized builds test correctness, not Release timing."
+        },
+        {
+          "type": "paragraph",
+          "text": "The first build downloads pinned nlohmann/json 3.12.0; --json-include supplies an existing validated include directory. Offline demos require no market credentials, broker service or private archive after dependencies are available. Historical reproduction additionally requires retained response pages, calendars, masks, corporate actions and registered manifests. Public summary tables cannot substitute for those raw inputs."
         },
         {
           "type": "code",
-          "text": "scratch/native/Release/execution_measurement\nscratch/native/Release/runtime_benchmark\npython -B research/verify_execution_measurement.py <printed-directory>\npython -B research/verify_runtime_benchmark.py <printed-directory>\npython -B research/build_report.py --demo <project-demo-directory>"
+          "text": "python -m pip install -r research/report_requirements.txt\npython -B research/build_report.py --demo <verified-demo-directory>\npython -B research/verify_publication.py"
         },
         {
           "type": "paragraph",
-          "text": "Offline builds/demos need no broker credentials, private dataset or subscription. The first build fetches pinned nlohmann/json; Linux also requires OpenSSL development headers. Publication dependencies are pinned in research/report_requirements.txt. Full historical reproduction separately requires the retained acquisition pages, checkpoints, calendars, manifests and corporate-action references. The distributed summary snapshot does not recreate unavailable daily paths or independently replace that acquisition evidence."
+          "text": "The publication reads one content model and a hash-checked evidence manifest. Figures convert recorded units and group retained results; they do not score strategies or run accounts. The self-contained HTML embeds saved synthetic event views. The PDF provides corresponding static figures. UTF-8/LF hashes bind distributed text; original inputs, run records and PDFs retain raw-byte identities."
         },
         {
           "type": "paragraph",
-          "text": "The evidence manifest identifies original result documents and native summary digests. Runtime CSVs are copied verbatim; other curated fields are selected recorded statistics or display-unit conversions. Native benchmark verification checks 100 hashes and 120 rows; 96 journals match Linux byte-for-byte. All 230 source records have exact or explained CRLF matches. Earlier research verification includes Decimal accounting/OLS and matching bootstrap references with recorded limitations."
+          "text": "Original and replacement validation/final directories remain local. Full local verification authenticates raw provider data, causal decisions and ledgers. Uploaded compact bundles support independent derived arithmetic and plot review; they omit sixteen detailed source artifacts per evaluation and the frozen Windows executable bytes. This distinction remains explicit in the evidence records. Frozen final reproduction uses its retained runner, not an ordinary rebuilt executable."
         },
         {
           "type": "paragraph",
-          "text": "The final source tree retains the applications and independent scientific verifiers. Verification is invoked explicitly; there is no hosted workflow or unit-test tree. Distributed publication text has UTF-8/LF-normalized hashes; binary PDFs and original input/run evidence retain raw-byte hashes. Checksums detect corruption, not malicious rewriting or complete valid-suffix removal without a trusted external tip. File synchronization is not a tested physical power-loss guarantee."
+          "text": "Runtime figures retain their original Windows and GNU/Linux host/toolchain identities. They benchmark the original single-symbol typed/paper calls and recovery workloads, not the expanded five-instrument process peer. The extension has no new speed or throughput claim. Detailed contracts, exact commands, input provenance and accepted hashes are linked from docs/running.md, docs/architecture.md and docs/validation.md."
         }
       ]
     },
     {
       "id": "conclusions",
-      "title": "12. Findings, limitations and completion boundary",
+      "title": "13. Findings, limitations and completion boundary",
       "blocks": [
         {
           "type": "paragraph",
-          "text": "No registered design earns advancement to later-period evaluation. Late momentum fails gross economics. Volume continuation has a positive development point return and reduced turnover but unconfirmed incremental evidence and positive-tail dependence. Reversion shows how finite-sample/noise failures can undermine a seemingly plausible OU interpretation; its candidate is cost-dominated and insufficiently active under the declared screen. Intraday risk has a positive forecast-loss point increment without a supported incremental allocation benefit over daily-only."
+          "text": "The complete study distinguishes economic findings from engineering acceptance. The original SPY screens fail. In the five-instrument final evaluation, volume-conditioned continuation and reversion have small positive pooled index means, but both are concentrated in their largest winning date. The primary shared candidate loses 0.2367% after its declared charges. No final primary numerical lower bound exceeds its material threshold."
         },
         {
           "type": "paragraph",
-          "text": "The execution work establishes exact tested invariants and deterministic recovery under declared synthetic scenarios. It does not establish external-broker compatibility, live fills, market impact or production readiness. The performance work measures the present copy-and-digest architecture and real platform storage calls within bounded workloads. It is not a claim to a high-frequency latency target."
+          "text": "The final primary family has adequate coverage; the matched family does not. Controlled calibration detects size excess, so nominal simultaneous-confidence claims are withheld. Registered sensitivity cases and unavailable outcomes remain in the record. No new rule, cost, instrument subset or delay is selected after final inspection."
         },
         {
           "type": "paragraph",
-          "text": "Consequential limitations include a single ETF, an inspected two-year development period, prior strategy/literature exposure, historical final-bar information, hypothetical costs, long/cash scope, no cash yield, limited observation-model identification, uncalibrated synthetic liquidity and bounded journals. These are retained with their practical implications, rather than hidden by changing gates or discarding difficult dates."
+          "text": "The runtime demonstrates whole-share accounting, explicit ownership and netting, an independently journaled synthetic child broker, bounded lifecycle policies, exact terminal reconciliation and deterministic tested recovery. Synthetic liquidity, anonymous-pipe transport and local timings do not establish real-market fills, external-broker compatibility or a high-frequency latency target."
         },
         {
           "type": "paragraph",
-          "text": "The completed scope contains the three mathematical strategy specifications, the separate risk study, common adapters and account-parity cases, a synthetic broker lifecycle/recovery demonstration, matched execution measurements, Release resource benchmarks, portable offline verification and this standalone report. It does not require an additional strategy search, a paid feed, a native broker service, market making, Level-II reconstruction or a distributed trading platform."
-        },
-        {
-          "type": "paragraph",
-          "text": "The strongest supported conclusion is methodological and operational: specified research decisions can be evaluated without silently changing their information set, and translated into an order/account process whose uncertainty, resources and recovery state remain inspectable. Economic failures are results of the declared studies, not gaps filled with invented profitability."
+          "text": "Material limits include selected and correlated instruments, prior market/strategy exposure, historical final-bar information, missing references, hypothetical costs, fractional research versus whole-share execution, no cash yield, limited OU/noise identification, uncalibrated synthetic liquidity and bounded journals without rotation. The registered archive ends in 2025. The completed scope contains the research, risk matching, shared capital, broker simulation, cost/execution comparisons, controlled inference calibration, frozen retrospective evaluation and this consolidated publication."
         }
       ]
     },
@@ -791,5 +852,5 @@
       ]
     }
   ],
-  "publication_date": "2026-10-25"
+  "publication_date": "2026-10-30"
 }

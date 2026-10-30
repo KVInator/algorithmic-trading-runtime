@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import csv
 import hashlib
 from html.parser import HTMLParser
 import json
@@ -70,7 +71,7 @@ class PublicationVerifier:
         manifest = json.loads(
             (self.root / "docs/publication_manifest.json").read_text(encoding="utf-8")
         )
-        assert manifest["schema_version"] == 2
+        assert manifest["schema_version"] == 3
         assert manifest["text_hash_encoding"] == "utf-8-lf"
         for item in manifest["artifacts"]:
             path = (self.root / item["path"]).resolve()
@@ -82,7 +83,7 @@ class PublicationVerifier:
         evidence = json.loads(
             (evidence_dir / "manifest.json").read_text(encoding="utf-8")
         )
-        assert evidence["schema_version"] == 2
+        assert evidence["schema_version"] == 3
         assert evidence["text_hash_encoding"] == "utf-8-lf"
         for item in evidence["curated_artifacts"]:
             path = (evidence_dir / item["path"]).resolve()
@@ -94,9 +95,31 @@ class PublicationVerifier:
         assert data["later_strategy_prices_opened"] is False
         assert data["reversion"]["sessions"] == data["continuation"]["sessions"] == 476
         assert data["execution"]["case_count"] == 144
+        extension = data["extension"]
+        assert extension["instruments"] == ["SPY", "QQQ", "IWM", "TLT", "GLD"]
+        assert extension["assessment"] == "descriptive_only_controlled_size_excess"
+        assert extension["calibration_size_excess_cells"] == 19
+        for stage, count in (("validation", 252), ("final", 250)):
+            with (
+                evidence_dir
+                / f"m{8 if stage == 'validation' else 9}_{stage}_primary.csv"
+            ).open(newline="", encoding="utf-8") as stream:
+                rows = list(csv.DictReader(stream))
+            assert len(rows) == 17 and len({r["series"] for r in rows}) == 17
+            source = (
+                next(
+                    r["summary_sha256"]
+                    for r in evidence["extension_sources"]
+                    if r["purpose"] == "2024 original validation"
+                )
+                if stage == "validation"
+                else extension["final_summary_sha256"]
+            )
+            assert all(r["source_summary_sha256"] == source for r in rows)
+            assert all(int(r["selected_calendar_dates"]) == count for r in rows)
         document = StaticDocument()
         document.feed((self.root / "docs/report.html").read_text(encoding="utf-8"))
-        assert document.iframe_count == 2 and document.image_count >= 8
+        assert document.iframe_count == 2 and document.image_count >= 11
         assert max(document.child_control_counts) == 216
         pdf = (self.root / "docs/report.pdf").read_bytes()
         assert pdf.startswith(b"%PDF-") and b"\0" in pdf[:8000]
@@ -123,7 +146,7 @@ class PublicationVerifier:
                     broken.append((str(path.relative_to(self.root)), raw))
         assert not broken, broken
         print(
-            f"Verified publication: {len(manifest['artifacts'])} hashes, eight SVG figures, "
+            f"Verified publication: {len(manifest['artifacts'])} hashes, {len(list((self.root / 'docs/figures').glob('*.svg')))} SVG figures, "
             "two static embedded views and local document links"
         )
 

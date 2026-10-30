@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import csv
+from datetime import date
 import hashlib
 import html
 import json
@@ -18,6 +19,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from reportlab import rl_config
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.enums import TA_CENTER
@@ -64,6 +67,23 @@ class Evidence:
                 newline="", encoding="utf-8"
             ) as stream:
                 self.runtime[platform] = list(csv.DictReader(stream))
+        self.panel = {}
+        for stage, prefix in (
+            ("development", "m7_stability"),
+            ("validation", "m8_validation"),
+            ("final", "m9_final"),
+        ):
+            with (directory / f"{prefix}_primary.csv").open(
+                newline="", encoding="utf-8"
+            ) as stream:
+                self.panel[stage] = {r["series"]: r for r in csv.DictReader(stream)}
+            if stage == "development":
+                for row in self.panel[stage].values():
+                    row["mean_return"] = row["mean_net_return"]
+        with (directory / "m9_final_endpoints.csv").open(
+            newline="", encoding="utf-8"
+        ) as stream:
+            self.endpoints = list(csv.DictReader(stream))
 
 
 class Figures:
@@ -74,6 +94,8 @@ class Figures:
     def __init__(self, evidence: Evidence, temporary: Path):
         self.data = evidence.results
         self.runtime = evidence.runtime
+        self.panel = evidence.panel
+        self.endpoints = evidence.endpoints
         self.destination = evidence.root / "docs/figures"
         self.temporary = temporary
         self.paths = {}
@@ -83,6 +105,13 @@ class Figures:
         svg, png = self.destination / f"{name}.svg", self.temporary / f"{name}.png"
         fig.savefig(
             svg, metadata={"Date": None}, bbox_inches="tight", facecolor="white"
+        )
+        svg.write_text(
+            "\n".join(
+                line.rstrip() for line in svg.read_text(encoding="utf-8").splitlines()
+            )
+            + "\n",
+            encoding="utf-8",
         )
         fig.savefig(png, dpi=180, bbox_inches="tight", facecolor="white")
         plt.close(fig)
@@ -115,6 +144,135 @@ class Figures:
         self.quotes()
         self.processing()
         self.recovery()
+        self.panel_results()
+        self.endpoint_bounds()
+        self.account_results()
+
+    def panel_results(self):
+        labels = ["Momentum", "Volume continuation", "Reversion"]
+        policies = ["momentum", "continuation_volume", "reversion_candidate"]
+        fig, axes = plt.subplots(1, 2, figsize=(12, 4.7))
+        for j, (stage, label, color) in enumerate(
+            [
+                ("development", "2017-2023", self.blue),
+                ("validation", "2024", self.gold),
+                ("final", "2025", self.teal),
+            ]
+        ):
+            values = [
+                float(self.panel[stage][f"intraday/equal_weight/{p}"]["mean_return"])
+                * 10000
+                for p in policies
+            ]
+            axes[0].bar(
+                [i + (j - 1) * 0.24 for i in range(3)],
+                values,
+                width=0.24,
+                color=color,
+                label=label,
+            )
+        axes[0].set_xticks(range(3), labels)
+        axes[0].axhline(0, color="#344b5d", linewidth=0.8)
+        axes[0].set_ylabel("Mean net return (bp / observed date)")
+        axes[0].set_title("Equal-weight research indices")
+        axes[0].legend(fontsize=9)
+        rows = [
+            r
+            for r in self.endpoints
+            if r["family"] == "primary" and r["block_length"] == "40"
+        ]
+        counts = [int(r["observed_dates"]) for r in rows]
+        names = [
+            "Momentum",
+            "Continuation",
+            "Reversion / sign",
+            "Reversion / drift",
+            "Risk CER",
+            "QLIKE",
+        ]
+        axes[1].barh(names, counts, color=self.teal)
+        axes[1].axvline(
+            200, color=self.red, linestyle="--", label="2025 minimum: 200 / 250"
+        )
+        for i, n in enumerate(counts):
+            axes[1].text(n + 2, i, f"{n}/250", va="center", fontsize=9)
+        axes[1].set_xlim(0, 285)
+        axes[1].invert_yaxis()
+        axes[1].set_xlabel("Paired evaluation dates")
+        axes[1].set_title("2025 primary endpoint coverage")
+        axes[1].legend(loc="lower right", fontsize=8)
+        self.save("panel_results", fig)
+
+    def endpoint_bounds(self):
+        rows = [
+            r
+            for r in self.endpoints
+            if r["family"] == "primary" and r["block_length"] == "40"
+        ]
+        fig, axes = plt.subplots(
+            1, 3, figsize=(12, 4), gridspec_kw={"width_ratios": [2, 1, 1]}
+        )
+        names = [
+            "Momentum",
+            "Continuation",
+            "Reversion / sign",
+            "Reversion / drift",
+            "Risk CER",
+            "QLIKE",
+        ]
+        for ax, indices, scale, unit in zip(
+            axes,
+            [range(4), [4], [5]],
+            [10000, 100, 1],
+            ["bp/day", "annual percentage points", "loss improvement"],
+        ):
+            for y, i in enumerate(indices):
+                row = rows[i]
+                point = float(row["estimate"]) * scale
+                lower = float(row["family_lower"]) * scale
+                ax.plot([lower, point], [y, y], color=self.blue, linewidth=2)
+                ax.plot(point, y, "o", color=self.blue)
+                ax.plot(lower, y, "|", color=self.blue, markersize=12)
+            ax.set_yticks(range(len(indices)), [names[i] for i in indices])
+            ax.axvline(
+                float(rows[list(indices)[0]]["material_increment"]) * scale,
+                color=self.gold,
+                linestyle="--",
+            )
+            ax.axvline(0, color="#777777", linewidth=0.7)
+            ax.set_xlabel(unit)
+            ax.margins(x=0.2, y=0.3)
+            ax.invert_yaxis()
+        fig.suptitle(
+            "2025 point estimates and block-40 numerical lower bounds", fontsize=12
+        )
+        self.save("panel_bounds", fig)
+
+    def account_results(self):
+        rows = self.data["extension"]["shared_final"]
+        labels = [
+            "Candidate",
+            "Momentum\ncontrol",
+            "Continuation\ncontrol",
+            "Sign-only\ncontrol",
+            "Drift\ncontrol",
+        ]
+        fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+        values = [100 * (r["last_observed_equity"] / 100000 - 1) for r in rows]
+        axes[0].bar(labels, values, color=[self.teal] + [self.blue] * 4)
+        axes[0].axhline(0, color="#344b5d", linewidth=0.8)
+        axes[0].set_ylabel("Funded account return (%)")
+        axes[0].set_title("2025 shared capital: all 250 dates")
+        axes[1].bar(
+            labels,
+            [100 * r["mean_exposure"] for r in rows],
+            color=[self.teal] + [self.blue] * 4,
+        )
+        axes[1].set_ylabel("Mean market exposure (%)")
+        axes[1].set_title("Distinct controls and netted ownership")
+        for ax in axes:
+            ax.tick_params(axis="x", labelsize=8)
+        self.save("panel_accounts", fig)
 
     def historical(self):
         fig, axes = plt.subplots(1, 3, figsize=(13, 4.2))
@@ -471,34 +629,49 @@ class Publication:
         self.temporary = root / "scratch/finalization/publication"
         self.figures = Figures(self.evidence, self.temporary)
         self.math_count = 0
+        fonts = Path(matplotlib.get_data_path()) / "fonts/ttf"
+        for name, filename in (
+            ("ReportSans", "DejaVuSans.ttf"),
+            ("ReportSans-Bold", "DejaVuSans-Bold.ttf"),
+            ("ReportMono", "DejaVuSansMono.ttf"),
+        ):
+            pdfmetrics.registerFont(TTFont(name, str(fonts / filename)))
+        pdfmetrics.registerFontFamily(
+            "ReportSans", normal="ReportSans", bold="ReportSans-Bold"
+        )
         self.styles = getSampleStyleSheet()
+        for style in self.styles.byName.values():
+            if isinstance(style, ParagraphStyle):
+                style.fontName = (
+                    "ReportSans-Bold" if "Bold" in style.fontName else "ReportSans"
+                )
         self.styles.add(
             ParagraphStyle(
                 "BodyReport",
-                fontName="Helvetica",
+                fontName="ReportSans",
                 fontSize=9.5,
-                leading=14,
-                spaceAfter=8,
+                leading=13,
+                spaceAfter=7,
                 textColor=colors.HexColor("#21394b"),
             )
         )
         self.styles.add(
             ParagraphStyle(
                 "CaptionReport",
-                fontName="Helvetica",
+                fontName="ReportSans",
                 fontSize=8,
-                leading=11,
+                leading=10,
                 spaceAfter=9,
                 textColor=colors.HexColor("#4a6274"),
             )
         )
         self.styles.add(
-            ParagraphStyle("TableReport", fontName="Helvetica", fontSize=8, leading=10)
+            ParagraphStyle("TableReport", fontName="ReportSans", fontSize=8, leading=10)
         )
         self.styles.add(
             ParagraphStyle(
                 "ChapterReport",
-                fontName="Helvetica-Bold",
+                fontName="ReportSans-Bold",
                 fontSize=19,
                 leading=24,
                 spaceAfter=16,
@@ -507,7 +680,11 @@ class Publication:
         )
         self.styles.add(
             ParagraphStyle(
-                "CodeReport", fontName="Courier", fontSize=7, leading=10, spaceAfter=10
+                "CodeReport",
+                fontName="ReportMono",
+                fontSize=7,
+                leading=10,
+                spaceAfter=10,
             )
         )
 
@@ -556,7 +733,7 @@ class Publication:
         canvas.saveState()
         canvas.setStrokeColor(colors.HexColor("#d5e1e9"))
         canvas.line(45, 38, 550, 38)
-        canvas.setFont("Helvetica", 8)
+        canvas.setFont("ReportSans", 8)
         canvas.setFillColor(colors.HexColor("#526a7a"))
         canvas.drawString(
             45, 24, "Algorithmic Trading Runtime | Research and execution study"
@@ -572,7 +749,13 @@ class Publication:
             Paragraph(self.escaped(self.content["title"]), self.styles["Title"]),
             Paragraph(self.escaped(self.content["subtitle"]), self.styles["Heading2"]),
             Spacer(1, 18),
-            Paragraph("Kartik Vij | 25 October 2026", self.styles["BodyReport"]),
+            Paragraph(
+                "Kartik Vij | "
+                + date.fromisoformat(self.content["publication_date"]).strftime(
+                    "%d %B %Y"
+                ),
+                self.styles["BodyReport"],
+            ),
             Paragraph(
                 self.escaped(self.content["abstract"]), self.styles["BodyReport"]
             ),
@@ -587,7 +770,9 @@ class Publication:
             + "</h1>",
             "<p>"
             + self.escaped(self.content["subtitle"])
-            + "</p><p>Kartik Vij | 25 October 2026</p></header>",
+            + "</p><p>Kartik Vij | "
+            + date.fromisoformat(self.content["publication_date"]).strftime("%d %B %Y")
+            + "</p></header>",
             '<main><section class="abstract"><h2>Abstract</h2><p>'
             + self.escaped(self.content["abstract"])
             + "</p></section><nav><h2>Contents</h2><ol>",
@@ -772,7 +957,7 @@ class Publication:
         ]
         files.extend(sorted((self.root / "docs/figures").glob("*.svg")))
         manifest = {
-            "schema_version": 2,
+            "schema_version": 3,
             "text_hash_encoding": "utf-8-lf",
             "renderer": "research/build_report.py",
             "demo_summary_sha256": hashlib.sha256(
@@ -793,7 +978,9 @@ class Publication:
         (self.root / "docs/publication_manifest.json").write_text(
             json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
         )
-        print("Published self-contained HTML, paginated PDF and eight evidence figures")
+        print(
+            f"Published self-contained HTML, paginated PDF and {len(self.figures.paths)} evidence figures"
+        )
 
     @staticmethod
     def css():
