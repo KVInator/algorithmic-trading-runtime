@@ -939,78 +939,98 @@ after M8 evidence acceptance.
 
 ## Frozen final evaluation (M9)
 
-M9 uses the accepted Windows M8 executable without rebuilding it. The provider
-freeze SHA-256 is
-`3f38879460ebac1ca49366ddcf5a3c72f12a7df5e3e4bda666b401bd46bc73a7`;
-the frozen runner SHA-256 is
-`1e28139825e313f674c4abeeafd0f0e26cface126dcd898ca047e365a2173bc3`.
-The block locates that exact freeze, checks its existing identities and executes
-its own runner copy. A different or ambiguous freeze stops the sequence.
+### Cross-year payment-date maintenance
 
-The existing program warms features from 2016-2024, initializes fresh 2025
-capital and scores **2025 only**, through 31 December. Genuine unit references
-start on 2 January 2024, exactly 252 exchange sessions before the first final
-evaluation date. All primary rules, fourteen variants, five costs and two delays
-remain fixed. The last forecast cannot open a 2026 target price. This is the
-registered final retrospective evaluation with the recorded prior-exposure
-qualifications, not a globally unseen or prospective live trial.
+The original accepted M8 runner stopped during M9 ledger setup with
+`historical calendar conversion is bounded to 2016 through 2025`. Its cash-event
+validation and accrual incorrectly used the price-session date parser for
+payable dates. A 2025 ex-date may legitimately have a 2026 payment date. Payment
+metadata does not authorize a 2026 price, session or forecast target.
 
-Run once in an existing PowerShell window from the repository root:
+The correction uses the existing strict civil UTC date parser for payment dates
+at both sites. Ex-dates and market sessions retain their original access limits;
+receivables remain outstanding until their actual payment date. Terminal stock
+liquidation does not fabricate early cash settlement. No strategy, threshold,
+bootstrap parameter, input registration or calibration kernel changes.
+
+A compiled frozen executable cannot be edited in place. Preserve the original
+freeze, its runner and the failed `final_evaluation_0` directory. The maintenance
+sequence below builds the correction, reuses the original full calibration,
+verifies a replacement **2024-only** validation and requires exact identity of
+all prior financial artifacts before issuing a new freeze. It does not repeat
+the 20,000-trial calibration. Scientific summaries are compared with the existing
+numerical verifier; source/report identities and source-location metadata may
+change. A parity failure stops the sequence before 2025 access.
+
+Run this replacement sequence once in an existing PowerShell window at the
+repository root. Do not repeat the previous original-frozen-run command:
 
 ```powershell
 & {
     $ErrorActionPreference = "Stop"
     git pull --ff-only
-    if ($LASTEXITCODE -ne 0) { throw "Git pull failed" }
-
-    $expectedFreeze = "3f38879460ebac1ca49366ddcf5a3c72f12a7df5e3e4bda666b401bd46bc73a7"
-    $acceptedFreezes = @(
+    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
+    $expected = "3f38879460ebac1ca49366ddcf5a3c72f12a7df5e3e4bda666b401bd46bc73a7"
+    $originals = @(
         Get-ChildItem .\scratch\runs -Directory -Filter "evaluation_freeze_*" |
         Where-Object { Test-Path (Join-Path $_.FullName "freeze.json") } |
-        Where-Object {
-            (Get-FileHash -LiteralPath (Join-Path $_.FullName "freeze.json") -Algorithm SHA256).Hash.ToLowerInvariant() -eq $expectedFreeze
-        }
+        Where-Object { (Get-FileHash (Join-Path $_.FullName "freeze.json") -Algorithm SHA256).Hash.ToLowerInvariant() -eq $expected }
     )
-    if ($acceptedFreezes.Count -ne 1) { throw "Expected exactly one accepted M8 freeze; found $($acceptedFreezes.Count). Do not rebuild or create another freeze." }
-    $freezeDir = $acceptedFreezes[0].FullName
+    if ($originals.Count -ne 1) { throw "Expected one original accepted freeze" }
+    $originalDir = $originals[0].FullName
+    py -3 -B research/verify_panel_evaluation.py $originalDir --freeze
+    if ($LASTEXITCODE -ne 0) { throw "Original freeze verification failed" }
+    $original = Get-Content (Join-Path $originalDir "freeze.json") -Raw | ConvertFrom-Json
 
-    py -3 -B research/verify_panel_evaluation.py $freezeDir --freeze
-    if ($LASTEXITCODE -ne 0) { throw "Accepted freeze verification failed" }
-
-    $freeze = Get-Content -LiteralPath (Join-Path $freezeDir "freeze.json") -Raw | ConvertFrom-Json
-    $runner = Join-Path $freezeDir $freeze.runner
-    Write-Host "M9 | frozen runner; warm 2016-2024, score 2025 through 2025-12-31"
-    & $runner --final $freezeDir | Tee-Object -Variable runLog
-    if ($LASTEXITCODE -ne 0) { throw "Frozen 2025 evaluation failed" }
-
+    py -3 -B build.py --configuration Release --target panel_evaluation
+    if ($LASTEXITCODE -ne 0) { throw "Corrected build failed" }
+    $runner = ".\scratch\native\Release\panel_evaluation.exe"
+    & $runner --validation $original.calibration_directory | Tee-Object -Variable runLog
+    if ($LASTEXITCODE -ne 0) { throw "Corrected 2024 validation failed" }
     $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
-    if (!$line) { throw "Final manifest was not printed" }
+    if (!$line) { throw "Validation manifest missing" }
+    $validationDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
+    py -3 -B research/verify_panel_evaluation.py $validationDir --self-check
+    if ($LASTEXITCODE -ne 0) { throw "Corrected validation verification failed" }
+    py -3 -B research/verify_panel_evaluation.py $validationDir --compare-validation $originalDir
+    if ($LASTEXITCODE -ne 0) { throw "2024 parity failed; do not proceed to 2025" }
+
+    & $runner --freeze $validationDir | Tee-Object -Variable freezeLog
+    if ($LASTEXITCODE -ne 0) { throw "Replacement freeze failed" }
+    $line = ($freezeLog | Select-String '^Freeze: ' | Select-Object -Last 1).Line
+    if (!$line) { throw "Replacement freeze path missing" }
+    $freezeDir = Split-Path ($line -replace '^Freeze: ', '') -Parent
+    Copy-Item (Join-Path $validationDir "maintenance_verification.json") $freezeDir
+    py -3 -B research/verify_panel_evaluation.py $freezeDir --freeze
+    if ($LASTEXITCODE -ne 0) { throw "Replacement freeze verification failed" }
+    $record = Get-Content (Join-Path $freezeDir "freeze.json") -Raw | ConvertFrom-Json
+    $frozenRunner = Join-Path $freezeDir $record.runner
+    & $frozenRunner --final $freezeDir | Tee-Object -Variable runLog
+    if ($LASTEXITCODE -ne 0) { throw "Corrected 2025 evaluation failed" }
+    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
+    if (!$line) { throw "Final manifest missing" }
     $finalDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
     py -3 -B research/verify_panel_evaluation.py $finalDir --self-check
-    if ($LASTEXITCODE -ne 0) { throw "Final evaluation verification failed" }
-
-    Write-Host "Completed. Share: $finalDir\review.zip"
-    Write-Host "Also share the terminal output. No M8 rerun or new freeze is needed."
+    if ($LASTEXITCODE -ne 0) { throw "Final verification failed" }
+    Write-Host "Share corrected validation: $validationDir\review.zip"
+    Write-Host "Share final evaluation: $finalDir\review.zip"
 }
 ```
 
-Progress includes warm-history dates starting in 2016. The final `Manifest:`
-identifies a new `final_evaluation_*` directory; no suffix is assumed. Independent
-verification repeats source/history, funded-account, joint-inference and display
-checks over the final outputs. This one-off local research workload can take
-substantial time and does not belong to routine editing checks.
+Native progress warms earlier dates before scoring the named evaluation year.
+The corrected validation scores 2024; the final run scores **2025 only, through
+31 December 2025**. Genuine final unit references begin on 2 January 2024. No
+2026 price is opened. All primary rules, fourteen variants, five costs and two
+delays remain fixed, with prior-exposure and calibration qualifications retained.
 
-The final verifier authenticates the **frozen copy**, even if the ordinary Release
-binary is absent or has subsequently changed. It records its own source hash in
-the final receipt. This Python file-location correction changes no mathematical
-oracle, C++ source, frozen binary, threshold, variant or input registration.
-M8 verification receipts retain their original schema and are not regenerated by
-the final evaluation. Calibration size distortion and incomplete economic paths
-continue into the final report without replacement or selection.
+The new final review bundle includes `frozen_record.json` and the maintenance
+parity receipt; the final verification receipt records their relevant identities.
+The original freeze and M8 findings remain retained. This is an implementation
+correction with a documented replacement freeze, not a claim that the original
+binary successfully evaluated 2025.
 
-Share the printed final `review.zip` and terminal output. Keep the raw archive,
-frozen executable, original M8 evidence and final run directory local. If the
-native run completes and only verification fails, retain the run and repeat the
-verifier for that directory after a concrete fix; do not rerun the strategy by
-default. No final result or M9 completion is claimed until these outputs are
-reviewed. M10 is the remaining publication and release work package.
+If a native run completes and only verification fails, retain its printed
+`Manifest:` directory and rerun only the verifier after a concrete fix. Do not
+repeat completed strategy replay or calibration by default. Both validation and
+final output directories are unique and preserved locally. Windows acceptance
+of this correction and M9 completion remain pending the two review bundles.

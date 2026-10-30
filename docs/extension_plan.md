@@ -551,3 +551,16 @@ MSVC/GNU names and the 2025/2026 access boundary. Existing constructed freeze
 verification and publication identities/links pass. No 2025 provider price or
 strategy outcome was opened during preparation; native Windows final execution
 and full financial verification remain the next acceptance step.
+
+
+### M9 payment-date correction
+
+The first final-run attempt stopped during cash-event setup: the account engine
+applied its 2016-2025 price-calendar bound to payment metadata. The correction
+parses payable dates independently while retaining all price access guards.
+The original failure was reproduced; eight native cross-year/account tests
+cover outstanding receivables, invalid dates and continued rejection of 2026
+market sessions. Existing constructed account records and the guarded 2024
+maintenance comparison provide regression evidence. The original accepted M8
+freeze is retained; a replacement must pass the [maintenance sequence](running.md#cross-year-payment-date-maintenance)
+before final scoring. The full controlled calibration is reused unchanged.

@@ -21,6 +21,10 @@ void require(bool yes, const char *reason) {
         throw std::invalid_argument(reason);
     }
 }
+// Payment metadata may extend beyond the last authorized price session.
+sys_days cash_payment_day(const std::string &date) {
+    return floor<days>(parse_utc_seconds(date + "T00:00:00Z"));
+}
 Json value_json(const AccountValue &v) {
     return {{"cash", v.cash_usd},
             {"shares", v.shares},
@@ -124,7 +128,7 @@ class RiskCase {
                         require(continuity > 0, "nonpositive ex-date continuity mark");
                         account.accrue_dividend(
                             cursor, symbol + "_" + id,
-                            parse_session_date(a.at("payable_date").get<std::string>()),
+                            cash_payment_day(a.at("payable_date").get<std::string>()),
                             a.at("usd_per_share").get<double>(), continuity);
                         last_price = continuity;
                     }
@@ -506,7 +510,7 @@ class PanelAccountStudy::State {
                        pay = a.at("payable_date").get<std::string>();
             const auto amount = a.at("usd_per_share").get<double>();
             require(by_symbol.contains(symbol) && ex <= access_.last_input() && std::isfinite(amount) &&
-                        amount > 0 && parse_session_date(pay) >= parse_session_date(ex) &&
+                        amount > 0 && cash_payment_day(pay) >= parse_session_date(ex) &&
                         seen.emplace(symbol, ex).second,
                     "invalid account cash event");
             by_symbol.at(symbol).push_back(a);

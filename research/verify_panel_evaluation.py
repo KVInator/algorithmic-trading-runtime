@@ -355,8 +355,25 @@ class EvaluationVerifier:
         if self.scope.year == 2025:
             receipt["verifier_sha256"] = digest(Path(__file__))
             receipt["runner_source"] = "verified_M8_frozen_copy"
+            maintenance = freeze / "maintenance_verification.json"
+            if maintenance.exists():
+                note = decode(maintenance.read_bytes())
+                require(
+                    note["kind"] == "payment_date_implementation_maintenance"
+                    and note["status"] == "verified"
+                    and note["replacement_summary_sha256"]
+                    == f["validation_summary_sha256"]
+                    and note["original_freeze_sha256"]
+                    == digest(Path(note["original_freeze_directory"]) / "freeze.json"),
+                    "Maintenance parity receipt differs",
+                )
+                receipt["maintenance_verification_sha256"] = digest(maintenance)
         (d / "verification.json").write_text(json.dumps(receipt, indent=2) + "\n")
         with zipfile.ZipFile(d / "review.zip", "w", zipfile.ZIP_DEFLATED) as z:
+            if self.scope.year == 2025:
+                z.write(freeze / "freeze.json", "frozen_record.json")
+                if maintenance.exists():
+                    z.write(maintenance, "maintenance_verification.json")
             for name in [
                 "summary.json",
                 "report.html",
@@ -463,14 +480,107 @@ def verify_freeze(directory):
     print("Freeze:", d / "freeze.json")
 
 
+def compare_validation(directory, original_freeze):
+    original_freeze = Path(original_freeze).resolve()
+    verify_freeze(original_freeze)
+    frozen = decode((original_freeze / "freeze.json").read_bytes())
+    original = Path(frozen["validation_directory"])
+    replacement = Path(directory).resolve()
+    old, new = [
+        decode((p / "summary.json").read_bytes()) for p in (original, replacement)
+    ]
+    for p, s in ((original, old), (replacement, new)):
+        receipt = decode((p / "verification.json").read_bytes())
+        require(
+            receipt["status"] == "verified"
+            and receipt["summary_sha256"] == digest(p / "summary.json")
+            and s["kind"] == "panel_evaluation"
+            and s["evaluation_scope"]["year"] == 2024
+            and not s["final_strategy_inputs_opened"],
+            "Maintenance requires two verified 2024 evaluations",
+        )
+    for key in (
+        "evaluation_scope",
+        "validation_protocol_sha256",
+        "protocol_sha256",
+        "compiler",
+        "build_configuration",
+        "calibration_directory",
+        "evaluation_dates",
+        "source_calendar_dates",
+        "assessment",
+    ):
+        same(new[key], old[key], "Maintenance " + key)
+    children = [{c["name"]: c for c in s["children"]} for s in (old, new)]
+    require(
+        len(children[0]) == len(children[1]) == 4
+        and children[0].keys() == children[1].keys(),
+        "Maintenance child matrix differs",
+    )
+    count = 0
+    for name in children[0]:
+        paths = [
+            base / table[name]["path"]
+            for base, table in ((original, children[0]), (replacement, children[1]))
+        ]
+        summaries = []
+        for p, table in zip(paths, children):
+            require(
+                digest(p / "summary.json") == table[name]["summary_sha256"],
+                "Maintenance child identity differs",
+            )
+            summaries.append(decode((p / "summary.json").read_bytes()))
+        ignored = {"source_sha256", "report_sha256", "artifacts", "sources"}
+        same(
+            *[{k: v for k, v in s.items() if k not in ignored} for s in summaries],
+            "Maintenance financial summary " + name,
+        )
+        artifacts = [{a["path"]: a for a in s["artifacts"]} for s in summaries]
+        require(
+            artifacts[0].keys() == artifacts[1].keys(), "Maintenance artifacts differ"
+        )
+        for path in artifacts[0]:
+            for p, table in zip(paths, artifacts):
+                require(
+                    digest(p / path) == table[path]["sha256"],
+                    "Maintenance artifact changed",
+                )
+            require(
+                artifacts[0][path]["sha256"] == artifacts[1][path]["sha256"],
+                "Maintenance financial records differ: " + name + "/" + path,
+            )
+            count += 1
+    note = dict(
+        kind="payment_date_implementation_maintenance",
+        status="verified",
+        original_freeze_directory=str(original_freeze),
+        original_freeze_sha256=digest(original_freeze / "freeze.json"),
+        original_summary_sha256=digest(original / "summary.json"),
+        replacement_summary_sha256=digest(replacement / "summary.json"),
+        identical_financial_artifacts=count,
+        financial_summaries=4,
+        final_strategy_inputs_opened=False,
+    )
+    (replacement / "maintenance_verification.json").write_text(
+        json.dumps(note, indent=2) + "\n"
+    )
+    print(
+        f"Maintenance parity passed: {count} byte-identical financial artifacts and four scientific summaries; no 2025 strategy scoring."
+    )
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("directory", type=Path)
     p.add_argument("--self-check", action="store_true")
-    p.add_argument("--freeze", action="store_true")
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument("--freeze", action="store_true")
+    mode.add_argument("--compare-validation", type=Path, metavar="ORIGINAL_FREEZE_DIR")
     a = p.parse_args()
     try:
-        if a.freeze:
+        if a.compare_validation:
+            compare_validation(a.directory, a.compare_validation)
+        elif a.freeze:
             verify_freeze(a.directory)
         else:
             EvaluationVerifier(a.directory).run(a.self_check)
