@@ -1,8 +1,8 @@
 #pragma once
-#include "intraday_continuation.hpp"
-#include "reversion_strategy.hpp"
 #include "daily_risk_study.hpp"
+#include "intraday_continuation.hpp"
 #include "panel_input_policy.hpp"
+#include "reversion_strategy.hpp"
 #include <deque>
 #include <map>
 #include <nlohmann/json.hpp>
@@ -50,12 +50,16 @@ struct PanelReplayParameters {
     void validate() const;
 };
 class PanelReplayState {
-public:
-    PanelReplayState(std::string symbol, PanelInputPolicy policy, PanelReplayParameters parameters = {});
-    [[nodiscard]] PanelReplayDay advance(const HistoricalBarRequest& request, std::span<const MinuteBar> bars,
-        double ex_dividend = 0, const std::optional<MinuteBar>& recovered_close = {});
-private:
+  public:
+    PanelReplayState(std::string symbol, PanelInputPolicy policy, PanelReplayParameters parameters = {},
+                     PanelEvaluationAccess access = {});
+    [[nodiscard]] PanelReplayDay advance(const HistoricalBarRequest &request,
+                                         std::span<const MinuteBar> bars, double ex_dividend = 0,
+                                         const std::optional<MinuteBar> &recovered_close = {});
+
+  private:
     PanelReplayParameters parameters_;
+    PanelEvaluationAccess access_;
     std::string symbol_, previous_date_, previous_close_cutoff_;
     PanelInputPolicy policy_;
     IntradayContinuationHistory continuation_;
@@ -64,7 +68,7 @@ private:
     std::optional<double> previous_close_, static_weight_;
 };
 // Canonical record encoder; the report writer owns storage, not the engine.
-[[nodiscard]] nlohmann::json panel_replay_record(const PanelReplayDay& day);
+[[nodiscard]] nlohmann::json panel_replay_record(const PanelReplayDay &day);
 [[nodiscard]] nlohmann::json verify_panel_reference_parity(std::span<const SessionDownload> legacy,
-    const RiskStudyInputs* risk = nullptr);
+                                                           const RiskStudyInputs *risk = nullptr);
 } // namespace trading

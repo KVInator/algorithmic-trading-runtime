@@ -120,10 +120,14 @@ class StabilityFigures {
           << text(summary_.at("evidence_origin"))
           << ". Saved M6 exports, primary one-basis-point per-side charge and one-minute "
              "delay.</strong></p>"
-             "<p>Descriptive attribution and development bounds only. Secondary variants, risk-matched "
-             "ledger replays and controlled inference calibration "
-             "remain open. No advancement decision is made. Missing outcomes remain unavailable; "
-             "stopped accounts are neither extended nor restarted.</p>"
+          << (summary_.contains("evaluation_scope")
+                  ? "<p>Evaluation-cohort attribution and provisional bounds. Calibration and matched "
+                    "results are in the parent report. No automatic advancement decision is made. "
+                    "Missing outcomes remain unavailable; "
+                  : "<p>Descriptive attribution and development bounds only. Secondary variants, "
+                    "risk-matched ledger replays and controlled inference calibration remain open. No "
+                    "advancement decision is made. Missing outcomes remain unavailable; ")
+          << "stopped accounts are neither extended nor restarted.</p>"
              "<p>Equal-weight series are research indices on all-five observed dates. Their "
              "component-average costs and exposure are not a pooled funded ledger. "
              "Shared accounts retain their own global capital and stop dates.</p>";
@@ -357,7 +361,8 @@ class StabilityFigures {
 } // namespace
 std::filesystem::path StabilityReport::write(const std::filesystem::path &directory,
                                              const StabilityStudy &study, const StabilityInputs &inputs,
-                                             Json results, bool include_checks) {
+                                             Json results, bool include_checks,
+                                             PanelEvaluationAccess access) {
     Json artifacts = Json::array();
     const auto save = [&](const std::string &name, const std::string &raw) {
         write_new_text_file(directory / name, raw);
@@ -379,7 +384,14 @@ std::filesystem::path StabilityReport::write(const std::filesystem::path &direct
     }
     save("observations.jsonl", observations.str());
     save("market.json", inputs.market.dump() + "\n");
-    save("plan.json", study.plan().dump(2) + "\n");
+    auto plan = study.plan();
+    if (!access.development()) {
+        plan["stage"] = access.year() == 2024 ? "M8_primary_validation" : "M9_primary_final";
+        plan["evaluation_scope"] = access.document();
+        plan["reserved_strategy_inputs_opened"] = true;
+        plan["validation_protocol_sha256"] = TRADING_VALIDATION_PROTOCOL_SHA256;
+    }
+    save("plan.json", plan.dump(2) + "\n");
     Json endpoints = Json::array();
     for (const auto &endpoint : inputs.endpoints) {
         endpoints.push_back(stability_endpoint_json(endpoint));
@@ -403,6 +415,11 @@ std::filesystem::path StabilityReport::write(const std::filesystem::path &direct
                     {"advancement_assessed", false},
                     {"dates", inputs.dates},
                     {"artifacts", artifacts}});
+    if (!access.development()) {
+        results["evaluation_scope"] = access.document();
+        results["validation_protocol_sha256"] = TRADING_VALIDATION_PROTOCOL_SHA256;
+        results["reserved_strategy_inputs_opened"] = true;
+    }
     write_new_text_file(directory / "report.html", StabilityFigures{results}.html());
     results["report_sha256"] = sha256_file(directory / "report.html", 32U * 1024 * 1024);
     write_new_text_file(directory / "summary.json", results.dump(2) + "\n");

@@ -114,7 +114,7 @@ M0 performed no historical acquisition, model fitting or strategy scoring.
 | M5 | Expanded synthetic broker | Durable separate peer and lifecycle/recovery scenario acceptance | Complete: Windows Release passed 313 checks in twelve families; independent broker/client replay and GNU final-state parity passed |
 | M6 | Cost and execution research | Matched cost, quote and synthetic execution evidence | Complete with coverage qualifications: quote-reference, historical cost/delay, 680 synthetic execution cases, 200 risk and 50 shared accounts accepted; stopped economic paths remain unavailable |
 | M7 | Stability and fair comparisons | Declared sensitivity, concentration, risk and uncertainty views | Complete with input-limited findings: primary diagnostics, fourteen secondary cases, 50 matched accounts and independent Windows/derived-bundle checks accepted; no supported risk-matched advancement |
-| M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Controlled calibration implemented; integrated validation and freeze remain open |
+| M8 | Integrated validation and freeze | 2024 validation, verified analysis and final executable specification | Implemented for verification; provider validation and freeze pending |
 | M9 | Final retrospective evaluation | Locked 2025 execution with prior-exposure qualifications and retained failures | Not started |
 | M10 | Publication and release | Integrated results, visual evidence, benchmarks and reproducible commands | Not started |
 
@@ -514,3 +514,21 @@ retained, so simultaneous matched bounds are unavailable. M7 is complete with
 input-limited findings and no strategy advancement. Controlled inference
 calibration is M8; 2024 and 2025 strategy inputs remain gated.
 The [runbook](running.md#secondary-stability-and-risk-matching-m7) contains one guarded build/run/verification sequence.
+
+
+## M8 implementation and controlled acceptance
+
+The [M8 specification](validation.md) retains the frozen study and all fourteen
+secondary cases. Full GNU Release calibration independently verifies 20,000
+outer families and forty complete reference bootstrap laws. Size excess is
+detected in 19 of twenty case/block cells. The registered rule retains that
+finding, withholds supported inference claims and allows descriptive validation;
+no bootstrap parameter or endpoint is retuned.
+
+The integrated evaluator reuses existing strategies and ledgers with explicit
+2024 access, warm histories, fresh evaluation capital and genuine prior unit
+references. Verified provider validation freezes the exact same executable
+before explicit M9 access to 2025. M0-M7 remain the eight accepted work packages;
+M8 still needs reviewed Windows provider execution and its verified provider
+freeze. M9 final evaluation and M10 publication remain after it. The [runbook](running.md#integrated-validation-and-freeze-m8)
+provides constructed and historical verification sequences.

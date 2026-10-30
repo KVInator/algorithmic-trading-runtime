@@ -39,7 +39,8 @@ struct Source {
     Json summary;
     std::string hash;
     std::map<std::string, Json> artifacts;
-    explicit Source(std::filesystem::path path) : directory(std::move(path)) {
+    explicit Source(std::filesystem::path path, const PanelEvaluationAccess &access)
+        : directory(std::move(path)) {
         const auto raw = read_text_file(directory / "summary.json", 32U * 1024 * 1024);
         hash = sha256(raw);
         summary = parse_json_document(raw);
@@ -48,7 +49,8 @@ struct Source {
             require(artifacts.emplace(name, item).second, "duplicate M6 artifact");
             static_cast<void>(contained_path(directory, name));
         }
-        require(!summary.at("reserved_strategy_inputs_opened").get<bool>() &&
+        require((access.development() ? !summary.at("reserved_strategy_inputs_opened").get<bool>()
+                                      : summary.at("evaluation_scope") == access.document()) &&
                     summary.at("network_requests").get<int>() == 0,
                 "M6 source scope differs");
         require(sha256_file(directory / "report.html", 32U * 1024 * 1024) ==
@@ -106,13 +108,14 @@ std::optional<double> number(const Json &value) {
 } // namespace
 StabilityDataset::StabilityDataset(std::filesystem::path cost_directory,
                                    std::filesystem::path account_directory,
-                                   ExtensionStudyContract contract)
+                                   ExtensionStudyContract contract, PanelEvaluationAccess access)
     : costs_(std::move(cost_directory)), accounts_(std::move(account_directory)),
-      contract_(std::move(contract)) {}
-std::map<std::string, StabilityObservation> StabilityDataset::intraday_observations(const Json &record) {
+      contract_(std::move(contract)), access_(std::move(access)) {}
+std::map<std::string, StabilityObservation>
+StabilityDataset::intraday_observations(const Json &record, PanelEvaluationAccess access) {
     const auto &primary = record.at("primary");
     const auto date = primary.at("date").get<std::string>();
-    require(date >= "2016-01-01" && date < "2024-01-01", "M7 intraday input is outside development");
+    access.require_price(date);
     const auto sessions = extension_calendar(CalendarRange{date, date});
     require(sessions.size() == 1, "M7 intraday input is not an exchange session");
     std::map<std::string, StabilityObservation> observations;
@@ -163,7 +166,7 @@ std::map<std::string, StabilityObservation> StabilityDataset::intraday_observati
     return observations;
 }
 StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress) const {
-    const Source costs{costs_}, accounts{accounts_};
+    const Source costs{costs_, access_}, accounts{accounts_, access_};
     require(costs.summary.at("kind").get<std::string>() == "cost_delay_comparison",
             "unexpected cost/delay source kind");
     require(accounts.summary.at("kind").get<std::string>() == "panel_account_study",
@@ -185,6 +188,7 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
     require(origin == costs.summary.at("provenance").at("evidence_origin").get<std::string>() &&
                 (origin == "provider" || origin == "synthetic"),
             "M6 source origins differ");
+    access_.require_origin(origin == "provider");
     if (origin == "provider") {
         for (const auto *key :
              {"study_manifest_sha256", "acquisition_manifest_sha256", "eligibility_masks_sha256"}) {
@@ -196,8 +200,10 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
                 "unregistered panel source");
     } else {
         require(
-            accounts.summary.at("provenance").at("fixture").get<std::string>() == "analytic_panel_300" &&
-                costs.summary.at("provenance").at("fixture").get<std::string>() == "analytic_panel_300",
+            accounts.summary.at("provenance").at("fixture").get<std::string>() ==
+                    (access_.development() ? "analytic_panel_300" : "analytic_evaluation_2022_2024") &&
+                costs.summary.at("provenance").at("fixture").get<std::string>() ==
+                    (access_.development() ? "analytic_panel_300" : "analytic_evaluation_2022_2024"),
             "unknown synthetic fixture");
     }
     StabilityInputs output;
@@ -208,8 +214,8 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
             "development calendar differs");
     std::map<std::string, std::size_t> dates;
     for (std::size_t i = 0; i < output.dates.size(); ++i) {
-        contract_.require_development_access(output.dates[i]);
-        require(output.dates[i] > "2016-12-31", "initialization was scored");
+        access_.require_price(output.dates[i]);
+        require(access_.scored(output.dates[i]), "initialization was scored");
         dates.emplace(output.dates[i], i);
     }
     std::map<std::string, StabilitySeries> series;
@@ -233,7 +239,7 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
         costs.records(symbol + ".jsonl", [&](const Json &row) {
             const auto &primary = row.at("primary");
             const auto date = primary.at("date").get<std::string>();
-            contract_.require_development_access(date);
+            access_.require_price(date);
             require(primary.at("symbol").get<std::string>() == symbol, "M6 instrument differs");
             require(seen_dates.empty() || date > seen_dates.back(), "M6 source dates unordered");
             seen_dates.push_back(date);
@@ -241,11 +247,11 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
             market.push_back(primary.at("measurement").is_null()
                                  ? std::nullopt
                                  : number(primary.at("measurement").at("log_return")));
-            if (date <= "2016-12-31") {
+            if (!access_.scored(date)) {
                 return;
             }
             const auto index = dates.at(date);
-            for (auto &[policy, observation] : intraday_observations(row)) {
+            for (auto &[policy, observation] : intraday_observations(row, access_)) {
                 series.at("intraday/" + symbol + "/" + policy).days[index] = std::move(observation);
             }
         });
@@ -270,7 +276,7 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
     require(calendar.size() == accounts.summary.at("calendar_dates").get<std::size_t>(),
             "M6 calendar count differs");
     std::vector<CalendarSession> registered_calendar;
-    for (int year = 2016; year <= 2023; ++year) {
+    for (int year = std::stoi(access_.first_input().substr(0, 4)); year <= access_.year(); ++year) {
         for (unsigned month = 1; month <= 12; ++month) {
             const auto end = std::chrono::year_month_day{std::chrono::year{year} /
                                                          std::chrono::month{month} / std::chrono::last};
@@ -280,7 +286,8 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
             registered_calendar.insert(registered_calendar.end(), days.begin(), days.end());
         }
     }
-    const auto expected_count = output.synthetic ? std::size_t{300} : registered_calendar.size();
+    const auto expected_count =
+        output.synthetic && access_.development() ? std::size_t{300} : registered_calendar.size();
     require(calendar.size() == expected_count, "M6 source calendar has an unregistered length");
     for (std::size_t i = 0; i < calendar.size(); ++i) {
         require(calendar[i] == registered_calendar[i].date(),
@@ -288,7 +295,7 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
     }
     std::vector<std::string> scored;
     for (const auto &date : calendar) {
-        if (date > "2016-12-31") {
+        if (access_.scored(date)) {
             scored.push_back(date);
         }
     }
@@ -329,7 +336,7 @@ StabilityInputs StabilityDataset::load(const StabilityStudy::Progress &progress)
                 losses.at(symbol)[dates.at(d)] = number(forecast.at("control_minus_candidate_qlike"));
             }
         }
-        if (date <= "2016-12-31") {
+        if (!access_.scored(date)) {
             require(row.at("risk").empty() && row.at("shared").empty(),
                     "initialization contains economic accounts");
             return;

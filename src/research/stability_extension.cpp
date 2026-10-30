@@ -102,18 +102,18 @@ std::vector<StabilityVariant> stability_variants(const ExtensionStudyContract &c
 }
 class StabilityExtensionStudy::State {
   public:
-    State(const ExtensionStudyContract &c, PanelInputPolicy p, Json a)
-        : contract(c), input_policy(std::move(p)), actions(std::move(a)),
-          variants(stability_variants(c)), costs(c) {
+    State(const ExtensionStudyContract &c, PanelInputPolicy p, Json a, PanelEvaluationAccess access)
+        : contract(c), access_(std::move(access)), input_policy(std::move(p)), actions(std::move(a)),
+          variants(stability_variants(c)), costs(c, access_) {
         for (const auto &symbol : c.symbols()) {
             for (const auto &v : variants) {
-                replays.try_emplace(v.id + '/' + symbol, symbol, input_policy, v.parameters);
+                replays.try_emplace(v.id + '/' + symbol, symbol, input_policy, v.parameters, access_);
                 if (v.parameters.family == "risk")
                     for (const auto *name : {"intraday_risk", "daily_only"})
                         secondary_risk.try_emplace(v.id + '/' + symbol + '/' + name, symbol, name);
             }
             for (const auto &name : intraday_units)
-                unit_intraday.try_emplace(symbol + '/' + name);
+                unit_intraday.try_emplace(symbol + '/' + name, access_);
             for (const auto *name : {"intraday_risk", "daily_only"})
                 unit_risk.try_emplace(symbol + '/' + name, symbol, name);
             for (const auto &[id, a_name, b_name] : pairs) {
@@ -127,7 +127,7 @@ class StabilityExtensionStudy::State {
                                                  std::string{side} == "candidate" ? "intraday_risk"
                                                                                   : "daily_only");
                     else
-                        matched_intraday.try_emplace(key);
+                        matched_intraday.try_emplace(key, access_);
                 }
             }
         }
@@ -137,6 +137,7 @@ class StabilityExtensionStudy::State {
         return output.try_emplace(id, StabilitySeries{id, layer, symbol, name, {}}).first->second;
     }
     ExtensionStudyContract contract;
+    PanelEvaluationAccess access_;
     PanelInputPolicy input_policy;
     Json actions;
     std::vector<StabilityVariant> variants;
@@ -160,8 +161,8 @@ class StabilityExtensionStudy::State {
     bool terminal{};
 };
 StabilityExtensionStudy::StabilityExtensionStudy(const ExtensionStudyContract &c, PanelInputPolicy p,
-                                                 Json actions)
-    : state_(std::make_unique<State>(c, std::move(p), std::move(actions))) {}
+                                                 Json actions, PanelEvaluationAccess access)
+    : state_(std::make_unique<State>(c, std::move(p), std::move(actions), std::move(access))) {}
 StabilityExtensionStudy::~StabilityExtensionStudy() = default;
 Json StabilityExtensionStudy::plan() const {
     Json variants = Json::array();
@@ -210,7 +211,7 @@ std::vector<Json> StabilityExtensionStudy::append(std::span<const PanelReplayDay
     require(primary.size() == 5 && sessions.size() == 5 && recovered.size() == 5 && !s.terminal,
             "extension requires complete source batches before terminal");
     const auto date = primary.front().date;
-    s.contract.require_development_access(date);
+    s.access_.require_price(date);
     require(s.calendar.empty() || date > s.calendar.back(), "extension calendar unordered");
     std::set<std::string> names;
     for (const auto &d : primary) {
@@ -221,7 +222,7 @@ std::vector<Json> StabilityExtensionStudy::append(std::span<const PanelReplayDay
     s.calendar.push_back(date);
     s.market["dates"].push_back(date);
     s.market["common_operational"].push_back(primary.front().common_operational);
-    if (date > "2016-12-31") {
+    if (s.access_.scored(date)) {
         s.dates.push_back(date);
         s.common.push_back(primary.front().common_operational);
     }
@@ -337,16 +338,20 @@ std::vector<Json> StabilityExtensionStudy::append(std::span<const PanelReplayDay
         if (d.momentum)
             s.momentum_initialized[d.symbol] = true;
         for (const auto &name : intraday_units) {
-            const bool ready = name.starts_with("momentum")       ? s.momentum_initialized[d.symbol]
-                               : name.starts_with("continuation") ? s.complete_prior[d.symbol] >= 20
-                                                                  : s.regular_prior[d.symbol] >= 20;
+            const bool ready = s.access_.unit_active(date) &&
+                               (name.starts_with("momentum")       ? s.momentum_initialized[d.symbol]
+                                : name.starts_with("continuation") ? s.complete_prior[d.symbol] >= 20
+                                                                   : s.regular_prior[d.symbol] >= 20);
             auto r =
                 s.unit_intraday.at(d.symbol + '/' + name).append(d, session, policy(d, name), ready, 1.);
             unit[name] = r;
             retain("unit/" + d.symbol + '/' + name, "intraday", name, ledger_observation(r, false));
         }
         for (const auto *name : {"intraday_risk", "daily_only"}) {
-            auto r = s.unit_risk.at(d.symbol + '/' + name).append(d, refs, s.actions, terminal);
+            auto unit_day = d;
+            unit_day.scored_period =
+                s.access_.unit_active(date) && (!s.access_.development() || d.scored_period);
+            auto r = s.unit_risk.at(d.symbol + '/' + name).append(unit_day, refs, s.actions, terminal);
             unit[name] = r;
             retain("unit/" + d.symbol + '/' + name, "risk", name, ledger_observation(r, true));
         }
@@ -369,9 +374,11 @@ std::vector<Json> StabilityExtensionStudy::append(std::span<const PanelReplayDay
                             .append_sized(d, refs, s.actions, terminal, tb);
             } else {
                 a_row = s.matched_intraday.at(id + '/' + d.symbol + "/candidate")
-                            .append(d, session, policy(d, a), true, sizing.candidate_scale);
+                            .append(d, session, policy(d, a), s.access_.development() || d.scored_period,
+                                    sizing.candidate_scale);
                 b_row = s.matched_intraday.at(id + '/' + d.symbol + "/control")
-                            .append(d, session, policy(d, b), true, sizing.control_scale);
+                            .append(d, session, policy(d, b), s.access_.development() || d.scored_period,
+                                    sizing.control_scale);
             }
             matched[id] = {{"sizing", sizing.json()}, {"candidate", a_row}, {"control", b_row}};
             retain("matched/" + id + '/' + d.symbol + "/candidate", risk ? "risk" : "intraday", a,

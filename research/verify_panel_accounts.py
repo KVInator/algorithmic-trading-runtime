@@ -13,6 +13,7 @@ import math
 from pathlib import Path
 import zipfile
 from verify_historical_panel import require
+from evaluation_scope import scored, scope_claim
 from verify_panel_replay import ReplayVerifier, clock, seconds
 from verify_shared_capital import AccountAudit, SYMBOLS, FAMILIES, OWNERS
 from verify_quote_reference import authenticated_sample
@@ -680,11 +681,11 @@ class SeriesAudit:
         )
 
 
-def forecasts(markets, days, index, actions):
+def forecasts(markets, days, index, actions, scope=None):
     result = []
     current = days[index]["date"]
     for symbol in ("SPY", "QQQ", "IWM", "TLT", "GLD"):
-        if index and days[index - 1]["date"] > "2016-12-31":
+        if index and scored(days[index - 1]["date"], scope):
             prior = days[index - 1]["date"]
             p, first, _, length, _ = markets[prior][symbol]
             now, bars, _, _, _ = markets[current][symbol]
@@ -722,7 +723,7 @@ def forecasts(markets, days, index, actions):
                         control_minus_candidate_qlike=qlike,
                     )
                 )
-        if index + 1 == len(days) and current > "2016-12-31":
+        if index + 1 == len(days) and scored(current, scope):
             for delay in (1, 2):
                 result.append(
                     dict(
@@ -979,7 +980,7 @@ def verify_report(s, text):
     require(len(marks.rows) == tables == 279, "Account table coverage differs")
 
 
-def expected_plan(actions):
+def expected_plan(actions, scope=None):
     return dict(
         policy_sha256="827dee82278dbabf0f5d8fd6d0980afe07cd01c876847507df38080a587dc2ca",
         protocol_sha256="269d6e677a3e62a21ede6e88659edb2f7a998bfe0137e62b13458e411f0c55ee",
@@ -993,7 +994,11 @@ def expected_plan(actions):
         shared_variants=list(VARIANTS),
         initial_usd=100000,
         risk_start="first_scored_date_with_all_three_prior_weights",
-        risk_terminal="last_development_session_close_minus_four_minutes_actual_open",
+        risk_terminal=(
+            "last_evaluation_session_close_minus_four_minutes_actual_open"
+            if scope
+            else "last_development_session_close_minus_four_minutes_actual_open"
+        ),
         shared_fill_model="synchronous_full_fill_at_cost_shifted_raw_opens_no_observed_liquidity",
         shared_cost_rounding="raw_price_nearest_nanodollar_charge_ceiling_nanodollar_per_share",
         shared_sizing_clock="arrival_at_decision_plus_delay",
@@ -1113,8 +1118,8 @@ def semantic_checks(samples, s, report, observations):
         print("Corruption boundaries unavailable in this dataset:", ", ".join(absent))
 
 
-def verify(run, self_check=False):
-    oracle = ReplayVerifier(run)
+def verify(run, self_check=False, scope=None):
+    oracle = ReplayVerifier(run, scope=scope)
     # The source oracle retains Decimal tokens for acquisition identities.
     # Derived statistics use binary64; cash/share reconstruction stays Decimal.
     s = json.loads((run / "summary.json").read_text(encoding="utf-8"))
@@ -1123,7 +1128,7 @@ def verify(run, self_check=False):
     require(
         s["kind"] == "panel_account_study"
         and s["network_requests"] == 0
-        and not s["reserved_strategy_inputs_opened"],
+        and scope_claim(s, scope),
         "Account scope differs",
     )
     require(
@@ -1188,6 +1193,16 @@ def verify(run, self_check=False):
                 usd_per_share=1.25,
             )
         ]
+        if scope:
+            expected.append(
+                dict(
+                    id="constructed_QQQ_evaluation_cash",
+                    symbol="QQQ",
+                    ex_date=oracle.source.days[600]["date"],
+                    payable_date=oracle.source.days[603]["date"],
+                    usd_per_share=0.75,
+                )
+            )
     else:
         expected = [
             a
@@ -1196,10 +1211,10 @@ def verify(run, self_check=False):
                     oracle.source.oracle.directory / "sealed/accounting_actions.json"
                 ).read_text(encoding="utf-8")
             )["cash_distributions"]
-            if a["ex_date"] < "2024"
+            if a["ex_date"] <= (scope.last if scope else "2023-12-31")
         ]
     require(actions == expected, "Accounting action provenance differs")
-    equal(plan, expected_plan(actions), "executable account plan")
+    equal(plan, expected_plan(actions, scope), "executable account plan")
     for d, values in oracle.common.items():
         require(
             len(values) == 5
@@ -1239,7 +1254,7 @@ def verify(run, self_check=False):
                 date = oracle.source.days[index]["date"]
                 require(row["date"] == date, "Account calendar differs")
                 expected_forecasts = forecasts(
-                    markets, oracle.source.days, index, actions
+                    markets, oracle.source.days, index, actions, scope
                 )
                 equal(row["forecasts"], expected_forecasts, "holding-risk outcomes")
                 forecast_rows.extend(expected_forecasts)
@@ -1252,7 +1267,7 @@ def verify(run, self_check=False):
                         deepcopy(row["forecasts"]),
                         deepcopy(expected_forecasts),
                     )
-                if date <= "2016-12-31":
+                if not scored(date, scope):
                     require(
                         not row["risk"] and not row["shared"], "Initialization traded"
                     )
@@ -1331,7 +1346,7 @@ def verify(run, self_check=False):
     )
     require(
         s["development_dates"]
-        == [d["date"] for d in oracle.source.days if d["date"] > "2016-12-31"],
+        == [d["date"] for d in oracle.source.days if scored(d["date"], scope)],
         "Development calendar differs",
     )
     require(len(risk) == 200 and len(shared) == 50, "Registered case identities differ")

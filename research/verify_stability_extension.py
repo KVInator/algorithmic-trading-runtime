@@ -284,6 +284,7 @@ class IntradayAudit:
 
 class CachedSource:
     def __init__(self, source, symbol):
+        self.scope = source.scope
         self.days, self.recovered = source.days, source.recovered
         self.values = []
         for i in range(len(self.days)):
@@ -336,8 +337,12 @@ class Marks(HTMLParser):
             self.active = None
 
 
+from evaluation_scope import scored, authorized, scope_claim
+
+
 class ExtensionVerifier:
-    def __init__(self, directory, review_only=False):
+    def __init__(self, directory, review_only=False, scope=None):
+        self.scope = scope
         self.directory = Path(directory).resolve()
         self.summary = decode((self.directory / "summary.json").read_bytes())
         self.protocol, self.cases = variants()
@@ -394,7 +399,7 @@ class ExtensionVerifier:
         )
         require(
             s["network_requests"] == 0
-            and not s["reserved_strategy_inputs_opened"]
+            and scope_claim(s, self.scope)
             and not s["advancement_assessed"]
             and not s["inference_calibration_validated"],
             "Extension scope differs",
@@ -409,11 +414,22 @@ class ExtensionVerifier:
             and s["series_count"] == 345,
             "Executed case matrix differs",
         )
+        if self.scope:
+            self.scope.check(p)
         same(p["variants"], self.cases, "Registered variants")
         same(p["risk_matching"], self.protocol["risk_matching"], "Registered overlay")
         require(
             p["protocol_sha256"] == PROTOCOL
-            and p["stage"] == "M7_secondary_and_risk_matched"
+            and p["stage"]
+            == (
+                "M7_secondary_and_risk_matched"
+                if self.scope is None
+                else (
+                    "M8_secondary_validation"
+                    if self.scope.year == 2024
+                    else "M9_secondary_final"
+                )
+            )
             and p["primary_cost_bps"] == p["delay_minutes"] == 1
             and p["secondary_parameter_crossing"] is False
             and p["primary_rules_replaced"] is False,
@@ -427,14 +443,14 @@ class ExtensionVerifier:
             "Overlay training convention differs",
         )
         require(
-            self.dates == [d for d in self.market["dates"] if d > "2016-12-31"]
+            self.dates == [d for d in self.market["dates"] if scored(d, self.scope)]
             and self.dates == sorted(set(self.dates))
-            and all(d < "2024" for d in self.market["dates"]),
+            and all(authorized(d, self.scope) for d in self.market["dates"]),
             "Development calendar differs",
         )
 
     def verify_sources(self):
-        source = InputSource(self.summary)
+        source = InputSource(self.summary, self.scope)
         expected = {}
         logs, qlike, common = {}, defaultdict(dict), defaultdict(list)
         actions = (
@@ -451,7 +467,21 @@ class ExtensionVerifier:
                 source.oracle.directory / "sealed/accounting_actions.json"
             )["cash_distributions"]
         )
-        actions = [a for a in actions if a["ex_date"] < "2024"]
+        if source.synthetic and self.scope:
+            actions.append(
+                dict(
+                    id="constructed_QQQ_evaluation_cash",
+                    symbol="QQQ",
+                    ex_date=source.days[600]["date"],
+                    payable_date=source.days[603]["date"],
+                    usd_per_share=0.75,
+                )
+            )
+        actions = [
+            a
+            for a in actions
+            if a["ex_date"] <= (self.scope.last if self.scope else "2023-12-31")
+        ]
         for symbol in SYMBOLS:
             records = []
             with (self.directory / f"{symbol}.jsonl").open(encoding="utf-8") as stream:
@@ -483,7 +513,7 @@ class ExtensionVerifier:
             pending = None
 
             def retain(id, layer, policy, row, index):
-                if source.days[index]["date"] <= "2016-12-31":
+                if not scored(source.days[index]["date"], self.scope):
                     return
                 row["condition"] = conditions[index]["label"]
                 expected.setdefault(
@@ -571,9 +601,14 @@ class ExtensionVerifier:
                 for name, row in envelope["unit"].items():
                     risk = name in {"intraday_risk", "daily_only"}
                     if risk:
-                        risk_audit("unit/" + name, row, day, market, terminal)
+                        unit_day = (
+                            dict(day, scored_period=self.scope.unit(date))
+                            if self.scope
+                            else day
+                        )
+                        risk_audit("unit/" + name, row, unit_day, market, terminal)
                     else:
-                        ready = (
+                        ready = (self.scope is None or self.scope.unit(date)) and (
                             readiness["momentum"]
                             if name.startswith("momentum")
                             else (
@@ -656,7 +691,7 @@ class ExtensionVerifier:
                                 bars,
                                 opening,
                                 fixed.get(name),
-                                True,
+                                self.scope is None or scored(date, self.scope),
                                 multiplier,
                                 minutes,
                             )
@@ -846,7 +881,7 @@ class ExtensionVerifier:
                 if row["symbol"] == symbol:
                     same(
                         [x["condition"] for x in row["days"]],
-                        [x["label"] for x in expected if x["date"] > "2016-12-31"],
+                        [x["label"] for x in expected if scored(x["date"], self.scope)],
                         "Attribution condition",
                     )
         same(
@@ -1100,8 +1135,14 @@ class ExtensionVerifier:
         if self_check:
             self.self_check()
         self.bundle()
+        stage = (
+            "M7 extension"
+            if self.scope is None
+            else f"{self.scope.year} secondary evaluation"
+        )
+        role = "development" if self.scope is None else "evaluation"
         print(
-            f"Verified M7 extension: fourteen variants, 50 matched accounts, 45 unit accounts and 345 series across {len(self.dates)} development dates."
+            f"Verified {stage}: fourteen variants, 50 matched accounts, 45 unit accounts and 345 series across {len(self.dates)} {role} dates."
         )
         print(
             "Source scope: derived mathematics/display only; raw archive and source ledgers were not reauthenticated."
@@ -1109,7 +1150,11 @@ class ExtensionVerifier:
             else (
                 "Source scope: analytic observations independently reconstructed; causal variants, Decimal funded ledgers and prior-only sizing verified; no provider archive used."
                 if self.summary["provenance"]["evidence_origin"] == "synthetic"
-                else "Source scope: pre-2024 raw archive, causal variants, Decimal funded ledgers and prior-only sizing authenticated."
+                else (
+                    "Source scope: pre-2024 raw archive, causal variants, Decimal funded ledgers and prior-only sizing authenticated."
+                    if self.scope is None
+                    else f"Source scope: authorized archive through {self.scope.year}, causal variants, Decimal funded ledgers and prior-only sizing authenticated."
+                )
             )
         )
 

@@ -7,7 +7,7 @@ class PanelAccountReport {
   public:
     PanelAccountReport(const std::filesystem::path &root, nlohmann::json provenance,
                        std::filesystem::path dataset, const ExtensionStudyContract &contract,
-                       nlohmann::json actions);
+                       nlohmann::json actions, PanelEvaluationAccess access = {});
     [[nodiscard]] const std::filesystem::path &directory() const noexcept;
     void append(std::span<const PanelReplayDay> days, std::span<const SessionDownload> sessions,
                 std::span<const std::optional<MinuteBar>> recovered, bool terminal);

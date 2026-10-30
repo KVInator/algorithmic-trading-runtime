@@ -7,7 +7,8 @@ class StabilityExtensionReport {
   public:
     StabilityExtensionReport(std::filesystem::path run_root, nlohmann::json provenance,
                              std::filesystem::path dataset, const ExtensionStudyContract &contract,
-                             PanelInputPolicy policy, nlohmann::json actions);
+                             PanelInputPolicy policy, nlohmann::json actions,
+                             PanelEvaluationAccess access = {});
     [[nodiscard]] const std::filesystem::path &directory() const noexcept;
     void append(std::span<const PanelReplayDay> primary, std::span<const SessionDownload> sessions,
                 std::span<const std::optional<MinuteBar>> recovered, bool terminal);

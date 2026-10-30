@@ -9,7 +9,10 @@ history, and 2017-2023 supplies development observations.
 The [offline demo](#build-and-reproduce) runs without credentials or private data.
 Detailed methods and executable commands are in the [runbook](docs/running.md).
 
-**M0-M7 are complete: 8 of 11 milestones.** M8 is in progress. The [controlled inference calibration](docs/validation.md) reuses the registered six-endpoint procedure; provider validation and its executable freeze remain pending. Stability, concentration, predefined
+**M0-M7 are complete: 8 of 11 milestones.** [M8 integrated validation](docs/validation.md)
+is implemented for verification: controlled inference calibration, explicit 2024
+evaluation accounts and a frozen executable/specification. Provider validation
+and its evidence acceptance remain pending. Stability, concentration, predefined
 risk matching and uncertainty are accepted with explicit coverage limitations.
 Validation in 2024, final retrospective evaluation in 2025 and consolidated
 publication remain M8-M10. Those later
@@ -139,8 +142,8 @@ $w_d=\min(1,0.10/\sqrt{252h_d})$. Fractional accounts retain cash, shares,
 dividend receivables/payments and split identities. Forecast loss and allocation
 value are separate questions. The v1 inference uses paired whole-calendar
 resampling: five-/ten-session outcome blocks for intraday studies and
-twenty/forty for risk. Extension-wide inference is reported in M7; controlled
-statistical calibration remains M8. Fixed
+twenty/forty for risk. Extension-wide numerical inference is reported in M7;
+the M8 controlled calibration records size distortion. Fixed
 screens and prior research exposure remain explicit in the
 [registered protocols](research/README.md).
 

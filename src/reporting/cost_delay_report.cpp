@@ -124,17 +124,17 @@ void curve(std::ostream &html, const Json &rows, std::string_view symbol, std::s
             points << std::fixed << std::setprecision(6) << x << ',' << y(value) << ' ';
             any = true;
             html << "<circle data-series=\""
-                 << ReportText{std::string{symbol} + '/' + std::string{name}}.html() << "\" data-delay=\""
-                 << delay << "\" data-cost=\"" << row.at("cost_bps") << "\" data-mean-bp=\""
-                 << std::setprecision(10) << value << "\" cx=\"" << x << "\" cy=\"" << y(value)
-                 << "\" r=\"3\" fill=\"" << color << "\"/>";
+                 << ReportText{std::string{symbol} + '/' + std::string{name}}.html()
+                 << "\" data-delay=\"" << delay << "\" data-cost=\"" << row.at("cost_bps")
+                 << "\" data-mean-bp=\"" << std::setprecision(10) << value << "\" cx=\"" << x
+                 << "\" cy=\"" << y(value) << "\" r=\"3\" fill=\"" << color << "\"/>";
         }
         if (any) {
             html << "<polyline points=\"" << points.str() << "\" stroke=\"" << color
                  << "\" fill=\"none\" stroke-width=\"2\"/>";
         }
-        html << "<text x=\"" << (delay == 1 ? 380 : 530) << "\" y=\"35\" fill=\"" << color << "\">" << delay
-             << " minute delay</text>";
+        html << "<text x=\"" << (delay == 1 ? 380 : 530) << "\" y=\"35\" fill=\"" << color << "\">"
+             << delay << " minute delay</text>";
     }
     if (!observed) {
         html << "<text x=\"385\" y=\"125\" text-anchor=\"middle\">No eligible observations; outcome "
@@ -144,34 +144,40 @@ void curve(std::ostream &html, const Json &rows, std::string_view symbol, std::s
 }
 std::string report_html(const Json &summary) {
     std::ostringstream html;
-    html << "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" "
-            "content=\"width=device-width,initial-scale=1\">"
-         << "<title>Historical cost and delay comparison</title><style>body{font:16px/1.5 "
-            "system-ui;color:#18354a;background:#f4f7fa;margin:24px}"
-         << "main{max-width:1150px;margin:auto}section{background:white;padding:20px;margin:18px "
-            "0;border:1px solid #d9e2e9;border-radius:8px}"
-         << "svg{width:100%;max-height:350px}table{border-collapse:collapse;width:100%}th,td{padding:7px;"
-            "border-bottom:1px solid #d9e2e9;text-align:right}"
-         << "th:first-child,td:first-child{text-align:left}select{padding:8px;max-width:100%}pre{white-space:"
-            "pre-wrap;overflow-wrap:anywhere}"
-         << ".grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px}</"
-            "style><main>"
-         << "<h1>Historical cost and delay comparison</h1><p><strong>Evidence origin: "
-         << summary.at("evidence_origin").get<std::string>()
-         << "</strong>. Fixed primary decisions; 0, 0.5, 1, 2 and 5 bp per side; one- and two-minute "
-            "observed-open references.</p>"
-         << "<p>Fractional, fully invested intraday reference returns. No fill, whole-share shared-account "
-            "or market-impact claim. "
-         << "The common operational mask is applied after decisions. Missing outcomes remain NA. "
-         << "Products and drawdowns describe eligible dates only; they are not a continuous account across "
-            "excluded dates.</p>"
-         << "<section><h2>Calendar coverage</h2><table><tr><th>Year</th><th>Calendar dates</th><th>Common "
-            "operational dates</th><th>Coverage</th></tr>";
+    html
+        << "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" "
+           "content=\"width=device-width,initial-scale=1\">"
+        << "<title>Historical cost and delay comparison</title><style>body{font:16px/1.5 "
+           "system-ui;color:#18354a;background:#f4f7fa;margin:24px}"
+        << "main{max-width:1150px;margin:auto}section{background:white;padding:20px;margin:18px "
+           "0;border:1px solid #d9e2e9;border-radius:8px}"
+        << "svg{width:100%;max-height:350px}table{border-collapse:collapse;width:100%}th,td{padding:7px;"
+           "border-bottom:1px solid #d9e2e9;text-align:right}"
+        << "th:first-child,td:first-child{text-align:left}select{padding:8px;max-width:100%}pre{white-"
+           "space:"
+           "pre-wrap;overflow-wrap:anywhere}"
+        << ".grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px}</"
+           "style><main>"
+        << "<h1>Historical cost and delay comparison</h1><p><strong>Evidence origin: "
+        << summary.at("evidence_origin").get<std::string>()
+        << "</strong>. Fixed primary decisions; 0, 0.5, 1, 2 and 5 bp per side; one- and two-minute "
+           "observed-open references.</p>"
+        << "<p>Fractional, fully invested intraday reference returns. No fill, whole-share "
+           "shared-account "
+           "or market-impact claim. "
+        << "The common operational mask is applied after decisions. Missing outcomes remain NA. "
+        << "Products and drawdowns describe eligible dates only; they are not a continuous account "
+           "across "
+           "excluded dates.</p>"
+        << "<section><h2>Calendar coverage</h2><table><tr><th>Year</th><th>Calendar "
+           "dates</th><th>Common "
+           "operational dates</th><th>Coverage</th></tr>";
     for (const auto &row : summary.at("coverage")) {
         const auto total = row.at("calendar_dates").get<double>();
-        html << "<tr><td>" << row.at("year").get<std::string>() << "</td><td>" << row.at("calendar_dates")
-             << "</td><td>" << row.at("common_dates") << "</td><td>" << std::fixed << std::setprecision(1)
-             << 100 * row.at("common_dates").get<double>() / total << "%</td></tr>";
+        html << "<tr><td>" << row.at("year").get<std::string>() << "</td><td>"
+             << row.at("calendar_dates") << "</td><td>" << row.at("common_dates") << "</td><td>"
+             << std::fixed << std::setprecision(1) << 100 * row.at("common_dates").get<double>() / total
+             << "%</td></tr>";
     }
     html << "</table></section><h2>Equal-weight paired effects</h2><p>Each point averages the five "
             "instrument-level candidate-minus-control returns on identical dates. "
@@ -197,22 +203,24 @@ std::string report_html(const Json &summary) {
                  << policy << "</h3>";
             curve(html, summary.at("series"), symbol, policy, false);
             html << "<table><tr><th>Delay / bp per side</th><th>Dates</th><th>Active dates</th><th>Net "
-                    "bp/day</th><th>Eligible-date product %</th><th>Max drawdown %</th><th>Notional / NAV / "
+                    "bp/day</th><th>Eligible-date product %</th><th>Max drawdown %</th><th>Notional / "
+                    "NAV / "
                     "day</th></tr>";
             for (const auto &row : summary.at("series")) {
                 if (row.at("symbol").get<std::string>() != symbol || row.at("policy") != policy) {
                     continue;
                 }
-                html << "<tr data-case=\"" << symbol << '/' << policy << '/' << row.at("delay_minutes") << '/'
-                     << row.at("cost_bps") << "\"><td>" << row.at("delay_minutes") << " / "
+                html << "<tr data-case=\"" << symbol << '/' << policy << '/' << row.at("delay_minutes")
+                     << '/' << row.at("cost_bps") << "\"><td>" << row.at("delay_minutes") << " / "
                      << row.at("cost_bps") << "</td><td>" << row.at("dates") << "</td><td>"
                      << row.at("active_dates") << "</td>";
                 if (row.at("statistics").is_null()) {
                     html << "<td>NA</td><td>NA</td><td>NA</td><td>NA</td>";
                 } else {
                     const auto &s = row.at("statistics");
-                    html << std::fixed << std::setprecision(6) << "<td>" << s.at("mean").get<double>() * 10000
-                         << "</td><td>" << s.at("eligible_date_product").get<double>() * 100 << "</td><td>"
+                    html << std::fixed << std::setprecision(6) << "<td>"
+                         << s.at("mean").get<double>() * 10000 << "</td><td>"
+                         << s.at("eligible_date_product").get<double>() * 100 << "</td><td>"
                          << s.at("eligible_date_maximum_drawdown").get<double>() * 100 << "</td><td>"
                          << row.at("mean_traded_notional_per_initial_equity").get<double>() << "</td>";
                 }
@@ -222,16 +230,19 @@ std::string report_html(const Json &summary) {
         }
     }
     html << "<script>const view=document.getElementById('detail');function "
-            "show(){document.querySelectorAll('[data-detail]').forEach(s=>s.hidden=s.dataset.detail!==view."
+            "show(){document.querySelectorAll('[data-detail]').forEach(s=>s.hidden=s.dataset.detail!=="
+            "view."
             "value)}view.addEventListener('change',show);show();</script>"
-         << "<p>No quote eligibility was changed or quote-based charge added. Synthetic matching, continuous "
+         << "<p>No quote eligibility was changed or quote-based charge added. Synthetic matching, "
+            "continuous "
             "daily-risk accounts and simultaneous inference remain separate evaluations.</p>"
          << "<p><a href=\"summary.json\">Evidence manifest</a></p></main></html>";
     return html.str();
 }
 } // namespace
 CostDelayReport::CostDelayReport(const std::filesystem::path &root, Json provenance,
-                                 std::filesystem::path dataset, CostDelayStudy study)
+                                 std::filesystem::path dataset, CostDelayStudy study,
+                                 PanelEvaluationAccess access)
     : directory_(create_unique_directory(
           root, provenance.at("evidence_origin") == "synthetic" ? "cost_delay_check" : "cost_delay")),
       study_(std::move(study)),
@@ -258,6 +269,13 @@ CostDelayReport::CostDelayReport(const std::filesystem::path &root, Json provena
                {"source_sha256", TRADING_SOURCE_SHA256},
                {"compiler", TRADING_COMPILER_ID},
                {"build_configuration", TRADING_BUILD_CONFIGURATION}} {
+    if (!access.development()) {
+        summary_["evaluation_scope"] = access.document();
+        summary_["validation_protocol_sha256"] = TRADING_VALIDATION_PROTOCOL_SHA256;
+        summary_["reserved_strategy_inputs_opened"] = true;
+        summary_["validation_strategy_inputs_opened"] = access.year() == 2024;
+        summary_["final_strategy_inputs_opened"] = access.year() == 2025;
+    }
     for (const auto *symbol : {"SPY", "QQQ", "IWM", "TLT", "GLD"}) {
         for (const auto *policy : policies) {
             for (int delay : study_.delays()) {
@@ -289,8 +307,8 @@ void CostDelayReport::append(std::span<const PanelReplayDay> days,
         throw std::invalid_argument("cost/delay writer requires ordered five-instrument dates");
     }
     const auto date = days.front().date;
-    const bool common =
-        std::all_of(days.begin(), days.end(), [](const auto &day) { return day.availability.operational; });
+    const bool common = std::all_of(days.begin(), days.end(),
+                                    [](const auto &day) { return day.availability.operational; });
     std::set<std::string> seen;
     std::map<std::tuple<std::string, int, double>, double> pooled;
     for (const auto &day : days) {
@@ -311,7 +329,8 @@ void CostDelayReport::append(std::span<const PanelReplayDay> days,
                 continue;
             }
             for (const auto &outcome : path.outcomes) {
-                auto &series = series_.at({day.symbol, path.policy, path.delay_minutes, outcome.cost_bps});
+                auto &series =
+                    series_.at({day.symbol, path.policy, path.delay_minutes, outcome.cost_bps});
                 series.values.push_back(outcome.net_return);
                 series.active += !path.trades.empty();
                 series.trades += path.trades.size();
@@ -337,7 +356,8 @@ void CostDelayReport::append(std::span<const PanelReplayDay> days,
         auto &output = outputs_[day.symbol];
         if (!output.stream.is_open()) {
             output.stream.exceptions(std::ios::failbit | std::ios::badbit);
-            output.stream.open(directory_ / (day.symbol + ".jsonl.tmp"), std::ios::binary | std::ios::trunc);
+            output.stream.open(directory_ / (day.symbol + ".jsonl.tmp"),
+                               std::ios::binary | std::ios::trunc);
         }
         if (line.size() > 256U * 1024U || output.bytes + line.size() > 128U * 1024U * 1024U) {
             throw std::invalid_argument("cost/delay evidence exceeds its record/file bound");
@@ -363,8 +383,8 @@ std::filesystem::path CostDelayReport::finish(Json checks) {
     if (finished_ || outputs_.size() != 5) {
         throw std::logic_error("cost/delay report requires five instrument streams");
     }
-    Json artifacts = Json::array(), counts = Json::array(), series = Json::array(), pairs = Json::array(),
-         coverage = Json::array();
+    Json artifacts = Json::array(), counts = Json::array(), series = Json::array(),
+         pairs = Json::array(), coverage = Json::array();
     for (auto &[symbol, output] : outputs_) {
         output.stream.close();
         const auto name = symbol + ".jsonl";
@@ -380,20 +400,20 @@ std::filesystem::path CostDelayReport::finish(Json checks) {
     for (const auto &[key, value] : series_) {
         const auto &[symbol, policy, delay, cost] = key;
         const auto n = value.values.size();
-        series.push_back(
-            {{"symbol", symbol},
-             {"policy", policy},
-             {"delay_minutes", delay},
-             {"cost_bps", cost},
-             {"dates", n},
-             {"active_dates", value.active},
-             {"completed_trades", value.trades},
-             {"statistics", statistics(value.values)},
-             {"mean_traded_notional_per_initial_equity",
-              n ? Json(value.turnover / static_cast<double>(n)) : Json(nullptr)},
-             {"mean_cost_per_initial_equity",
-              n ? Json(value.cost_paid / static_cast<double>(n)) : Json(nullptr)},
-             {"mean_minutes_held", n ? Json(value.minutes_held / static_cast<double>(n)) : Json(nullptr)}});
+        series.push_back({{"symbol", symbol},
+                          {"policy", policy},
+                          {"delay_minutes", delay},
+                          {"cost_bps", cost},
+                          {"dates", n},
+                          {"active_dates", value.active},
+                          {"completed_trades", value.trades},
+                          {"statistics", statistics(value.values)},
+                          {"mean_traded_notional_per_initial_equity",
+                           n ? Json(value.turnover / static_cast<double>(n)) : Json(nullptr)},
+                          {"mean_cost_per_initial_equity",
+                           n ? Json(value.cost_paid / static_cast<double>(n)) : Json(nullptr)},
+                          {"mean_minutes_held",
+                           n ? Json(value.minutes_held / static_cast<double>(n)) : Json(nullptr)}});
     }
     for (const auto &[key, value] : pairs_) {
         const auto &[symbol, endpoint, delay, cost] = key;
@@ -413,7 +433,8 @@ std::filesystem::path CostDelayReport::finish(Json checks) {
                                 : Json{{"mean", static_cast<double>(sum / value.values.size())}}}});
     }
     for (const auto &[year, count] : coverage_) {
-        coverage.push_back({{"year", year}, {"calendar_dates", count.first}, {"common_dates", count.second}});
+        coverage.push_back(
+            {{"year", year}, {"calendar_dates", count.first}, {"common_dates", count.second}});
     }
     summary_["artifacts"] = artifacts;
     summary_["instruments"] = counts;

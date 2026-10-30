@@ -24,39 +24,46 @@ void ReversionParameters::validate(ResearchInputMode mode) const {
         throw std::invalid_argument("unsupported reversion parameters");
     }
 }
-ReversionHistory::ReversionHistory(ResearchInputMode mode, ReversionParameters parameters)
-    : parameters_{parameters}, mode_{mode}, measurement_{mode, parameters.observation_minutes}, estimator_{parameters.observation_minutes} {
+ReversionHistory::ReversionHistory(ResearchInputMode mode, ReversionParameters parameters,
+                                   PanelEvaluationAccess access)
+    : parameters_{parameters}, mode_{mode},
+      measurement_{mode, parameters.observation_minutes, std::move(access)},
+      estimator_{parameters.observation_minutes} {
     parameters_.validate(mode);
 }
 
-bool ReversionHistory::ready() const noexcept {
-    return slots_.size() == parameters_.history_sessions;
-}
+bool ReversionHistory::ready() const noexcept { return slots_.size() == parameters_.history_sessions; }
 
-ReversionPrior ReversionHistory::prior(const HistoricalBarRequest& current) const {
+ReversionPrior ReversionHistory::prior(const HistoricalBarRequest &current) const {
     static_cast<void>(measurement_.decision_time(current));
-    if ((!symbol_.empty() && current.symbol() != symbol_) || !ready() || current.start() < slots_.back().session.end_exclusive()) {
-        throw std::invalid_argument("reversion requires the configured strictly earlier completed session slots");
+    if ((!symbol_.empty() && current.symbol() != symbol_) || !ready() ||
+        current.start() < slots_.back().session.end_exclusive()) {
+        throw std::invalid_argument(
+            "reversion requires the configured strictly earlier completed session slots");
     }
     ReversionPrior result{
         slots_.front().session.start(), slots_.back().session.start(), {}, true, estimator_.fit({}), {}};
-    for (const auto& slot : slots_) {
+    for (const auto &slot : slots_) {
         if (!slot.measurement) {
             result.complete = false;
         } else {
-            result.sequences.emplace_back(slot.measurement->values.begin(), slot.measurement->values.end());
+            result.sequences.emplace_back(slot.measurement->values.begin(),
+                                          slot.measurement->values.end());
         }
     }
     if (result.complete) {
         result.fit = estimator_.fit(result.sequences);
         long double increments = 0;
-        for (const auto& sequence : result.sequences) {
+        for (const auto &sequence : result.sequences) {
             for (std::size_t i = 1; i < sequence.size(); ++i) {
                 increments += static_cast<long double>(sequence[i]) - sequence[i - 1];
             }
         }
-        result.drift = static_cast<double>((static_cast<long double>(parameters_.hold_minutes) / parameters_.observation_minutes) * increments /
-            (parameters_.history_sessions * static_cast<std::size_t>(120 / parameters_.observation_minutes)));
+        result.drift = static_cast<double>(
+            (static_cast<long double>(parameters_.hold_minutes) / parameters_.observation_minutes) *
+            increments /
+            (parameters_.history_sessions *
+             static_cast<std::size_t>(120 / parameters_.observation_minutes)));
         if (!std::isfinite(*result.drift)) {
             throw std::overflow_error("nonfinite prior drift");
         }
@@ -64,9 +71,10 @@ ReversionPrior ReversionHistory::prior(const HistoricalBarRequest& current) cons
     return result;
 }
 
-std::optional<OpeningAnchorResidual> ReversionHistory::complete(const HistoricalBarRequest& session,
+std::optional<OpeningAnchorResidual> ReversionHistory::complete(const HistoricalBarRequest &session,
                                                                 std::span<const MinuteBar> bars,
-                                                                std::chrono::sys_seconds completed_at, bool feature_allowed) {
+                                                                std::chrono::sys_seconds completed_at,
+                                                                bool feature_allowed) {
     static_cast<void>(measurement_.decision_time(session));
     const auto audit = audit_session(session, bars);
     if ((!symbol_.empty() && symbol_ != session.symbol()) || completed_at != session.end_exclusive() ||
@@ -77,8 +85,11 @@ std::optional<OpeningAnchorResidual> ReversionHistory::complete(const Historical
     std::optional<OpeningAnchorResidual> measured;
     if (feature_allowed) {
         if (mode_ == ResearchInputMode::registered_panel) {
-            measured = measurement_.observe(session, ResearchSessionView{session, bars}.before(measurement_.decision_time(session)));
-        } else if (positive_anchor_volume(bars)) { measured = measurement_.measure(session, bars.first(reversion_prefix_minutes)); }
+            measured = measurement_.observe(
+                session, ResearchSessionView{session, bars}.before(measurement_.decision_time(session)));
+        } else if (positive_anchor_volume(bars)) {
+            measured = measurement_.measure(session, bars.first(reversion_prefix_minutes));
+        }
     }
     symbol_ = session.symbol();
     slots_.push_back({session, measured});
@@ -102,18 +113,25 @@ std::string_view name(ReversionPolicy policy) {
     throw std::invalid_argument("unknown reversion policy");
 }
 
-ReversionStrategy::ReversionStrategy(ResearchInputMode mode, ReversionParameters parameters)
-    : parameters_{parameters}, mode_{mode}, measurement_{mode, parameters.observation_minutes}, estimator_{parameters.observation_minutes} {
+ReversionStrategy::ReversionStrategy(ResearchInputMode mode, ReversionParameters parameters,
+                                     PanelEvaluationAccess access)
+    : parameters_{parameters}, mode_{mode},
+      measurement_{mode, parameters.observation_minutes, std::move(access)},
+      estimator_{parameters.observation_minutes} {
     parameters_.validate(mode);
 }
 
-ReversionDecision ReversionStrategy::decide(const HistoricalBarRequest& session,
+ReversionDecision ReversionStrategy::decide(const HistoricalBarRequest &session,
                                             std::span<const MinuteBar> completed,
-                                            const ReversionHistory& history) const {
-    if (history.parameters() != parameters_) { throw std::invalid_argument("reversion strategy and history parameters differ"); }
+                                            const ReversionHistory &history) const {
+    if (history.parameters() != parameters_) {
+        throw std::invalid_argument("reversion strategy and history parameters differ");
+    }
     const auto at = measurement_.decision_time(session);
-    if (mode_ == ResearchInputMode::legacy_complete && (completed.size() != reversion_prefix_minutes ||
-        !audit_session(HistoricalBarRequest{session.symbol(), session.start(), at}, completed).complete())) {
+    if (mode_ == ResearchInputMode::legacy_complete &&
+        (completed.size() != reversion_prefix_minutes ||
+         !audit_session(HistoricalBarRequest{session.symbol(), session.start(), at}, completed)
+              .complete())) {
         throw std::invalid_argument("noon decision requires exactly its completed prefix");
     }
     ReversionDecision result{at,
@@ -127,10 +145,15 @@ ReversionDecision ReversionStrategy::decide(const HistoricalBarRequest& session,
     if (mode_ == ResearchInputMode::registered_panel) {
         result.current = measurement_.observe(session, completed);
         if (!result.current || !result.prior.complete) {
-            for (auto& action : result.actions) { action = {false, !result.current ? "current_feature_unavailable" : "history_feature_unavailable"}; }
+            for (auto &action : result.actions) {
+                action = {false, !result.current ? "current_feature_unavailable"
+                                                 : "history_feature_unavailable"};
+            }
             return result;
         }
-    } else if (positive_anchor_volume(completed)) { result.current = measurement_.measure(session, completed); }
+    } else if (positive_anchor_volume(completed)) {
+        result.current = measurement_.measure(session, completed);
+    }
     const double hurdle = std::log1p(0.0001) - std::log1p(-0.0001);
     if (result.prior.complete) {
         result.actions[2] = {*result.prior.drift > hurdle, *result.prior.drift > hurdle
@@ -145,7 +168,8 @@ ReversionDecision ReversionStrategy::decide(const HistoricalBarRequest& session,
         } else if (result.prior.fit.status != ReversionFitStatus::admissible) {
             result.actions[0] = {false, "model_" + std::string{name(result.prior.fit.status)}};
         } else {
-            result.expected_move = estimator_.expected_log_move(result.prior.fit, x, 1, parameters_.hold_minutes);
+            result.expected_move =
+                estimator_.expected_log_move(result.prior.fit, x, 1, parameters_.hold_minutes);
             const bool below = x < *result.prior.fit.equilibrium;
             const bool enter = below && *result.expected_move > hurdle;
             result.actions[0] = {enter, enter    ? "expected_move_above_cost_hurdle"

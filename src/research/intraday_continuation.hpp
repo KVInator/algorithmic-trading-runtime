@@ -29,17 +29,18 @@ struct IntradayContinuationFeatures {
 // Stores only complete earlier sessions. The caller supplies calendar-verified
 // SPY windows and applies the registered dataset/exclusion policy.
 class IntradayContinuationHistory {
-public:
-    explicit IntradayContinuationHistory(ResearchInputMode mode = ResearchInputMode::legacy_complete, std::size_t history_sessions = continuation_history_sessions);
-    void append(const HistoricalBarRequest& session, std::span<const MinuteBar> bars);
+  public:
+    explicit IntradayContinuationHistory(ResearchInputMode mode = ResearchInputMode::legacy_complete,
+                                         std::size_t history_sessions = continuation_history_sessions,
+                                         PanelEvaluationAccess access = {});
+    void append(const HistoricalBarRequest &session, std::span<const MinuteBar> bars);
     [[nodiscard]] bool ready() const noexcept;
     [[nodiscard]] std::size_t size() const noexcept;
-    [[nodiscard]] IntradayContinuationFeatures measure(
-        const HistoricalBarRequest& current_session,
-        std::span<const MinuteBar> completed_bars,
-        std::chrono::sys_seconds at) const;
+    [[nodiscard]] IntradayContinuationFeatures measure(const HistoricalBarRequest &current_session,
+                                                       std::span<const MinuteBar> completed_bars,
+                                                       std::chrono::sys_seconds at) const;
 
-private:
+  private:
     struct SessionProfile {
         std::chrono::sys_seconds start;
         std::chrono::sys_seconds end;
@@ -48,6 +49,7 @@ private:
     };
     std::deque<SessionProfile> sessions_;
     ResearchInputMode mode_;
+    PanelEvaluationAccess access_;
     std::size_t history_sessions_;
     std::string symbol_;
 };
@@ -66,25 +68,26 @@ struct IntradayContinuationDecision {
 };
 
 class IntradayContinuationStrategy {
-public:
+  public:
     IntradayContinuationStrategy(HistoricalBarRequest session, ContinuationVariant variant,
-        ResearchInputMode mode = ResearchInputMode::legacy_complete);
-    [[nodiscard]] static ContinuationAction action(const IntradayContinuationFeatures& features,
-        ContinuationVariant variant, bool currently_long);
-    [[nodiscard]] IntradayContinuationDecision decide(
-        const IntradayContinuationHistory& history,
-        std::span<const MinuteBar> completed_bars,
-        std::chrono::sys_seconds at,
-        bool currently_long) const;
-    [[nodiscard]] const HistoricalBarRequest& session() const noexcept;
+                                 ResearchInputMode mode = ResearchInputMode::legacy_complete,
+                                 PanelEvaluationAccess access = {});
+    [[nodiscard]] static ContinuationAction action(const IntradayContinuationFeatures &features,
+                                                   ContinuationVariant variant, bool currently_long);
+    [[nodiscard]] IntradayContinuationDecision decide(const IntradayContinuationHistory &history,
+                                                      std::span<const MinuteBar> completed_bars,
+                                                      std::chrono::sys_seconds at,
+                                                      bool currently_long) const;
+    [[nodiscard]] const HistoricalBarRequest &session() const noexcept;
     [[nodiscard]] ContinuationVariant variant() const noexcept;
     [[nodiscard]] std::array<std::chrono::sys_seconds, 12> decision_times() const;
     [[nodiscard]] std::chrono::sys_seconds liquidation_time() const noexcept;
 
-private:
+  private:
     HistoricalBarRequest session_;
     ContinuationVariant variant_;
     ResearchInputMode mode_;
+    PanelEvaluationAccess access_;
 };
 
 struct IntradayContinuationReplay {
@@ -99,16 +102,14 @@ struct IntradayContinuationReplay {
 // Full-session deterministic price-reference replay. Only completed prefixes
 // cross the strategy boundary; no broker, queue or intraminute fill model.
 class IntradayContinuationReplayEngine {
-public:
-    explicit IntradayContinuationReplayEngine(
-        std::chrono::minutes delay = std::chrono::minutes{1},
-        double cost_bps_per_side = 1.0);
-    [[nodiscard]] IntradayContinuationReplay run(
-        const IntradayContinuationStrategy& strategy,
-        const IntradayContinuationHistory& history,
-        std::span<const MinuteBar> bars) const;
+  public:
+    explicit IntradayContinuationReplayEngine(std::chrono::minutes delay = std::chrono::minutes{1},
+                                              double cost_bps_per_side = 1.0);
+    [[nodiscard]] IntradayContinuationReplay run(const IntradayContinuationStrategy &strategy,
+                                                 const IntradayContinuationHistory &history,
+                                                 std::span<const MinuteBar> bars) const;
 
-private:
+  private:
     std::chrono::minutes delay_;
     double cost_bps_per_side_;
 };

@@ -2,11 +2,11 @@
 #include "json_input.hpp"
 #include "utc_timestamp.hpp"
 
-#include <stdexcept>
 #include <algorithm>
 #include <array>
-#include <span>
 #include <set>
+#include <span>
+#include <stdexcept>
 #include <utility>
 
 namespace trading {
@@ -20,7 +20,8 @@ std::chrono::minutes clock_minutes(std::string_view value) {
         throw std::invalid_argument("calendar clock requires HH:MM or HH:MM:00");
     }
     auto component = [&](std::size_t index) {
-        if (value[index] < '0' || value[index] > '9' || value[index + 1] < '0' || value[index + 1] > '9') {
+        if (value[index] < '0' || value[index] > '9' || value[index + 1] < '0' ||
+            value[index + 1] > '9') {
             throw std::invalid_argument("calendar clock contains a non-digit");
         }
         return (value[index] - '0') * 10 + value[index + 1] - '0';
@@ -80,7 +81,8 @@ CalendarSession::CalendarSession(std::string date, std::string open_local, std::
     const auto open = clock_minutes(open_local);
     const auto close = clock_minutes(close_local);
     if (open < std::chrono::minutes{570} || close > std::chrono::minutes{960} || close <= open) {
-        throw std::invalid_argument("calendar session lies outside the supported 09:30-16:00 daytime window");
+        throw std::invalid_argument(
+            "calendar session lies outside the supported 09:30-16:00 daytime window");
     }
     const auto offset = utc_offset_to_add(day);
     open_utc_ = day + open + offset;
@@ -97,7 +99,8 @@ HistoricalBarRequest CalendarSession::bar_request(std::string symbol) const {
     return {std::move(symbol), open_utc_, close_utc_, 100};
 }
 
-std::vector<CalendarSession> decode_market_calendar(std::string_view payload, const CalendarRange &range) {
+std::vector<CalendarSession> decode_market_calendar(std::string_view payload,
+                                                    const CalendarRange &range) {
     const auto document = parse_json_document(payload);
     if (!document.is_array() || document.empty() || document.size() > 31) {
         throw std::invalid_argument("calendar response requires 1 to 31 session records");
@@ -109,7 +112,8 @@ std::vector<CalendarSession> decode_market_calendar(std::string_view payload, co
             !record.at("close").is_string()) {
             throw std::invalid_argument("calendar record requires date, open and close strings");
         }
-        CalendarSession session{record.at("date").get<std::string>(), record.at("open").get<std::string>(),
+        CalendarSession session{record.at("date").get<std::string>(),
+                                record.at("open").get<std::string>(),
                                 record.at("close").get<std::string>()};
         if (session.date() < range.first() || session.date() > range.last() ||
             (!result.empty() && session.date() <= result.back().date())) {
@@ -134,7 +138,8 @@ std::vector<CalendarSession> reference_sessions(const CalendarRange &range,
             std::find(holidays.begin(), holidays.end(), date) != holidays.end()) {
             continue;
         }
-        const auto shortened = std::find(short_dates.begin(), short_dates.end(), date) != short_dates.end();
+        const auto shortened =
+            std::find(short_dates.begin(), short_dates.end(), date) != short_dates.end();
         result.emplace_back(date, "09:30", shortened ? "13:00" : "16:00");
     }
     return result;
@@ -155,7 +160,8 @@ std::vector<CalendarSession> development_calendar(const CalendarRange &range) {
 
 std::vector<CalendarSession> risk_calibration_calendar(const CalendarRange &range) {
     if (range.first() < "2020-12-31" || range.last() > "2021-12-31") {
-        throw std::invalid_argument("risk calibration calendar is restricted to the 2020 boundary and 2021");
+        throw std::invalid_argument(
+            "risk calibration calendar is restricted to the 2020 boundary and 2021");
     }
     constexpr std::array<std::string_view, 9> holidays{"2021-01-01", "2021-01-18", "2021-02-15",
                                                        "2021-04-02", "2021-05-31", "2021-07-05",
@@ -174,11 +180,14 @@ std::vector<CalendarSession> extension_calendar(const CalendarRange &range) {
         const auto observed = [](std::chrono::sys_days day) {
             const auto weekday = std::chrono::weekday{day};
             return day + (weekday == std::chrono::Saturday ? std::chrono::days{-1}
-                : weekday == std::chrono::Sunday ? std::chrono::days{1} : std::chrono::days{0});
+                          : weekday == std::chrono::Sunday ? std::chrono::days{1}
+                                                           : std::chrono::days{0});
         };
         const auto new_year = std::chrono::sys_days{year / std::chrono::January / 1};
         // NYSE does not observe a Saturday New Year on the preceding Friday.
-        if (std::chrono::weekday{new_year} != std::chrono::Saturday) { holidays.insert(observed(new_year)); }
+        if (std::chrono::weekday{new_year} != std::chrono::Saturday) {
+            holidays.insert(observed(new_year));
+        }
         holidays.insert(std::chrono::sys_days{year / std::chrono::January / std::chrono::Monday[3]});
         holidays.insert(std::chrono::sys_days{year / std::chrono::February / std::chrono::Monday[3]});
         const int a = y % 19, b = y / 100, c = y % 100, d = b / 4, e = b % 4;
@@ -187,27 +196,51 @@ std::vector<CalendarSession> extension_calendar(const CalendarRange &range) {
         const int l = (32 + 2 * e + 2 * i - h - k) % 7, m = (a + 11 * h + 22 * l) / 451;
         const int easter_month = (h + l - 7 * m + 114) / 31;
         const int easter_day = (h + l - 7 * m + 114) % 31 + 1;
-        holidays.insert(std::chrono::sys_days{year / std::chrono::month{static_cast<unsigned>(easter_month)} /
-            std::chrono::day{static_cast<unsigned>(easter_day)}} - std::chrono::days{2});
-        holidays.insert(std::chrono::sys_days{year / std::chrono::May / std::chrono::Monday[std::chrono::last]});
-        if (y >= 2022) { holidays.insert(observed(std::chrono::sys_days{year / std::chrono::June / 19})); }
+        holidays.insert(
+            std::chrono::sys_days{year / std::chrono::month{static_cast<unsigned>(easter_month)} /
+                                  std::chrono::day{static_cast<unsigned>(easter_day)}} -
+            std::chrono::days{2});
+        holidays.insert(
+            std::chrono::sys_days{year / std::chrono::May / std::chrono::Monday[std::chrono::last]});
+        if (y >= 2022) {
+            holidays.insert(observed(std::chrono::sys_days{year / std::chrono::June / 19}));
+        }
         holidays.insert(observed(std::chrono::sys_days{year / std::chrono::July / 4}));
         holidays.insert(std::chrono::sys_days{year / std::chrono::September / std::chrono::Monday[1]});
-        const auto thanksgiving = std::chrono::sys_days{year / std::chrono::November / std::chrono::Thursday[4]};
+        const auto thanksgiving =
+            std::chrono::sys_days{year / std::chrono::November / std::chrono::Thursday[4]};
         holidays.insert(thanksgiving);
         holidays.insert(observed(std::chrono::sys_days{year / std::chrono::December / 25}));
         shortened.insert(thanksgiving + std::chrono::days{1});
         shortened.insert(std::chrono::sys_days{year / std::chrono::July / 3});
         shortened.insert(std::chrono::sys_days{year / std::chrono::December / 24});
     }
-    holidays.insert(std::chrono::sys_days{std::chrono::year{2018}/12/5});
-    holidays.insert(std::chrono::sys_days{std::chrono::year{2025}/1/9});
+    holidays.insert(std::chrono::sys_days{std::chrono::year{2018} / 12 / 5});
+    holidays.insert(std::chrono::sys_days{std::chrono::year{2025} / 1 / 9});
     std::vector<CalendarSession> result;
     for (auto day = first; day <= finish; day += std::chrono::days{1}) {
-        if (std::chrono::weekday{day}.iso_encoding() >= 6 || holidays.contains(day)) { continue; }
-        result.emplace_back(format_utc_seconds(day).substr(0, 10), "09:30", shortened.contains(day) ? "13:00" : "16:00");
+        if (std::chrono::weekday{day}.iso_encoding() >= 6 || holidays.contains(day)) {
+            continue;
+        }
+        result.emplace_back(format_utc_seconds(day).substr(0, 10), "09:30",
+                            shortened.contains(day) ? "13:00" : "16:00");
     }
     return result;
 }
 
+std::vector<CalendarSession> extension_calendar_years(int first, int last) {
+    if (first < 2016 || last > 2025 || first > last)
+        throw std::invalid_argument("extension calendar years outside registration");
+    std::vector<CalendarSession> out;
+    for (int y = first; y <= last; ++y)
+        for (unsigned m = 1; m <= 12; ++m) {
+            const auto end = std::chrono::year_month_day{std::chrono::year{y} / std::chrono::month{m} /
+                                                         std::chrono::last};
+            const auto id = std::to_string(y) + (m < 10 ? "-0" : "-") + std::to_string(m);
+            const auto days = extension_calendar(
+                CalendarRange{id + "-01", id + '-' + std::to_string(static_cast<unsigned>(end.day()))});
+            out.insert(out.end(), days.begin(), days.end());
+        }
+    return out;
+}
 } // namespace trading

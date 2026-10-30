@@ -8,7 +8,8 @@ namespace trading {
 class CostDelayReport {
   public:
     CostDelayReport(const std::filesystem::path &run_root, nlohmann::json provenance,
-                    std::filesystem::path input_dataset, CostDelayStudy study);
+                    std::filesystem::path input_dataset, CostDelayStudy study,
+                    PanelEvaluationAccess access = {});
     [[nodiscard]] const std::filesystem::path &directory() const noexcept;
     void append(std::span<const PanelReplayDay> days, std::span<const SessionDownload> sessions);
     [[nodiscard]] std::filesystem::path finish(nlohmann::json checks = nlohmann::json::array());

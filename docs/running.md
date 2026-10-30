@@ -110,6 +110,8 @@ these checks are explicit local commands.
 | `cost_execution_study` | M6 registered 680-case synthetic broker/client execution study; no credentials or market dataset |
 | `stability_extension_development` | M7 fourteen one-factor variants and 50 funded risk-matched accounts; `--check` uses 600 analytic sessions, default replays the registered pre-2024 panel |
 | `stability_development` | M7 primary diagnostics and paired full-calendar uncertainty from saved M6 exports; `--check` constructs its own inputs |
+| `inference_calibration` | M8 controlled simultaneous-inference calibration; `--check` is a short engineering run, default executes the full registered experiment |
+| `panel_evaluation` | M8 integrated 2024 evaluation and executable freeze; begin with `--check` and the independent verifier below |
 | `panel_account_development` | M6 continuously funded risk and shared-capital accounts; `--check` is constructed, default requires the registered pre-2024 panel |
 | `execution_measurement` | 144 matched synthetic execution cases and saved quote/fill views |
 | `runtime_benchmark` | 120 Release processing/storage/recovery rows; Debug is diagnostic only |
@@ -844,3 +846,92 @@ editing checks. Verify its saved directory with the same Python command. The
 printed `review.zip` contains synthetic evidence; no private market archive is
 required. Short check receipts cannot authorize provider evaluation. The
 [validation note](validation.md) records the exact models and failure treatment.
+
+## Integrated validation and freeze (M8)
+
+Run these stages in an existing PowerShell window. They reuse the registered
+local M2 panel without acquisition, subscriptions or broker access. `Manifest:`
+selects the actual new directory, so numeric suffixes do not need guessing.
+Failures stop dependent work.
+
+First run the constructed integration, independent verifier and synthetic freeze:
+
+```powershell
+& {
+    $ErrorActionPreference = "Stop"
+    git pull
+    if ($LASTEXITCODE -ne 0) { throw "Pull failed" }
+    py -3 -B build.py --configuration Release --target panel_evaluation
+    if ($LASTEXITCODE -ne 0) { throw "Build failed" }
+    & .\scratch\native\Release\panel_evaluation.exe --check |
+        Tee-Object -Variable runLog
+    if ($LASTEXITCODE -ne 0) { throw "Constructed evaluation failed" }
+    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
+    if (!$line) { throw "Manifest path was not printed" }
+    $validationDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
+    py -3 -B research/verify_panel_evaluation.py $validationDir --self-check
+    if ($LASTEXITCODE -ne 0) { throw "Constructed verification failed" }
+    & .\scratch\native\Release\panel_evaluation.exe --freeze $validationDir |
+        Tee-Object -Variable freezeLog
+    if ($LASTEXITCODE -ne 0) { throw "Constructed freeze failed" }
+    $line = ($freezeLog | Select-String '^Freeze: ' | Select-Object -Last 1).Line
+    if (!$line) { throw "Freeze path was not printed" }
+    $freezeDir = Split-Path ($line -replace '^Freeze: ', '') -Parent
+    py -3 -B research/verify_panel_evaluation.py $freezeDir --freeze
+    if ($LASTEXITCODE -ne 0) { throw "Constructed freeze verification failed" }
+}
+```
+
+This generates a separate short calibration, which cannot authorize provider
+prices. Share the evaluation `review.zip` and freeze `freeze.json` and
+`verification.json`. The executable and raw datasets remain local.
+
+Then run full controlled calibration, registered 2024 validation and the provider
+freeze. The calibration performs 20,000 joint-family experiments, each with
+10,000 draws. Its oracle checks all outer moments and 40 full bootstrap references.
+This substantial research workload prints progress and is separate from routine
+editing checks. Historical replay warms earlier observations before scoring 2024.
+
+```powershell
+& {
+    $ErrorActionPreference = "Stop"
+    py -3 -B build.py --configuration Release --target inference_calibration
+    if ($LASTEXITCODE -ne 0) { throw "Calibration build failed" }
+    py -3 -B build.py --configuration Release --target panel_evaluation
+    if ($LASTEXITCODE -ne 0) { throw "Evaluation build failed" }
+    & .\scratch\native\Release\inference_calibration.exe |
+        Tee-Object -Variable runLog
+    if ($LASTEXITCODE -ne 0) { throw "Controlled calibration failed" }
+    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
+    if (!$line) { throw "Calibration manifest was not printed" }
+    $calibrationDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
+    py -3 -B research/verify_inference_calibration.py $calibrationDir --self-check
+    if ($LASTEXITCODE -ne 0) { throw "Calibration verification failed" }
+
+    & .\scratch\native\Release\panel_evaluation.exe --validation $calibrationDir |
+        Tee-Object -Variable runLog
+    if ($LASTEXITCODE -ne 0) { throw "2024 evaluation failed" }
+    $line = ($runLog | Select-String '^Manifest: ' | Select-Object -Last 1).Line
+    if (!$line) { throw "Validation manifest was not printed" }
+    $validationDir = Split-Path ($line -replace '^Manifest: ', '') -Parent
+    py -3 -B research/verify_panel_evaluation.py $validationDir --self-check
+    if ($LASTEXITCODE -ne 0) { throw "2024 verification failed" }
+
+    & .\scratch\native\Release\panel_evaluation.exe --freeze $validationDir |
+        Tee-Object -Variable freezeLog
+    if ($LASTEXITCODE -ne 0) { throw "Provider freeze failed" }
+    $line = ($freezeLog | Select-String '^Freeze: ' | Select-Object -Last 1).Line
+    if (!$line) { throw "Freeze path was not printed" }
+    $freezeDir = Split-Path ($line -replace '^Freeze: ', '') -Parent
+    py -3 -B research/verify_panel_evaluation.py $freezeDir --freeze
+    if ($LASTEXITCODE -ne 0) { throw "Provider freeze verification failed" }
+}
+```
+
+Share the calibration and evaluation `review.zip` files and the provider freeze
+`freeze.json` and `verification.json`. Keep the frozen executable and original
+raw archive local. Do not rebuild between evaluation, verification and freeze.
+If only verification needs repeating, use its saved directory; acquisition and
+strategy replay do not need repeating unless their inputs or runner changed.
+**Do not run `--final` during M8.** M9 must explicitly use the frozen runner copy
+after M8 evidence acceptance.

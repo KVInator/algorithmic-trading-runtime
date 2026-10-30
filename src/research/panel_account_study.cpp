@@ -55,34 +55,36 @@ struct Summary {
         for (const auto &[d, e] : path) {
             points.push_back({d, e});
         }
-        return {{"observed_dates", returns.size()},
-                {"started", started.empty() ? Json(nullptr) : Json(started)},
-                {"stopped", stopped.empty() ? Json(nullptr) : Json(stopped)},
-                {"stop_reason", reason},
-                {"last_observed_equity", equity},
-                {"mean_return", returns.empty() ? Json(nullptr)
-                                                : Json(std::accumulate(returns.begin(), returns.end(), 0.0) /
-                                                       static_cast<double>(returns.size()))},
-                {"cer", returns.size() < 2 ? Json(nullptr) : Json(certainty_equivalent(returns))},
-                {"observed_prefix_drawdown", maximum_drawdown},
-                {"traded_notional", notional},
-                {"cost_paid", cost},
-                {"mean_exposure",
-                 returns.empty() ? Json(nullptr) : Json(exposure_sum / static_cast<double>(returns.size()))},
-                {"equity_path", points}};
+        return {
+            {"observed_dates", returns.size()},
+            {"started", started.empty() ? Json(nullptr) : Json(started)},
+            {"stopped", stopped.empty() ? Json(nullptr) : Json(stopped)},
+            {"stop_reason", reason},
+            {"last_observed_equity", equity},
+            {"mean_return", returns.empty() ? Json(nullptr)
+                                            : Json(std::accumulate(returns.begin(), returns.end(), 0.0) /
+                                                   static_cast<double>(returns.size()))},
+            {"cer", returns.size() < 2 ? Json(nullptr) : Json(certainty_equivalent(returns))},
+            {"observed_prefix_drawdown", maximum_drawdown},
+            {"traded_notional", notional},
+            {"cost_paid", cost},
+            {"mean_exposure",
+             returns.empty() ? Json(nullptr) : Json(exposure_sum / static_cast<double>(returns.size()))},
+            {"equity_path", points}};
     }
 };
 class RiskCase {
   public:
     RiskCase(std::string instrument, std::string policy, int lag, double charge)
-        : symbol(std::move(instrument)), name(std::move(policy)), delay(lag), cost(charge), account(100000) {}
+        : symbol(std::move(instrument)), name(std::move(policy)), delay(lag), cost(charge),
+          account(100000) {}
     void initialize_price(double price) {
         if (summary.started.empty()) {
             last_price = price;
         }
     }
     Json run(const PanelReplayDay &day, const RiskSessionReferences &refs, const Json &actions,
-             bool terminal, const std::optional<double>* explicit_target = nullptr) {
+             bool terminal, const std::optional<double> *explicit_target = nullptr) {
         Json events = Json::array();
         const auto begin = account.ledger().size();
         const auto &cal = refs.calendar();
@@ -100,7 +102,9 @@ class RiskCase {
                      : name == "static_risk_budget" ? day.risk.static_weight
                                                     : std::optional<double>{1};
         }
-        if (explicit_target) { target = *explicit_target; }
+        if (explicit_target) {
+            target = *explicit_target;
+        }
         if (summary.stopped.empty() && (!summary.started.empty() || target)) {
             if (summary.started.empty()) {
                 summary.started = date;
@@ -118,9 +122,10 @@ class RiskCase {
                     if (a.at("symbol") == symbol && a.at("ex_date") == id && id >= summary.started) {
                         continuity -= a.at("usd_per_share").get<double>();
                         require(continuity > 0, "nonpositive ex-date continuity mark");
-                        account.accrue_dividend(cursor, symbol + "_" + id,
-                                                parse_session_date(a.at("payable_date").get<std::string>()),
-                                                a.at("usd_per_share").get<double>(), continuity);
+                        account.accrue_dividend(
+                            cursor, symbol + "_" + id,
+                            parse_session_date(a.at("payable_date").get<std::string>()),
+                            a.at("usd_per_share").get<double>(), continuity);
                         last_price = continuity;
                     }
                 }
@@ -185,21 +190,22 @@ class RiskCase {
             summary.observe(date, v.equity_usd, r, v.shares * last_price / v.liquid_wealth_usd);
             previous_equity = v.equity_usd;
         }
-        return {{"symbol", symbol},
-                {"account", name},
-                {"delay", delay},
-                {"cost_bps", cost},
-                {"status", !valid                    ? "stopped"
-                           : summary.started.empty() ? "awaiting_history"
-                                                     : "observed"},
-                {"stop_reason", summary.reason},
-                {"target_weight", target ? Json(*target) : Json(nullptr)},
-                {"fallback", name == "intraday_risk" && day.risk.estimate && !day.risk.estimate->intraday},
-                {"net_return", valid ? Json(r) : Json(nullptr)},
-                {"value", value_json(v)},
-                {"last_price", last_price},
-                {"events", events},
-                {"terminal_liquidation", valid && terminal && !summary.started.empty()}};
+        return {
+            {"symbol", symbol},
+            {"account", name},
+            {"delay", delay},
+            {"cost_bps", cost},
+            {"status", !valid                    ? "stopped"
+                       : summary.started.empty() ? "awaiting_history"
+                                                 : "observed"},
+            {"stop_reason", summary.reason},
+            {"target_weight", target ? Json(*target) : Json(nullptr)},
+            {"fallback", name == "intraday_risk" && day.risk.estimate && !day.risk.estimate->intraday},
+            {"net_return", valid ? Json(r) : Json(nullptr)},
+            {"value", value_json(v)},
+            {"last_price", last_price},
+            {"events", events},
+            {"terminal_liquidation", valid && terminal && !summary.started.empty()}};
     }
     std::string symbol, name;
     int delay;
@@ -305,14 +311,14 @@ class SharedCase {
                             gross += p.shares * (q.bid_units + (q.ask_units - q.bid_units) / 2);
                         }
                     }
-                    exposure = std::max(exposure,
-                                        static_cast<double>(gross) / static_cast<double>(snap.equity_units));
-                    for (auto it = result->dispatch_orders.rbegin(); it != result->dispatch_orders.rend();
-                         ++it) {
+                    exposure = std::max(exposure, static_cast<double>(gross) /
+                                                      static_cast<double>(snap.equity_units));
+                    for (auto it = result->dispatch_orders.rbegin();
+                         it != result->dispatch_orders.rend(); ++it) {
                         tasks.emplace_back(std::pair{*it, false});
                     }
-                    for (auto it = result->dispatch_cancels.rbegin(); it != result->dispatch_cancels.rend();
-                         ++it) {
+                    for (auto it = result->dispatch_cancels.rbegin();
+                         it != result->dispatch_cancels.rend(); ++it) {
                         tasks.emplace_back(*it);
                     }
                 } else if (const auto *request = std::get_if<std::pair<OrderRequest, bool>>(&task)) {
@@ -323,8 +329,9 @@ class SharedCase {
                             clock, {"A" + o.id, o.id, ReportKind::accepted, "", 0, 0, 0, 0, ""}}));
                     } else {
                         const auto snap = book.snapshot();
-                        const auto active = std::find_if(snap.open_orders.begin(), snap.open_orders.end(),
-                                                         [&](const auto &x) { return x.request.id == o.id; });
+                        const auto active =
+                            std::find_if(snap.open_orders.begin(), snap.open_orders.end(),
+                                         [&](const auto &x) { return x.request.id == o.id; });
                         if (active == snap.open_orders.end()) {
                             continue;
                         }
@@ -334,8 +341,8 @@ class SharedCase {
                         paid += o.shares * std::abs(o.limit_units - mid);
                         tasks.emplace_back(
                             step(SharedDelivery{clock,
-                                                {"F" + o.id, o.id, ReportKind::fill, "X" + o.id, o.shares,
-                                                 o.limit_units, 0, 0, ""}}));
+                                                {"F" + o.id, o.id, ReportKind::fill, "X" + o.id,
+                                                 o.shares, o.limit_units, 0, 0, ""}}));
                     }
                 } else {
                     const auto &[id, cancel] = std::get<std::pair<std::string, std::string>>(task);
@@ -388,8 +395,8 @@ class SharedCase {
             }
             if (!available || !targets) {
                 summary.stopped = date;
-                summary.reason =
-                    !available ? "shared_execution_quote_unavailable" : "shared_primary_target_unavailable";
+                summary.reason = !available ? "shared_execution_quote_unavailable"
+                                            : "shared_primary_target_unavailable";
                 break;
             }
             dispatch(step(batch), clock);
@@ -422,10 +429,10 @@ class SharedCase {
         result["crossing_cost_units"] = paid;
         result["internal_transfers"] = transfers;
         result["maximum_gross_fraction"] = exposure;
-        result["net_return"] =
-            summary.stopped.empty()
-                ? Json(static_cast<double>(checkpoint->cash_units - before) / static_cast<double>(before))
-                : Json(nullptr);
+        result["net_return"] = summary.stopped.empty()
+                                   ? Json(static_cast<double>(checkpoint->cash_units - before) /
+                                          static_cast<double>(before))
+                                   : Json(nullptr);
         return result;
     }
     std::string variant;
@@ -457,42 +464,50 @@ class PanelRiskLedger::State {
   public:
     State(std::string symbol, std::string policy, int delay, double cost)
         : ledger(std::move(symbol), std::move(policy), delay, cost) {}
-    Json advance(const PanelReplayDay& day, const RiskSessionReferences& references,
-                 const Json& actions, bool terminal, const std::optional<double>* target) {
-        if (previous_close) { ledger.initialize_price(*previous_close); }
+    Json advance(const PanelReplayDay &day, const RiskSessionReferences &references, const Json &actions,
+                 bool terminal, const std::optional<double> *target) {
+        if (previous_close) {
+            ledger.initialize_price(*previous_close);
+        }
         Json result = day.scored_period ? ledger.run(day, references, actions, terminal, target)
-            : Json{{"symbol",day.symbol},{"account",ledger.name},{"status","initialization"},
-                   {"stop_reason",""},{"target_weight",nullptr},{"net_return",nullptr},{"events",Json::array()}};
+                                        : Json{{"symbol", day.symbol},       {"account", ledger.name},
+                                               {"status", "initialization"}, {"stop_reason", ""},
+                                               {"target_weight", nullptr},   {"net_return", nullptr},
+                                               {"events", Json::array()}};
         previous_close = references.observed_close();
         return result;
     }
     RiskCase ledger;
     std::optional<double> previous_close;
 };
-PanelRiskLedger::PanelRiskLedger(std::string symbol,std::string policy,int delay,double cost)
-    : state_(std::make_unique<State>(std::move(symbol),std::move(policy),delay,cost)) {}
+PanelRiskLedger::PanelRiskLedger(std::string symbol, std::string policy, int delay, double cost)
+    : state_(std::make_unique<State>(std::move(symbol), std::move(policy), delay, cost)) {}
 PanelRiskLedger::~PanelRiskLedger() = default;
-Json PanelRiskLedger::append(const PanelReplayDay& day,const RiskSessionReferences& refs,const Json& actions,bool terminal) {
-    return state_->advance(day,refs,actions,terminal,nullptr);
+Json PanelRiskLedger::append(const PanelReplayDay &day, const RiskSessionReferences &refs,
+                             const Json &actions, bool terminal) {
+    return state_->advance(day, refs, actions, terminal, nullptr);
 }
-Json PanelRiskLedger::append_sized(const PanelReplayDay& day,const RiskSessionReferences& refs,const Json& actions,bool terminal,std::optional<double> target) {
-    return state_->advance(day,refs,actions,terminal,&target);
+Json PanelRiskLedger::append_sized(const PanelReplayDay &day, const RiskSessionReferences &refs,
+                                   const Json &actions, bool terminal, std::optional<double> target) {
+    return state_->advance(day, refs, actions, terminal, &target);
 }
 class PanelAccountStudy::State {
   public:
-    explicit State(const ExtensionStudyContract &contract, Json cash)
-        : actions(std::move(cash)), contract_(contract) {
+    explicit State(const ExtensionStudyContract &contract, Json cash, PanelEvaluationAccess access)
+        : actions(std::move(cash)), contract_(contract), access_(std::move(access)) {
         const auto symbols = contract.symbols();
         for (const auto &symbol : symbols) {
             by_symbol[symbol] = Json::array();
         }
         std::set<std::pair<std::string, std::string>> seen;
         for (const auto &a : actions) {
-            const auto symbol = a.at("symbol").get<std::string>(), ex = a.at("ex_date").get<std::string>(),
+            const auto symbol = a.at("symbol").get<std::string>(),
+                       ex = a.at("ex_date").get<std::string>(),
                        pay = a.at("payable_date").get<std::string>();
             const auto amount = a.at("usd_per_share").get<double>();
-            require(by_symbol.contains(symbol) && ex < "2024" && std::isfinite(amount) && amount > 0 &&
-                        parse_session_date(pay) >= parse_session_date(ex) && seen.emplace(symbol, ex).second,
+            require(by_symbol.contains(symbol) && ex <= access_.last_input() && std::isfinite(amount) &&
+                        amount > 0 && parse_session_date(pay) >= parse_session_date(ex) &&
+                        seen.emplace(symbol, ex).second,
                     "invalid account cash event");
             by_symbol.at(symbol).push_back(a);
         }
@@ -516,6 +531,7 @@ class PanelAccountStudy::State {
     Json actions;
     std::map<std::string, Json> by_symbol;
     ExtensionStudyContract contract_;
+    PanelEvaluationAccess access_;
     std::vector<RiskCase> risk;
     std::vector<SharedCase> shared;
     std::map<std::string, std::pair<PanelReplayDay, RiskSessionReferences>> pending;
@@ -527,30 +543,34 @@ class PanelAccountStudy::State {
     };
     std::map<std::pair<std::string, int>, ForecastTotals> forecasts;
 };
-PanelAccountStudy::PanelAccountStudy(const ExtensionStudyContract &contract, Json actions)
-    : state_(std::make_unique<State>(contract, std::move(actions))) {}
+PanelAccountStudy::PanelAccountStudy(const ExtensionStudyContract &contract, Json actions,
+                                     PanelEvaluationAccess access)
+    : state_(std::make_unique<State>(contract, std::move(actions), std::move(access))) {}
 PanelAccountStudy::~PanelAccountStudy() = default;
 Json PanelAccountStudy::plan() const {
-    return {{"policy_sha256", TRADING_COST_EXECUTION_PROTOCOL_SHA256},
-            {"protocol_sha256", TRADING_EXTENSION_PROTOCOL_SHA256},
-            {"symbols", state_->contract_.symbols()},
-            {"shared_usd_scale", scale},
-            {"shared_fee_per_share_units", 0},
-            {"shared_budget_denominators", {{"owner", 15}, {"family", 3}, {"instrument", 5}}},
-            {"risk_accounts", risk_rules::accounts},
-            {"costs_bps", risk_rules::costs},
-            {"delays_minutes", risk_rules::delays},
-            {"shared_variants", variants},
-            {"initial_usd", 100000},
-            {"risk_start", "first_scored_date_with_all_three_prior_weights"},
-            {"risk_terminal", "last_development_session_close_minus_four_minutes_actual_open"},
-            {"shared_fill_model", "synchronous_full_fill_at_cost_shifted_raw_opens_no_observed_liquidity"},
-            {"shared_cost_rounding", "raw_price_nearest_nanodollar_charge_ceiling_nanodollar_per_share"},
-            {"shared_sizing_clock", "arrival_at_decision_plus_delay"},
-            {"shared_daily_handover", "sealed_flat_checkpoint_no_capital_reset"},
-            {"missing_required_reference", "stop_at_observation_without_pre_gap_liquidation_or_restart"},
-            {"cash_interest", 0},
-            {"accounting_actions", state_->actions}};
+    return {
+        {"policy_sha256", TRADING_COST_EXECUTION_PROTOCOL_SHA256},
+        {"protocol_sha256", TRADING_EXTENSION_PROTOCOL_SHA256},
+        {"symbols", state_->contract_.symbols()},
+        {"shared_usd_scale", scale},
+        {"shared_fee_per_share_units", 0},
+        {"shared_budget_denominators", {{"owner", 15}, {"family", 3}, {"instrument", 5}}},
+        {"risk_accounts", risk_rules::accounts},
+        {"costs_bps", risk_rules::costs},
+        {"delays_minutes", risk_rules::delays},
+        {"shared_variants", variants},
+        {"initial_usd", 100000},
+        {"risk_start", "first_scored_date_with_all_three_prior_weights"},
+        {"risk_terminal", state_->access_.development()
+                              ? "last_development_session_close_minus_four_minutes_actual_open"
+                              : "last_evaluation_session_close_minus_four_minutes_actual_open"},
+        {"shared_fill_model", "synchronous_full_fill_at_cost_shifted_raw_opens_no_observed_liquidity"},
+        {"shared_cost_rounding", "raw_price_nearest_nanodollar_charge_ceiling_nanodollar_per_share"},
+        {"shared_sizing_clock", "arrival_at_decision_plus_delay"},
+        {"shared_daily_handover", "sealed_flat_checkpoint_no_capital_reset"},
+        {"missing_required_reference", "stop_at_observation_without_pre_gap_liquidation_or_restart"},
+        {"cash_interest", 0},
+        {"accounting_actions", state_->actions}};
 }
 Json PanelAccountStudy::append(std::span<const PanelReplayDay> days,
                                std::span<const SessionDownload> sessions,
@@ -559,11 +579,12 @@ Json PanelAccountStudy::append(std::span<const PanelReplayDay> days,
             "account replay requires one complete five-symbol date");
     require(!state_->terminal && !state_->finished, "account study already reached its terminal date");
     const auto date = days.front().date;
-    state_->contract_.require_development_access(date);
+    state_->access_.require_price(date);
     require(state_->previous.empty() || date > state_->previous, "account dates must increase");
     if (!state_->previous.empty()) {
         const auto first =
-            format_utc_seconds(parse_session_date(state_->previous) + std::chrono::days{1}).substr(0, 10);
+            format_utc_seconds(parse_session_date(state_->previous) + std::chrono::days{1})
+                .substr(0, 10);
         require(extension_calendar(CalendarRange{first, date}).size() == 1,
                 "account study skipped an exchange session");
     }
@@ -575,12 +596,14 @@ Json PanelAccountStudy::append(std::span<const PanelReplayDay> days,
     require(symbols == std::set<std::string>{registered.begin(), registered.end()},
             "account study symbol coverage differs");
     state_->previous = date;
-    Json output{
-        {"date", date}, {"risk", Json::array()}, {"shared", Json::array()}, {"forecasts", Json::array()}};
+    Json output{{"date", date},
+                {"risk", Json::array()},
+                {"shared", Json::array()},
+                {"forecasts", Json::array()}};
     for (std::size_t i = 0; i < days.size(); ++i) {
         require(days[i].date == date && sessions[i].request.symbol() == days[i].symbol,
                 "account market identity differs");
-        require(days[i].scored_period == (date > "2016-12-31"),
+        require(days[i].scored_period == state_->access_.scored(date),
                 "account initialization/scoring boundary differs");
         auto bars = sessions[i].bars;
         if (recovered[i]) {
@@ -681,7 +704,8 @@ Json PanelAccountStudy::append(std::span<const PanelReplayDay> days,
     return output;
 }
 Json PanelAccountStudy::finish() {
-    require(state_->terminal && !state_->finished, "account study requires exactly one terminal completion");
+    require(state_->terminal && !state_->finished,
+            "account study requires exactly one terminal completion");
     state_->finished = true;
     Json risk = Json::array(), shared = Json::array();
     for (const auto &c : state_->risk) {

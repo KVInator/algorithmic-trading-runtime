@@ -32,7 +32,7 @@ struct ReversionPrior {
 class ReversionHistory {
   public:
     explicit ReversionHistory(ResearchInputMode mode = ResearchInputMode::legacy_complete,
-                              ReversionParameters parameters = {});
+                              ReversionParameters parameters = {}, PanelEvaluationAccess access = {});
     [[nodiscard]] bool ready() const noexcept;
     [[nodiscard]] const ReversionParameters &parameters() const noexcept { return parameters_; }
     [[nodiscard]] ReversionPrior prior(const HistoricalBarRequest &current) const;
@@ -69,7 +69,7 @@ struct ReversionDecision {
 class ReversionStrategy {
   public:
     explicit ReversionStrategy(ResearchInputMode mode = ResearchInputMode::legacy_complete,
-                               ReversionParameters parameters = {});
+                               ReversionParameters parameters = {}, PanelEvaluationAccess access = {});
     [[nodiscard]] ReversionDecision decide(const HistoricalBarRequest &session,
                                            std::span<const MinuteBar> completed,
                                            const ReversionHistory &history) const;

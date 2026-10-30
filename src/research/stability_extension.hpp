@@ -12,7 +12,7 @@ struct StabilityVariant {
 class StabilityExtensionStudy {
   public:
     StabilityExtensionStudy(const ExtensionStudyContract &contract, PanelInputPolicy policy,
-                            nlohmann::json accounting_actions);
+                            nlohmann::json accounting_actions, PanelEvaluationAccess access = {});
     ~StabilityExtensionStudy();
     [[nodiscard]] nlohmann::json plan() const;
     // One source session is loaded once; every variant sees its own prior state.

@@ -15,9 +15,11 @@ void equal(double a, double b) {
     }
 }
 } // namespace
-CostDelayStudy::CostDelayStudy(const ExtensionStudyContract &contract)
-    : costs_(
-          contract.document().at("reference_costs").at("per_side_basis_points").get<std::vector<double>>()),
+CostDelayStudy::CostDelayStudy(const ExtensionStudyContract &contract, PanelEvaluationAccess access)
+    : access_(std::move(access)), costs_(contract.document()
+                                             .at("reference_costs")
+                                             .at("per_side_basis_points")
+                                             .get<std::vector<double>>()),
       delays_(contract.document().at("reference_costs").at("delays_minutes").get<std::vector<int>>()) {
     if (costs_ != std::vector<double>{0, .5, 1, 2, 5} || delays_ != std::vector<int>{1, 2}) {
         throw std::invalid_argument("cost/delay grid differs from the registered comparison");
@@ -25,9 +27,10 @@ CostDelayStudy::CostDelayStudy(const ExtensionStudyContract &contract)
 }
 const std::vector<double> &CostDelayStudy::costs() const noexcept { return costs_; }
 const std::vector<int> &CostDelayStudy::delays() const noexcept { return delays_; }
-CostDelayPath CostDelayStudy::replay(const PanelPolicyReplay &policy, const HistoricalBarRequest &request,
+CostDelayPath CostDelayStudy::replay(const PanelPolicyReplay &policy,
+                                     const HistoricalBarRequest &request,
                                      std::span<const MinuteBar> bars, int delay) const {
-    require_panel_regular_session(request);
+    require_panel_regular_session(request, access_);
     if (std::find(delays_.begin(), delays_.end(), delay) == delays_.end() || policy.decisions.empty()) {
         throw std::invalid_argument("cost/delay replay requires registered delay and frozen decisions");
     }
@@ -52,7 +55,8 @@ CostDelayPath CostDelayStudy::replay(const PanelPolicyReplay &policy, const Hist
             continue;
         }
         const auto minute =
-            std::chrono::duration_cast<std::chrono::minutes>(decision.at + lag - request.start()).count();
+            std::chrono::duration_cast<std::chrono::minutes>(decision.at + lag - request.start())
+                .count();
         const auto *price = observed.at(static_cast<std::size_t>(minute));
         if (!price) {
             out.resolved = false;
@@ -92,7 +96,8 @@ CostDelayPath CostDelayStudy::replay(const PanelPolicyReplay &policy, const Hist
             notional += event.traded_notional_usd;
             paid += event.cost_usd;
         }
-        const auto terminal = account.value(out.trades.empty() ? 1 : out.trades.back().exit_reference_price);
+        const auto terminal =
+            account.value(out.trades.empty() ? 1 : out.trades.back().exit_reference_price);
         equal(terminal.equity_usd, static_cast<double>(net));
         if (terminal.shares != 0 || terminal.receivable_usd != 0) {
             throw std::logic_error("intraday cost reference retained overnight assets");
@@ -105,9 +110,11 @@ CostDelayPath CostDelayStudy::replay(const PanelPolicyReplay &policy, const Hist
 }
 std::vector<CostDelayPath> CostDelayStudy::evaluate(const PanelReplayDay &day,
                                                     const SessionDownload &session) const {
-    if (day.date >= "2024-01-01" || day.symbol != session.request.symbol() ||
+    access_.require_price(day.date);
+    if (day.symbol != session.request.symbol() ||
         day.date != format_utc_seconds(session.request.start()).substr(0, 10)) {
-        throw std::invalid_argument("cost/delay replay cannot mix instruments, dates or reserved inputs");
+        throw std::invalid_argument(
+            "cost/delay replay cannot mix instruments, dates or reserved inputs");
     }
     const std::set<std::string> expected{"momentum",
                                          "momentum_always_long",

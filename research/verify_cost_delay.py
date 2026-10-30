@@ -12,6 +12,7 @@ from pathlib import Path
 import zipfile
 
 from verify_historical_panel import PanelVerifier, require
+from evaluation_scope import scope_claim
 from verify_panel_replay import ReplayVerifier, clock, same, seconds
 
 
@@ -261,7 +262,8 @@ class Markup(HTMLParser):
 
 
 class CostDelayVerifier:
-    def __init__(self, directory):
+    def __init__(self, directory, scope=None):
+        self.scope = scope
         self.directory = Path(directory).resolve()
         summary_file = self.directory / "summary.json"
         require(
@@ -603,7 +605,6 @@ class CostDelayVerifier:
                 s[k]
                 for k in (
                     "signals_refitted_for_costs",
-                    "reserved_strategy_inputs_opened",
                     "network_requests",
                     "broker_events",
                     "shared_capital_replayed",
@@ -612,13 +613,14 @@ class CostDelayVerifier:
                     "simultaneous_inference_completed",
                 )
             )
+            and scope_claim(s, self.scope)
             and s["primary_reference_parity_passed"] is True
             and s["path_interpretation"]
             == "eligible_date_product_not_continuous_account",
             "Scope claims differ",
         )
         if not report_only:
-            replay = ReplayVerifier(self.directory)
+            replay = ReplayVerifier(self.directory, scope=self.scope)
             require(
                 len(s["artifacts"]) == 5
                 and {Path(r["path"]).stem for r in s["artifacts"]} == set(SYMBOLS),

@@ -20,15 +20,17 @@ struct CostDelayPath {
 // are distinct from the whole-share shared-capital/broker accounts.
 class CostDelayStudy {
   public:
-    explicit CostDelayStudy(const ExtensionStudyContract &contract);
+    explicit CostDelayStudy(const ExtensionStudyContract &contract, PanelEvaluationAccess access = {});
     [[nodiscard]] const std::vector<double> &costs() const noexcept;
     [[nodiscard]] const std::vector<int> &delays() const noexcept;
-    [[nodiscard]] CostDelayPath replay(const PanelPolicyReplay &policy, const HistoricalBarRequest &request,
+    [[nodiscard]] CostDelayPath replay(const PanelPolicyReplay &policy,
+                                       const HistoricalBarRequest &request,
                                        std::span<const MinuteBar> bars, int delay_minutes) const;
     [[nodiscard]] std::vector<CostDelayPath> evaluate(const PanelReplayDay &day,
                                                       const SessionDownload &session) const;
 
   private:
+    PanelEvaluationAccess access_;
     std::vector<double> costs_;
     std::vector<int> delays_;
 };

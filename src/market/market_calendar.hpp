@@ -55,4 +55,6 @@ class CalendarSession {
 // including Juneteenth from 2022 and the 2018/2025 mourning closures.
 [[nodiscard]] std::vector<CalendarSession> extension_calendar(const CalendarRange &range);
 
+[[nodiscard]] std::vector<CalendarSession> extension_calendar_years(int first, int last);
+
 } // namespace trading

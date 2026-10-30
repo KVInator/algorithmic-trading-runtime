@@ -185,8 +185,9 @@ before comparing these tables.
 The primary simultaneous block is 40; block 20 is the registered sensitivity.
 Both numerical families are available, with no undefined resamples, but the
 complete family's calendar coverage is inadequate. The following are provisional
-development bounds. Controlled calibration remains pending; the separate
-risk-matched assessment below does not confirm these relative claims:
+development bounds. The subsequent [M8 calibration](#m8-controlled-inference-qualification)
+records size distortion; the separate risk-matched assessment below does not
+confirm these relative claims:
 
 | Endpoint | Valid dates / 1,760 | Observed increment | Block-40 simultaneous lower bound | Material increment |
 | --- | --- | --- | --- | --- |
@@ -215,7 +216,7 @@ requirement. Stopped tails remain unavailable.
 
 No 2024 or 2025 strategy inputs were opened. The accepted primary export is
 retained alongside the completed secondary and matched assessment below.
-Controlled inference calibration remains M8.
+The subsequent M8 controlled calibration qualifies their inference interpretation below.
 
 ## Registered sensitivity cases
 
@@ -310,7 +311,7 @@ sixth endpoint carries the unchanged primary variance forecasts and future RV5
 losses: changing a capital allocation does not change a variance forecast.
 This is a secondary diagnostic family and does not replace the accepted primary
 family or select different hypotheses. Its provisional bounds do not authorize
-advancement. Controlled inference calibration remains M8.
+advancement. The M8 controlled calibration qualification below applies to their interpretation.
 
 The native constructed run uses 600 analytic exchange sessions, long enough to
 exercise both the original risk initialization and a later 252-return sizing
@@ -445,9 +446,9 @@ original forecast/target diagnostic and is not a return from scaled capital.
 
 M7 is complete as a research and implementation work package, with input-limited
 matched evidence and no strategy advancement. The primary specifications and
-failed v1 screens retain their outcomes. M8 must validate inference under
-controlled sampling, perform the registered 2024 evaluation and record the final
-executable specification before M9 opens 2025. M10 consolidates the publication.
+failed v1 screens retain their outcomes. M8 records controlled sampling failures
+and must complete the registered 2024 evaluation and final executable
+specification before M9 opens 2025. M10 consolidates the publication.
 
 
 ## M8 controlled inference qualification

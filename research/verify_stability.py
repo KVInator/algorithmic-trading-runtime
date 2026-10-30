@@ -436,8 +436,11 @@ def groups(series, dates):
     return output
 
 
+from evaluation_scope import scored, authorized, scope_claim
+
+
 class SavedSource:
-    def __init__(self, identity):
+    def __init__(self, identity, scope=None):
         self.directory = Path(identity["directory"])
         raw = (self.directory / "summary.json").read_bytes()
         require(sha(raw) == identity["summary_sha256"], "M6 summary changed")
@@ -448,8 +451,7 @@ class SavedSource:
             len(self.artifacts) == len(identity["artifacts"]), "M6 duplicate artifact"
         )
         require(
-            self.summary["network_requests"] == 0
-            and not self.summary["reserved_strategy_inputs_opened"],
+            self.summary["network_requests"] == 0 and scope_claim(self.summary, scope),
             "M6 scope differs",
         )
         require(
@@ -484,11 +486,11 @@ def empty_observation():
     return dict.fromkeys(FIELDS) | {"condition": "unavailable"}
 
 
-def intraday_observations(record):
+def intraday_observations(record, scope=None):
     """Decode primary intraday outcomes against the independent exchange clock."""
     primary = record["primary"]
     date = primary["date"]
-    require("2016-01-01" <= date < "2024-01-01", "Intraday input outside development")
+    require(authorized(date, scope), "Intraday input outside authorized window")
     sessions = PanelVerifier(Path(".")).calendar(date, date)
     require(len(sessions) == 1, "Intraday input is not an exchange session")
     observations = {policy: empty_observation() for policy in INTRADAY}
@@ -538,7 +540,8 @@ def intraday_observations(record):
 
 
 class StabilityVerifier:
-    def __init__(self, directory):
+    def __init__(self, directory, scope=None):
+        self.scope = scope
         self.directory = Path(directory).resolve()
         self.summary = decode((self.directory / "summary.json").read_bytes())
         self.artifacts = {a["path"]: a for a in self.summary["artifacts"]}
@@ -596,7 +599,7 @@ class StabilityVerifier:
 
     def verify_sources(self):
         costs, accounts = (
-            SavedSource(self.summary["sources"][key])
+            SavedSource(self.summary["sources"][key], self.scope)
             for key in ("cost_delay", "accounts")
         )
         require(
@@ -632,7 +635,12 @@ class StabilityVerifier:
         else:
             require(
                 all(
-                    source.summary["provenance"]["fixture"] == "analytic_panel_300"
+                    source.summary["provenance"]["fixture"]
+                    == (
+                        "analytic_evaluation_2022_2024"
+                        if self.scope
+                        else "analytic_panel_300"
+                    )
                     for source in (costs, accounts)
                 ),
                 "Unknown fixture",
@@ -662,7 +670,7 @@ class StabilityVerifier:
                 )
                 if p["date"] not in index:
                     continue
-                for policy, expected in intraday_observations(row).items():
+                for policy, expected in intraday_observations(row, self.scope).items():
                     actual = observed[f"intraday/{symbol}/{policy}"]["days"][
                         index[p["date"]]
                     ]
@@ -802,8 +810,8 @@ class StabilityVerifier:
             and s["network_requests"] == 0,
             "M7 identity differs",
         )
+        require(scope_claim(s, self.scope), "Primary scope differs")
         for key in (
-            "reserved_strategy_inputs_opened",
             "advancement_assessed",
             "secondary_variants_executed",
             "risk_matching_executed",
@@ -812,21 +820,24 @@ class StabilityVerifier:
             require(s[key] is False, f"Unexpected {key}")
         same(self.dates, sorted(set(self.dates)), "Calendar ordering")
         require(
-            all("2016-12-31" < d < "2024" for d in self.dates),
+            all(scored(d, self.scope) for d in self.dates),
             "Reserved/initialization input scored",
         )
         same(self.inputs["dates"], self.dates, "Inference dates")
         calendar = self.market["dates"]
         reference = [
             r["date"]
-            for r in PanelVerifier(Path(".")).calendar("2016-01-01", "2023-12-31")
+            for r in PanelVerifier(Path(".")).calendar(
+                self.scope.first if self.scope else "2016-01-01",
+                self.scope.last if self.scope else "2023-12-31",
+            )
         ]
-        if self.summary["evidence_origin"] == "synthetic":
+        if self.summary["evidence_origin"] == "synthetic" and self.scope is None:
             reference = reference[:300]
         same(calendar, reference, "Independent exchange-session calendar")
         require(
             calendar[-len(self.dates) :] == self.dates
-            and all("2016" <= d < "2024" for d in calendar)
+            and all(authorized(d, self.scope) for d in calendar)
             and sorted(set(calendar)) == calendar,
             "Market calendar differs",
         )
@@ -1017,7 +1028,16 @@ class StabilityVerifier:
         p = self.plan
         require(
             p["protocol_sha256"] == PROTOCOL
-            and p["stage"] == "M7_primary_diagnostics"
+            and p["stage"]
+            == (
+                "M7_primary_diagnostics"
+                if self.scope is None
+                else (
+                    "M8_primary_validation"
+                    if self.scope.year == 2024
+                    else "M9_primary_final"
+                )
+            )
             and p["primary_cost_bps"] == p["primary_delay_minutes"] == 1,
             "M7 plan differs",
         )
@@ -1033,7 +1053,12 @@ class StabilityVerifier:
             "inference_calibration_validated",
             "reserved_strategy_inputs_opened",
         ):
-            require(p[key] is False, "Plan stage differs")
+            expected = (
+                self.scope is not None and key == "reserved_strategy_inputs_opened"
+            )
+            require(p[key] is expected, "Plan stage differs")
+        if self.scope:
+            self.scope.check(p)
 
     def verify_plots(self):
         parser = PlotParser()

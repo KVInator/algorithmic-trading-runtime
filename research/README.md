@@ -162,3 +162,44 @@ the six-endpoint max-T family. Static report marks are checked against those
 results. Its shared `block_sampling.py` primitive also supplies the existing
 reversion oracle; production calculation remains C++. See
 [stability methods](../docs/stability.md) and [commands](../docs/running.md#primary-stability-and-uncertainty-m7).
+
+## Registered validation (M8)
+
+`inference_calibration` reuses the registered full-family kernel on ten controlled
+stationary Gaussian AR(1) scenarios. `validation_protocol.json` fixes outer trials,
+resampling, truth, mask, effect shifts and failure treatment. The independent
+oracle reconstructs every outer sample, estimate, studentizer, bound and aggregate,
+and fully replays first/last trials per case/block, forty full bootstrap references.
+Other native critical values are authenticated outputs, not independently rerun
+laws. Native sampling-index caching leaves every trial's moments and covariance
+independent. The shared deterministic normal generator preserves the existing
+reversion simulation mapping.
+
+Full GNU Release calibration has independent acceptance: 20,000 outer families,
+forty reference bootstrap laws and six semantic corruptions. Size excess appears
+in 19 of twenty cells. The [acceptance record](../docs/validation.md#controlled-calibration-acceptance-gnu-release)
+retains every cell and the verified native-coordinate SVG. The procedure stays
+fixed; supported inference claims are withheld. This is not Windows/provider
+2024 acceptance.
+
+`panel_evaluation` composes the existing primary, secondary, continuous risk and
+shared-capital engines. Its typed capability binds origin and year, while default
+readers retain their pre-2024 boundary. Provider validation requires the full
+independent calibration receipt. Features warm from 2016; 2024 economic accounts
+start fresh, and unit references start exactly 252 prior exchange sessions.
+Stopped ledgers never restart. All fourteen variants remain present without
+selection. The last forecast stays unavailable if its target would require 2025.
+
+The analytic check uses all 2022-2024 exchange sessions, the existing bar formula
+and four missing-minute faults, with QQQ cash events at source slots 268 and 600
+paid three sessions later. Both measurements and ledgers consume the declared
+actions. `verify_panel_evaluation.py` independently reconstructs sources, histories,
+Decimal fractional ledgers, integer shared accounts, sizing, concentration and
+joint inference under the same explicit cohort. Its parent report links four
+complete child reports rather than replacing their evidence with summary counts.
+
+A verified 2024 evaluation freezes a copy of the exact runner with source,
+registration, calibration and validation hashes. The explicit final branch is
+already included so the binary can be frozen before M9; it is not run during M8.
+Constructed receipts cannot authorize provider 2025 prices. See the [methods](../docs/validation.md)
+and [guarded M8 commands](../docs/running.md#integrated-validation-and-freeze-m8).

@@ -21,11 +21,13 @@ class RiskMatchWindow {
 };
 class IntradayAccountLedger {
   public:
+    explicit IntradayAccountLedger(PanelEvaluationAccess access = {}) : access_(std::move(access)) {}
     [[nodiscard]] nlohmann::json append(const PanelReplayDay &day, const SessionDownload &market,
                                         const PanelPolicyReplay *policy, bool ready,
                                         std::optional<double> scale);
 
   private:
+    PanelEvaluationAccess access_;
     LongCashAccount account_{100000};
     bool started_{}, held_{};
     std::string stopped_, previous_date_;

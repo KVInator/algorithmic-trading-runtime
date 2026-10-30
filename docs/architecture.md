@@ -101,3 +101,19 @@ Its separate manifest identifies source content, evidence and rendered outputs.
 The builder's medians, unit conversions and figures are display transformations,
 not another research/accounting implementation. Full run directories, build trees
 and private observations remain under ignored `scratch/`.
+
+## Integrated evaluation boundary
+
+`PanelEvaluation` composes the existing cost/delay, account, secondary/matched
+and primary-stability components. `PanelEvaluationAccess` carries calendar,
+origin, unit-reference start and calibration identity; `EvaluationAuthorization`
+issues later-period capabilities after checking receipts. Default readers and
+strategies stay pre-2024. Histories warm independently of new evaluation capital.
+The raw reader authenticates original registered observations under that scope.
+
+`InferenceCalibration` uses the existing `FullCalendarInference` kernel and shared
+deterministic normal generator. `InferenceDrawSchedule` caches only sampling
+indices and their identity; moments, HAC and max-T laws are recomputed per outer
+trial. Independent Python verification states its full-bootstrap reference subset
+and checks all outer arithmetic. The final executable freeze binds the same
+runner, source inventory and observed calibration limitations before M9.

@@ -99,8 +99,11 @@ class ExtensionFigures {
         h << "</table></details><p>Full-date resampling retains unavailable outcomes. The "
              "original primary QLIKE forecast diagnostic is carried unchanged in the secondary matched "
              "family; capital scaling does not alter a variance forecast. "
-             "Family bounds are provisional and coverage-qualified. No 2024 or 2025 strategy inputs "
-             "were opened.</p></section></main></html>";
+          << (s_.contains("evaluation_scope")
+                  ? "Family bounds are provisional and coverage-qualified. The parent report states the "
+                    "evaluation window and calibration limitations.</p></section></main></html>"
+                  : "Family bounds are provisional and coverage-qualified. No 2024 or 2025 strategy "
+                    "inputs were opened.</p></section></main></html>");
         return h.str();
     }
 
@@ -222,9 +225,9 @@ class ExtensionFigures {
 StabilityExtensionReport::StabilityExtensionReport(std::filesystem::path run_root, Json provenance,
                                                    std::filesystem::path dataset,
                                                    const ExtensionStudyContract &c, PanelInputPolicy p,
-                                                   Json actions)
+                                                   Json actions, PanelEvaluationAccess access)
     : directory_(create_unique_directory(run_root, "stability_extension")),
-      study_(c, std::move(p), std::move(actions)),
+      study_(c, std::move(p), std::move(actions), access),
       summary_{{"kind", "stability_extension_study"},
                {"schema_version", 1},
                {"provenance", std::move(provenance)},
@@ -236,12 +239,26 @@ StabilityExtensionReport::StabilityExtensionReport(std::filesystem::path run_roo
                {"build_configuration", TRADING_BUILD_CONFIGURATION},
                {"network_requests", 0},
                {"reserved_strategy_inputs_opened", false}} {
+    if (!access.development()) {
+        summary_["evaluation_scope"] = access.document();
+        summary_["validation_protocol_sha256"] = TRADING_VALIDATION_PROTOCOL_SHA256;
+        summary_["reserved_strategy_inputs_opened"] = true;
+        summary_["validation_strategy_inputs_opened"] = access.year() == 2024;
+        summary_["final_strategy_inputs_opened"] = access.year() == 2025;
+    }
     for (const auto &symbol : c.symbols()) {
         auto &stream = streams_[symbol];
         stream.exceptions(std::ios::failbit | std::ios::badbit);
         stream.open(directory_ / (symbol + ".jsonl"), std::ios::binary);
     }
-    write_new_text_file(directory_ / "plan.json", study_.plan().dump(2) + "\n");
+    auto plan = study_.plan();
+    if (!access.development()) {
+        plan["stage"] = access.year() == 2024 ? "M8_secondary_validation" : "M9_secondary_final";
+        plan["evaluation_scope"] = access.document();
+        plan["reserved_strategy_inputs_opened"] = true;
+        plan["validation_protocol_sha256"] = TRADING_VALIDATION_PROTOCOL_SHA256;
+    }
+    write_new_text_file(directory_ / "plan.json", plan.dump(2) + "\n");
 }
 const std::filesystem::path &StabilityExtensionReport::directory() const noexcept { return directory_; }
 void StabilityExtensionReport::append(std::span<const PanelReplayDay> d,

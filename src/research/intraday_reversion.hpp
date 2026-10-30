@@ -1,7 +1,7 @@
 #pragma once
 
-#include "session_download.hpp"
 #include "research_session.hpp"
+#include "session_download.hpp"
 
 #include <array>
 #include <cstddef>
@@ -26,21 +26,29 @@ struct OpeningAnchorResidual {
 // The opening anchor ends at 10:00. Five-minute closing observations end at
 // 10:00, 10:05, ..., 12:00. Only the exact completed 150-minute prefix is accepted.
 class OpeningAnchorMeasurement {
-public:
-    explicit OpeningAnchorMeasurement(ResearchInputMode mode = ResearchInputMode::legacy_complete, int observation_minutes = 5);
-    [[nodiscard]] std::chrono::sys_seconds decision_time(const HistoricalBarRequest& session) const;
-    [[nodiscard]] OpeningAnchorResidual measure(const HistoricalBarRequest& session,
-        std::span<const MinuteBar> completed) const;
-    [[nodiscard]] std::optional<OpeningAnchorResidual> observe(const HistoricalBarRequest& session,
-        std::span<const MinuteBar> completed) const;
-private:
+  public:
+    explicit OpeningAnchorMeasurement(ResearchInputMode mode = ResearchInputMode::legacy_complete,
+                                      int observation_minutes = 5, PanelEvaluationAccess access = {});
+    [[nodiscard]] std::chrono::sys_seconds decision_time(const HistoricalBarRequest &session) const;
+    [[nodiscard]] OpeningAnchorResidual measure(const HistoricalBarRequest &session,
+                                                std::span<const MinuteBar> completed) const;
+    [[nodiscard]] std::optional<OpeningAnchorResidual>
+    observe(const HistoricalBarRequest &session, std::span<const MinuteBar> completed) const;
+
+  private:
     ResearchInputMode mode_;
+    PanelEvaluationAccess access_;
     int observation_minutes_;
 };
 
 enum class ReversionFitStatus {
-    admissible, insufficient_pairs, singular_design, nonpositive_slope,
-    unit_root_boundary, nonstationary_slope, zero_innovation_variance
+    admissible,
+    insufficient_pairs,
+    singular_design,
+    nonpositive_slope,
+    unit_root_boundary,
+    nonstationary_slope,
+    zero_innovation_variance
 };
 [[nodiscard]] std::string_view name(ReversionFitStatus status);
 
@@ -60,12 +68,13 @@ struct PooledReversionFit {
 // no transition is constructed between sessions. OU interpretation is conditional
 // on an admissible positive sub-unit slope and nonzero innovation variance.
 class PooledReversionEstimator {
-public:
+  public:
     explicit PooledReversionEstimator(int observation_minutes = 5);
     [[nodiscard]] PooledReversionFit fit(std::span<const std::vector<double>> sequences) const;
-    [[nodiscard]] double expected_log_move(const PooledReversionFit& fit, double current,
-        double entry_delay_minutes, double holding_minutes) const;
-private:
+    [[nodiscard]] double expected_log_move(const PooledReversionFit &fit, double current,
+                                           double entry_delay_minutes, double holding_minutes) const;
+
+  private:
     int observation_minutes_;
 };
 

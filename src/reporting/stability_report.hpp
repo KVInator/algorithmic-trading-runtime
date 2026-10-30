@@ -7,7 +7,8 @@ class StabilityReport {
   public:
     [[nodiscard]] static std::filesystem::path
     write(const std::filesystem::path &directory, const StabilityStudy &study,
-          const StabilityInputs &inputs, nlohmann::json results, bool include_numerical_checks);
+          const StabilityInputs &inputs, nlohmann::json results, bool include_numerical_checks,
+          PanelEvaluationAccess access = {});
 };
 class StabilityDevelopment {
   public:

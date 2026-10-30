@@ -85,7 +85,8 @@ void RiskMatchWindow::commit(const std::string &date, std::optional<StabilityPai
 nlohmann::json IntradayAccountLedger::append(const PanelReplayDay &day, const SessionDownload &market,
                                              const PanelPolicyReplay *policy, bool ready,
                                              std::optional<double> scale) {
-    require(day.date < "2024-01-01" && market.request.symbol() == day.symbol &&
+    access_.require_price(day.date);
+    require(market.request.symbol() == day.symbol &&
                 (previous_date_.empty() || day.date > previous_date_),
             "intraday ledger calendar/identity differs");
     if (scale)
