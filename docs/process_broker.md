@@ -113,7 +113,7 @@ compact an active broker segment or run an autonomous exchange clock.
 3. Verify the actual printed directory:
 
 ```sh
-py -3 -B research/verify_process_broker.py scratch/runs/process_broker_0 --self-check
+py -3 -B scratch/reference_suite/research/verify_process_broker.py scratch/runs/process_broker_0 --self-check
 ```
 
 The twelve families cover process parity/framing; FIFO/fees/liquidity; DAY;

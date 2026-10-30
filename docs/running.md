@@ -1,8 +1,8 @@
 # Build and reproduction
 
 The native financial implementation is C++20. Python builds the applications,
-checks exported evidence independently and renders the publication. CMake and
-CTest are not used. Source-relative datasets, native objects and generated runs
+prepares issuer references and renders the publication. The independent financial
+suite is retained at its verified revision. CMake and CTest are not used. Source-relative datasets, native objects and generated runs
 remain under ignored `scratch/`.
 
 ## Windows
@@ -55,17 +55,17 @@ headers/libraries. Set `CXX` to a compiler executable when choosing Clang.
 ```sh
 python -B build.py --configuration Release
 scratch/native/Release/project_demo
-python -B research/verify_project_demo.py scratch/runs/project_demo_0
 ```
 
 Use the actual printed suffix. The full 144-case execution grid and 120-row
-benchmark are separate runnable workloads:
+benchmark are separate runnable workloads. Their verification commands require
+the pinned scientific checkout described below:
 
 ```sh
 scratch/native/Release/execution_measurement
-python -B research/verify_execution_measurement.py <printed-directory>
+python -B scratch/reference_suite/research/verify_execution_measurement.py <printed-directory>
 scratch/native/Release/runtime_benchmark
-python -B research/verify_runtime_benchmark.py <printed-directory>
+python -B scratch/reference_suite/research/verify_runtime_benchmark.py <printed-directory>
 ```
 
 `--target <name>` selects one application; `--jobs <count>` controls compilation
@@ -76,6 +76,22 @@ The default downloaded dependency remains under `scratch/dependencies/`.
 
 ## Scientific verification
 
+The current tree keeps the small publication checker. The full independent
+financial and build-discovery suite is preserved at the completed publication
+revision, before its removal from the active source tree. Check it out once:
+
+```powershell
+git worktree add --detach scratch/reference_suite 409508fe3e90550052dc691147ffe4834b13089a
+```
+
+The detached checkout shares Git history and contains committed source and
+curated evidence. Raw datasets and generated runs remain in the current workspace.
+Run its scripts from the current repository root, passing the
+actual output directory printed by the native application. The original report
+commands can alternatively be run inside that checkout with their required
+inputs and exact runner identities in place. Existing frozen 2025 verification
+uses the retained runner path recorded in its result.
+
 Run independent verification against the directory printed by the application.
 A successful check writes a receipt or compact review bundle. Historical
 verification requires the local raw archive; a saved HTML view or review ZIP is
@@ -84,14 +100,17 @@ Most verifiers use the Python standard library. The original reversion-study
 oracle additionally requires NumPy and `tzdata` on systems without IANA time zones.
 
 ```powershell
-py -3 -B research/verify_native_build.py
-py -3 -B research/verify_project_demo.py <demo-directory>
-py -3 -B research/verify_shared_capital.py <shared-capital-directory> --self-check
-py -3 -B research/verify_process_broker.py <process-broker-directory> --self-check
+py -3 -B scratch/reference_suite/research/verify_native_build.py
+py -3 -B scratch/reference_suite/research/verify_project_demo.py <demo-directory>
+py -3 -B scratch/reference_suite/research/verify_shared_capital.py <shared-capital-directory> --self-check
+py -3 -B scratch/reference_suite/research/verify_process_broker.py <process-broker-directory> --self-check
 py -3 -B research/verify_publication.py
 ```
 
 ## Supported entry points
+
+The scientific verifiers named below reside in `scratch/reference_suite/research`
+after the pinned checkout; they are not part of the native application build.
 
 Build a single application with `--target <name>`, or omit it to build all
 supported applications. Host-specific acquisition applications require Windows.
@@ -142,7 +161,7 @@ inputs. The action preparer retains original cached files.
 & .\scratch\native\Release\panel_acquire.exe
 py -3 -B research/prepare_panel_actions.py
 & .\scratch\native\Release\panel_finalize.exe
-py -3 -B research/verify_historical_panel.py scratch/datasets/extension_panel_2016_2025
+py -3 -B scratch/reference_suite/research/verify_historical_panel.py scratch/datasets/extension_panel_2016_2025
 ```
 
 The acquisition registration fixes 2016-2025. It does not authorize later-year
@@ -230,12 +249,17 @@ the registered statistical core is unchanged.
 
 These are reproduction steps, not actions required after accepted evaluation.
 Use actual printed directories. Verify before freezing the exact executable.
+For 2024 executable-identity checks, the pinned verifier looks under its own
+`scratch/native/Release` directory. Copy the exact evaluated `panel_evaluation`
+executable there before verification, retaining its platform filename. This is
+a byte-identical copy, not a rebuild. Final 2025 verification instead uses the
+actual frozen-runner path recorded in the result.
 
 ```powershell
 & .\scratch\native\Release\panel_evaluation.exe --validation <verified-calibration-directory>
-py -3 -B research/verify_panel_evaluation.py <validation-directory> --self-check
+py -3 -B scratch/reference_suite/research/verify_panel_evaluation.py <validation-directory> --self-check
 & .\scratch\native\Release\panel_evaluation.exe --freeze <validation-directory>
-py -3 -B research/verify_panel_evaluation.py <freeze-directory> --freeze
+py -3 -B scratch/reference_suite/research/verify_panel_evaluation.py <freeze-directory> --freeze
 ```
 
 ## Frozen final evaluation (M9)
@@ -245,9 +269,9 @@ and its verified replacement freeze, not a newly built executable. The corrected
 2024 output and original accepted freeze remain part of the maintenance lineage.
 
 ```powershell
-py -3 -B research/verify_panel_evaluation.py <freeze-directory> --freeze
+py -3 -B scratch/reference_suite/research/verify_panel_evaluation.py <freeze-directory> --freeze
 & <freeze-directory>\panel_evaluation.exe --final <freeze-directory>
-py -3 -B research/verify_panel_evaluation.py <final-directory> --self-check
+py -3 -B scratch/reference_suite/research/verify_panel_evaluation.py <final-directory> --self-check
 ```
 
 ### Cross-year payment-date maintenance

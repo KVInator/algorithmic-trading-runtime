@@ -197,7 +197,6 @@ OpenSSL development headers. The first build acquires pinned nlohmann/json
 ```powershell
 py -3 -B build.py --configuration Release --target project_demo
 & .\scratch\native\Release\project_demo.exe
-py -3 -B research/verify_project_demo.py <printed-directory>
 py -3 -B research/verify_publication.py
 ```
 
@@ -220,12 +219,15 @@ supported entry points, exact verification routes and publication commands.
 | `src/accounting`, `src/execution` | Fractional/whole-share ledgers, ownership, broker matching and recovery |
 | `src/market`, `src/alpaca`, `src/storage`, `src/platform` | Validated observations, archive identities and platform resources |
 | `src/reporting`, `apps` | Result-bound reports and thin application composition |
-| `research` | Frozen protocols, build-independent numerical oracles and one publication builder |
+| `research` | Frozen protocols, issuer-data preparation and one publication builder |
 | `docs` | Methods, curated source-bound tables, figures and standalone report |
 | `scratch` | Ignored datasets, builds, experiments and full run evidence |
 
-The engines have one authoritative C++ implementation. Independent Python
-oracles are deliberate verification models, not alternative application engines.
+The engines have one authoritative C++ implementation. The complete independent
+Python verification suite is retained at the [verified publication revision](https://github.com/KVInator/algorithmic-trading-runtime/tree/409508fe3e90550052dc691147ffe4834b13089a/research),
+with an explicit [checkout and execution route](docs/running.md#scientific-verification).
+The report's original scientific verification commands apply to that complete
+revision. The current tree retains only build, issuer-data and publication utilities.
 Pure formulas remain small functions; domain owners enforce state and resource
 invariants. The [architecture](docs/architecture.md),
 [study design](docs/extension_plan.md) and [evidence manifest](docs/evidence/manifest.json)

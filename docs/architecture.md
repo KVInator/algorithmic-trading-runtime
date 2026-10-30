@@ -3,8 +3,10 @@
 C++20 is authoritative for signals, statistical comparisons, fractional accounts,
 order transitions and broker matching. Application services compose these owners
 with result-bound reports; executable entry points select inputs and display
-status. Python provides build orchestration, issuer-source preparation,
-independent references and publication rendering.
+status. Python provides build orchestration, issuer-source preparation and publication
+rendering. Independent numerical references are preserved at the [verified
+publication revision](https://github.com/KVInator/algorithmic-trading-runtime/tree/409508fe3e90550052dc691147ffe4834b13089a/research);
+the [runbook](running.md#scientific-verification) restores that exact suite when needed.
 
 | Layer | Representative owners | Contract |
 | --- | --- | --- |
@@ -133,7 +135,8 @@ applications. Fresh independent acceptance covers the 259-check demo, the
 simulated build-driver discovery checks pass; they do not execute MSVC. Earlier
 Windows research and frozen-run acceptance retain their own source identities.
 Native financial, broker and application sources are unchanged by publication
-cleanup. Frozen protocols and the independent financial oracles remain intact.
+cleanup. Frozen protocols remain in the current tree; the complete independent
+financial oracles remain intact at the pinned verified publication revision.
 
 The publication uses Matplotlib 3.10.8 and ReportLab 4.4.9. Repeated rendering
 produces identical manifest hashes, including the binary PDF. All nineteen PDF

@@ -129,7 +129,7 @@ chronology and saved client cash, reservations and order state. No JavaScript or
 external assets are required.
 
 ```sh
-python -B research/verify_execution_measurement.py <printed-report-directory>
+python -B scratch/reference_suite/research/verify_execution_measurement.py <printed-report-directory>
 ```
 
 The independent verifier reimplements finite-budget matching and signed costs

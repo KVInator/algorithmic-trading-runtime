@@ -38,7 +38,7 @@ integer accounts and strategy directions and checks aligned/rounding parity.
 The combined verifier also checks the broker child:
 
 ```sh
-python -B research/verify_project_demo.py <printed-demo-directory>
+python -B scratch/reference_suite/research/verify_project_demo.py <printed-demo-directory>
 ```
 
 ## Bounded historical reference replay

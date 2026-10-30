@@ -96,5 +96,5 @@ are correctness mechanisms retained in the [runtime benchmarks](runtime_benchmar
 The final broker demonstration composes this owner with independent matching
 and account state, exposing raw messages beside saved client states. It includes
 partial fills, duplicate delivery, cancellation races and restart/reconciliation.
-Run `project_demo` and `research/verify_project_demo.py` for the combined evidence.
+Run `project_demo` and `scratch/reference_suite/research/verify_project_demo.py` for the combined evidence.
 The [runbook](running.md) gives build and reproduction commands.

@@ -102,7 +102,7 @@ The application prints its unique `scratch/runs/shared_capital_N` directory.
 Then run, using the actual suffix:
 
 ```sh
-py -3 -B research/verify_shared_capital.py scratch/runs/shared_capital_0 --self-check
+py -3 -B scratch/reference_suite/research/verify_shared_capital.py scratch/runs/shared_capital_0 --self-check
 ```
 
 The verifier writes `review.zip`, containing the manifest, interactive HTML and

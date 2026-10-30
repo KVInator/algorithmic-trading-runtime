@@ -75,7 +75,7 @@ an accepted terminal cancellation require investigation and are quarantined.
 
 The final `project_demo` exposes causal strategy and broker-state replays,
 including partial fills, cancellation, exact reservations, duplicate messages
-and interrupted paths. `research/verify_project_demo.py` independently checks
+and interrupted paths. `scratch/reference_suite/research/verify_project_demo.py` independently checks
 the saved accounting, message identities and paired recovery outcomes.
 
 The order owner retains in-memory history and copies state to validate atomic

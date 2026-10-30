@@ -116,7 +116,7 @@ Linux:
 ```sh
 python -B build.py --configuration Release --target runtime_benchmark
 scratch/native/Release/runtime_benchmark
-python -B research/verify_runtime_benchmark.py scratch/runs/runtime_benchmark_0
+python -B scratch/reference_suite/research/verify_runtime_benchmark.py scratch/runs/runtime_benchmark_0
 ```
 
 Use the directory actually printed; each run receives a new suffix.

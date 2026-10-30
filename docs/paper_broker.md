@@ -104,7 +104,7 @@ Uncertain writer operations close routing; evidence is never overwritten.
 Independent verification:
 
 ```sh
-python -B research/verify_paper_broker.py <printed-report-directory>
+python -B scratch/reference_suite/research/verify_paper_broker.py <printed-report-directory>
 ```
 
 The verifier checks artifact/capture/journal chains and independently reconstructs

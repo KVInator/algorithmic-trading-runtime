@@ -46,7 +46,7 @@ No source dataset or previous report is overwritten. No 2024-2025 price or
 performance access is authorized. Historical minute-open proxies do not establish
 broker fills, bid/ask liquidity or real-time SIP data availability.
 
-`python research/verify_reversion_study.py <report-directory>` checks the saved
+`python scratch/reference_suite/research/verify_reversion_study.py <report-directory>` checks the saved
 artifacts through an independent implementation. It uses 60-digit Decimal OLS
 for rolling point fits, independent fractional account arithmetic and an explicit
 MT19937-64 implementation with rejection/modulo block sampling. NumPy handles
